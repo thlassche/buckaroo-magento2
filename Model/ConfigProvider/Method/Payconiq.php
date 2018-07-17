@@ -67,8 +67,10 @@ class Payconiq extends AbstractConfigProvider
     const XPATH_ALLOW_SPECIFIC                  = 'payment/tig_buckaroo_payconiq/allowspecific';
     const XPATH_SPECIFIC_COUNTRY                = 'payment/tig_buckaroo_payconiq/specificcountry';
 
+    const PAYCONIC_REDIRECT_URL = '/buckaroo/payconiq/pay';
+
     /**
-     * @return array|void
+     * @return array
      */
     public function getConfig()
     {
@@ -80,6 +82,7 @@ class Payconiq extends AbstractConfigProvider
                     'payconiq' => [
                         'paymentFeeLabel' => $paymentFeeLabel,
                         'allowedCurrencies' => $this->getAllowedCurrencies(),
+                        'redirecturl' => self::PAYCONIC_REDIRECT_URL
                     ],
                 ],
             ],

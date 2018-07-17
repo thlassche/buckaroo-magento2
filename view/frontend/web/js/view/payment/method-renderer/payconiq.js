@@ -45,7 +45,8 @@ define(
         'TIG_Buckaroo/js/action/place-order',
         'ko',
         'Magento_Checkout/js/checkout-data',
-        'Magento_Checkout/js/action/select-payment-method'
+        'Magento_Checkout/js/action/select-payment-method',
+        'mageUtils',
     ],
     function (
         $,
@@ -54,7 +55,8 @@ define(
         placeOrderAction,
         ko,
         checkoutData,
-        selectPaymentMethodAction
+        selectPaymentMethodAction,
+        utils
     ) {
         'use strict';
 
@@ -111,7 +113,13 @@ define(
                     var response = window.checkoutConfig.payment.buckaroo.response;
                     response = $.parseJSON(response);
                     if (response.RequiredAction !== undefined && response.RequiredAction.RedirectURL !== undefined) {
-                        window.location.replace(response.RequiredAction.RedirectURL);
+                        var data =  {};
+                        data['transaction_key'] = response.key;
+
+                        utils.submit({
+                            url: window.checkoutConfig.payment.buckaroo.payconiq.redirecturl,
+                            data: response
+                        });
                     }
                 },
 

@@ -1,0 +1,14 @@
+<div id="payconiqQr"></div>
+
+<script>
+require(['jquery'], function ($) {
+    $(function() {
+        window.$ = $;
+        $('head').append('<script src="//checkout.buckaroo.nl/api/buckaroosdk/script"/>');
+    });
+
+    $(window).bind("load", function() {
+        BuckarooSdk.Payconiq.initiate("#payconiqQr", "<?php echo $this->getTransactionKey(); ?>");
+    });
+});
+</script>
