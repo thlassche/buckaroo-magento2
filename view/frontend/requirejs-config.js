@@ -1,5 +1,4 @@
-<?xml version="1.0"?>
-<!--
+/**
  *
  *          ..::..
  *     ..::::::::::::..
@@ -28,15 +27,16 @@
  *
  * @copyright   Copyright (c) Total Internet Group B.V. https://tig.nl/copyright
  * @license     http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US
--->
-<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" layout="1column" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
-    <head>
-        <css src="TIG_Buckaroo::css/styles.css" />
-    </head>
-
-    <body>
-        <referenceContainer name="content">
-            <block class="TIG\Buckaroo\Block\Checkout\Payconiq\Pay" name="tig_buckaroo.checkout.payconic_pay" template="TIG_Buckaroo::checkout/payconiq/pay.phtml" cacheable="false" />
-        </referenceContainer>
-    </body>
-</page>
+ */
+var config = {
+    map: {
+        '*': {
+            "BuckarooPayconiqSDK": "//checkout.buckaroo.nl/api/buckaroosdk/script"
+        }
+    },
+    shim: {
+        'BuckarooPayconiqSDK': {
+            deps: ['jquery']
+        }
+    }
+};
