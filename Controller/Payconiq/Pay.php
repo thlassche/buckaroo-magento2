@@ -38,7 +38,7 @@ use Magento\Framework\View\Result\PageFactory;
 
 class Pay extends Action
 {
-    /** @var  Page */
+    /** @var  PageFactory */
     private $resultPageFactory;
 
     /**
