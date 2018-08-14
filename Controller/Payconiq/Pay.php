@@ -38,7 +38,7 @@ use Magento\Framework\View\Result\PageFactory;
 
 class Pay extends Action
 {
-    /** @var  Page */
+    /** @var  PageFactory */
     private $resultPageFactory;
 
     /**
@@ -58,7 +58,28 @@ class Pay extends Action
      */
     public function execute()
     {
+        $canShowPage = $this->canShowPage();
+
+        if (!$canShowPage) {
+            $this->_forward('defaultNoRoute');
+            return;
+        }
+
         $resultPage = $this->resultPageFactory->create();
         return $resultPage;
+    }
+
+    /**
+     * @return bool
+     */
+    private function canShowPage()
+    {
+        $key = $this->getRequest()->getParam('Key');
+
+        if (empty($key) || strlen($key) <= 0) {
+            return false;
+        }
+
+        return true;
     }
 }
