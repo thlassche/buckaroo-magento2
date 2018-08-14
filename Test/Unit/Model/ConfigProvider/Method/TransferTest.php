@@ -85,7 +85,8 @@ class TransferTest extends \TIG\Buckaroo\Test\BaseTest
             ->shouldReceive('getValue')
             ->with(
                 Transfer::XPATH_TRANSFER_PAYMENT_FEE,
-                ScopeInterface::SCOPE_STORE
+                ScopeInterface::SCOPE_STORE,
+                null
             )
             ->andReturn($value);
 

@@ -135,11 +135,12 @@ class IdealProcessing extends AbstractConfigProvider
     /**
      * {@inheritdoc}
      */
-    public function getPaymentFee()
+    public function getPaymentFee($storeId = null)
     {
         $paymentFee = $this->scopeConfig->getValue(
             self::XPATH_IDEALPROCESSING_PAYMENT_FEE,
-            ScopeInterface::SCOPE_STORE
+            ScopeInterface::SCOPE_STORE,
+            $storeId
         );
 
         return $paymentFee ? $paymentFee : false;
