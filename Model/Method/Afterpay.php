@@ -43,6 +43,7 @@ use Magento\Catalog\Model\Product\Type;
 use Magento\Sales\Api\Data\CreditmemoInterface;
 use Magento\Sales\Api\Data\InvoiceInterface;
 use Magento\Sales\Api\Data\OrderInterface;
+use TIG\Buckaroo\Service\Software\Data as SoftwareData;
 
 class Afterpay extends AbstractMethod
 {
@@ -150,6 +151,9 @@ class Afterpay extends AbstractMethod
     /** @var \TIG\Buckaroo\Model\ConfigProvider\BuckarooFee */
     protected $configProviderBuckarooFee;
 
+    /** @var SoftwareData */
+    private $softwareData;
+
     /**
      * @param \Magento\Framework\ObjectManagerInterface               $objectManager
      * @param \Magento\Framework\Model\Context                        $context
@@ -161,6 +165,7 @@ class Afterpay extends AbstractMethod
      * @param \Magento\Payment\Model\Method\Logger                    $logger
      * @param \Magento\Developer\Helper\Data                          $developmentHelper
      * @param \TIG\Buckaroo\Model\ConfigProvider\BuckarooFee          $configProviderBuckarooFee
+     * @param SoftwareData                                            $softwareData
      * @param \Magento\Framework\Model\ResourceModel\AbstractResource $resource
      * @param \Magento\Framework\Data\Collection\AbstractDb           $resourceCollection
      * @param \TIG\Buckaroo\Gateway\GatewayInterface                  $gateway
@@ -185,6 +190,7 @@ class Afterpay extends AbstractMethod
         \Magento\Payment\Model\Method\Logger $logger,
         \Magento\Developer\Helper\Data $developmentHelper,
         \TIG\Buckaroo\Model\ConfigProvider\BuckarooFee $configProviderBuckarooFee,
+        SoftwareData $softwareData,
         \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
         \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
         \TIG\Buckaroo\Gateway\GatewayInterface $gateway = null,
@@ -223,6 +229,7 @@ class Afterpay extends AbstractMethod
         );
 
         $this->configProviderBuckarooFee = $configProviderBuckarooFee;
+        $this->softwareData = $softwareData;
     }
 
     /**
@@ -957,25 +964,47 @@ class Afterpay extends AbstractMethod
      */
     public function getDiscountLine($latestKey, $payment)
     {
-        /**
-         * @var \Magento\Sales\Model\Order $order
-         */
-        $order      = $payment->getOrder();
-
         $article = [];
+        $discount = $this->getDiscountAmount($payment);
 
-        if ($order->getDiscountAmount() < 0) {
-            $article = $this->getArticleArrayLine(
-                $latestKey,
-                'Korting',
-                1,
-                1,
-                number_format($order->getDiscountAmount(), 2),
-                4
-            );
+        if ($discount >= 0) {
+            return $article;
         }
 
+        $article = $this->getArticleArrayLine(
+            $latestKey,
+            'Korting',
+            1,
+            1,
+            round($discount, 2),
+            4
+        );
+
         return $article;
+    }
+
+    /**
+     * @param \Magento\Sales\Api\Data\OrderPaymentInterface|\Magento\Payment\Model\InfoInterface $payment
+     *
+     * @return float|int
+     */
+    private function getDiscountAmount($payment)
+    {
+        /** @var \Magento\Sales\Model\Order $order */
+        $order = $payment->getOrder();
+
+        $discount = 0;
+        $edition = $this->softwareData->getProductMetaData()->getEdition();
+
+        if ($order->getDiscountAmount() < 0) {
+            $discount -= abs((double)$order->getDiscountAmount());
+        }
+
+        if ($edition == 'Enterprise' && $order->getCustomerBalanceAmount() > 0) {
+            $discount -= abs((double)$order->getCustomerBalanceAmount());
+        }
+
+        return $discount;
     }
 
     /**
