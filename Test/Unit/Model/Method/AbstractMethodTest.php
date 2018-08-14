@@ -1179,39 +1179,91 @@ class AbstractMethodTest extends \TIG\Buckaroo\Test\BaseTest
         ];
     }
 
-    public function testAddExtraFields()
+    public function addExtraFieldsProvider()
     {
-        $testCode = 'testCode';
-        $testValue = 'testValue';
-
-        $params = [
-            'creditmemo' => [
-                $testCode => $testValue
-            ],
-        ];
-
-        $extraFields = [
-            [
-                'code' => $testCode,
-            ],
-        ];
-
-        $expectedServices = [
-            'RequestParameter' => [
+        return [
+            'with creditmemo params' => [
                 [
-                    '_' => $testValue,
-                    'Name' => $testCode,
+                    'creditmemo' => ['code-1' => 'value-2']
                 ],
+                [
+                    ['code' => 'code-1']
+                ],
+                [
+                    'RequestParameter' => [
+                        [
+                            '_' => 'value-2',
+                            'Name' => 'code-1',
+                        ],
+                    ],
+                ]
             ],
+            'creditmemo params no value' => [
+                [
+                    'creditmemo' => ['TIG_code' => null]
+                ],
+                [
+                    ['code' => 'TIG_code']
+                ],
+                [
+                    'RequestParameter' => [
+                        [
+                            '_' => '',
+                            'Name' => 'TIG_code',
+                        ],
+                    ],
+                ]
+            ],
+            'creditmemo params no code' => [
+                [
+                    'creditmemo' => []
+                ],
+                [
+                    ['code' => 'TIG_code']
+                ],
+                []
+            ],
+            'no creditmemo params' => [
+                [
+                    'transaction' => ['123qwerty456']
+                ],
+                [
+                    ['code' => 'TIG_code']
+                ],
+                []
+            ],
+            'no params at all' => [
+                [],
+                [
+                    ['code' => 'TIG_code']
+                ],
+                []
+            ],
+            'no extra fields' => [
+                [
+                    'creditmemo' => ['refund_code' => '123']
+                ],
+                [],
+                []
+            ]
         ];
+    }
 
+    /**
+     * @param $params
+     * @param $extraFields
+     * @param $expected
+     *
+     * @dataProvider addExtraFieldsProvider
+     */
+    public function testAddExtraFields($params, $extraFields, $expected)
+    {
         $this->request->shouldReceive('getParams')->once()->andReturn($params);
         $this->refundFieldsFactory->shouldReceive('get')
             ->with($this->object->getCode())
-            ->once()
             ->andReturn($extraFields);
 
-        $this->assertEquals($expectedServices, $this->object->addExtraFields($this->object->getCode()));
+        $this->assertEquals($expected, $this->object->addExtraFields($this->object->getCode()));
     }
 
     public function testCreateCreditNoteRequest()

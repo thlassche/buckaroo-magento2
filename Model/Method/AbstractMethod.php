@@ -1154,23 +1154,28 @@ abstract class AbstractMethod extends \Magento\Payment\Model\Method\AbstractMeth
     public function addExtraFields($paymentMethodCode)
     {
         $requestParams = $this->request->getParams();
-        $creditMemoParams = $requestParams['creditmemo'];
+        $services = [];
 
+        if (empty($requestParams['creditmemo'])) {
+            return $services;
+        }
+
+        $creditMemoParams = $requestParams['creditmemo'];
         $extraFields = $this->refundFieldsFactory->get($paymentMethodCode);
 
-        $services = [];
+        if (empty($extraFields)) {
+            return $services;
+        }
 
         /**
          * If extra fields are found, attach these as 'RequestParameter' to the services.
          */
-        if (!empty($extraFields)) {
-            foreach ($extraFields as $extraField) {
-                $code = $extraField['code'];
-                $services['RequestParameter'][] = [
-                    '_' => "$creditMemoParams[$code]",
-                    'Name' => $code,
-                ];
-            }
+        foreach ($extraFields as $extraField) {
+            $code = $extraField['code'];
+            $services['RequestParameter'][] = [
+                '_' => "$creditMemoParams[$code]",
+                'Name' => $code,
+            ];
         }
 
         return $services;
