@@ -192,6 +192,10 @@
                     <item name="type" xsi:type="string">paypal</item>
                     <item name="model" xsi:type="string">TIG\Buckaroo\Model\ConfigProvider\Method\Paypal</item>
                 </item>
+                <item name="payconiq" xsi:type="array">
+                    <item name="type" xsi:type="string">payconiq</item>
+                    <item name="model" xsi:type="string">TIG\Buckaroo\Model\ConfigProvider\Method\Payconiq</item>
+                </item>
                 <item name="sepadirectdebit" xsi:type="array">
                     <item name="type" xsi:type="string">sepadirectdebit</item>
                     <item name="model" xsi:type="string">TIG\Buckaroo\Model\ConfigProvider\Method\SepaDirectDebit</item>

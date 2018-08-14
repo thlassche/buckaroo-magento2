@@ -58,6 +58,9 @@
         <method name="tig_buckaroo_paypal">
             <allow_multiple_address>0</allow_multiple_address>
         </method>
+        <method name="tig_buckaroo_payconiq">
+            <allow_multiple_address>0</allow_multiple_address>
+        </method>
         <method name="tig_buckaroo_creditcard">
             <allow_multiple_address>0</allow_multiple_address>
         </method>
