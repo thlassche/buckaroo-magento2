@@ -948,7 +948,7 @@ abstract class AbstractMethod extends \Magento\Payment\Model\Method\AbstractMeth
         $payment->setAdditionalInformation('voided_by_buckaroo', true);
 
         // SET REGISTRY BUCKAROO REDIRECT
-        $this->_registry->register('buckaroo_response', $response);
+        $this->addToRegistry('buckaroo_response', $response);
 
         $this->afterVoid($payment, $response);
 
@@ -982,6 +982,25 @@ abstract class AbstractMethod extends \Magento\Payment\Model\Method\AbstractMeth
         }
 
         return $response;
+    }
+
+    /**
+     * @param string $key
+     * @param        $value
+     */
+    private function addToRegistry($key, $value)
+    {
+        // if the key doesn't exist or is empty, the data can be directly added and registered
+        if (!$this->_registry->registry($key)) {
+            $this->_registry->register($key, [$value]);
+            return;
+        }
+
+        $registryValue = $this->_registry->registry($key);
+        $registryValue[] = $value;
+
+        $this->_registry->unregister($key);
+        $this->_registry->register($key, $registryValue);
     }
 
     /**

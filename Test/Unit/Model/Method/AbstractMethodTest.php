@@ -1286,4 +1286,72 @@ class AbstractMethodTest extends \TIG\Buckaroo\Test\BaseTest
         $result = $this->object->createCreditNoteRequest($infoInstanceMock);
         $this->assertInstanceOf(AbstractMethodMock::class, $result);
     }
+
+    public function addToRegistryProvider()
+    {
+        return [
+            'single data, empty registry' => [
+                ['some data'],
+                null,
+                ['some data']
+            ],
+            'multiple data, empty registry' => [
+                ['string data', array('array data'), 12345],
+                null,
+                ['string data', array('array data'), 12345]
+            ],
+            'no data, empty registry' => [
+                [],
+                null,
+                null
+            ],
+            'null data, empty registry' => [
+                [null],
+                null,
+                [null]
+            ],
+            'single data, filled registry' => [
+                ['some data'],
+                ['existing data'],
+                ['existing data', 'some data']
+            ],
+            'multiple data, filled registry' => [
+                ['string data', array('array data'), 12345],
+                [987258, (Object)array('existing array')],
+                [987258, (Object)array('existing array'), 'string data', array('array data'), 12345]
+            ],
+            'no data, filled registry' => [
+                [],
+                [987258, 'existing data', (Object)array('existing array')],
+                [987258, 'existing data', (Object)array('existing array')]
+            ],
+            'null data, filled registry' => [
+                [null],
+                ['tig 123'],
+                ['tig 123', null]
+            ],
+        ];
+    }
+
+    /**
+     * @param $newData
+     * @param $registryData
+     * @param $expected
+     *
+     * @dataProvider addToRegistryProvider
+     */
+    public function testAddToRegistry($newData, $registryData, $expected)
+    {
+        $registryMock = $this->getFakeMock(Registry::class)->setMethods(null)->getMock();
+        $registryMock->register('tig_registry_key', $registryData);
+
+        $instance = $this->getInstance(['registry' => $registryMock]);
+
+        foreach ($newData as $data) {
+            $this->invokeArgs('addToRegistry', ['tig_registry_key', $data], $instance);
+        }
+
+        $result = $registryMock->registry('tig_registry_key');
+        $this->assertEquals($expected, $result);
+    }
 }
