@@ -86,7 +86,7 @@ class Cancel
 
         $this->updateStatus($order);
 
-        $this->cancelPayment($transaction);
+//        $this->cancelPayment($transaction);
     }
 
     /**
