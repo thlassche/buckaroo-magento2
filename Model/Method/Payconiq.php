@@ -183,6 +183,27 @@ class Payconiq extends AbstractMethod
      */
     public function getVoidTransactionBuilder($payment)
     {
-        return true;
+        $transactionBuilder = $this->transactionBuilderFactory->get('order');
+        $originalTrxKey = $payment->getAdditionalInformation(self::BUCKAROO_ORIGINAL_TRANSACTION_KEY_KEY);
+        $parentTrxKey = $payment->getParentTransactionId();
+
+        if ($parentTrxKey && strlen($parentTrxKey) > 0 && $parentTrxKey != $originalTrxKey) {
+            $originalTrxKey = $parentTrxKey;
+        }
+
+        $services = [
+            'Name'    => 'payconiq',
+            'Action'  => 'CancelTransaction',
+            'Version' => 1,
+        ];
+
+        $transactionBuilder->setOrder($payment->getOrder())
+            ->setAmount(0)
+            ->setType('void')
+//            ->setServices($services)
+            ->setMethod('CancelTransaction')
+            ->setOriginalTransactionKey($originalTrxKey);
+
+        return $transactionBuilder;
     }
 }

@@ -37,17 +37,18 @@ use Magento\Framework\App\Action\Context;
 use Magento\Framework\App\ResponseInterface;
 use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Sales\Api\Data\TransactionInterface;
 use Magento\Sales\Api\Data\TransactionSearchResultInterface;
 use Magento\Sales\Api\TransactionRepositoryInterface;
-use Magento\Sales\Model\Order;
+use Magento\Sales\Model\Order\Payment\Transaction;
 use TIG\Buckaroo\Model\ConfigProvider\Account;
-use TIG\Buckaroo\Service\Sales\Order\Cancel as OrderCancel;
+use TIG\Buckaroo\Service\Sales\Transaction\Cancel as TransactionCancel;
 use TIG\Buckaroo\Service\Sales\Quote\Recreate as QuoteRecreate;
 
 class Process extends Action
 {
-    /** @var Order */
-    private $order;
+    /** @var null|Transaction */
+    private $transaction = null;
 
     /** @var SearchCriteriaBuilder */
     private $searchCriteriaBuilder;
@@ -57,38 +58,36 @@ class Process extends Action
 
     /** @var Account */
     private $account;
-    /**
-     * @var OrderCancel
-     */
-    private $orderCancel;
-    /**
-     * @var QuoteRecreate
-     */
+
+    /** @var TransactionCancel */
+    private $transactionCancel;
+
+    /** @var QuoteRecreate */
     private $quoteRecreate;
 
     /**
-     * @param Context                        $context
-     * @param SearchCriteriaBuilder          $searchCriteriaBuilder
-     * @param TransactionRepositoryInterface $transactionRepository
-     * @param Account                        $account
-     * @param OrderCancel                    $orderCancel
-     * @param QuoteRecreate                  $quoteRecreate
+     * @param Context                         $context
+     * @param SearchCriteriaBuilder           $searchCriteriaBuilder
+     * @param TransactionRepositoryInterface  $transactionRepository
+     * @param Account                         $account
+     * @param TransactionCancel               $transactionCancel
+     * @param QuoteRecreate                   $quoteRecreate
      */
     public function __construct(
         Context $context,
         SearchCriteriaBuilder $searchCriteriaBuilder,
         TransactionRepositoryInterface $transactionRepository,
         Account $account,
-        OrderCancel $orderCancel,
+        TransactionCancel $transactionCancel,
         QuoteRecreate $quoteRecreate
     ) {
         parent::__construct($context);
 
-        $this->searchCriteriaBuilder = $searchCriteriaBuilder;
-        $this->transactionRepository = $transactionRepository;
-        $this->account = $account;
-        $this->orderCancel = $orderCancel;
-        $this->quoteRecreate = $quoteRecreate;
+        $this->searchCriteriaBuilder  = $searchCriteriaBuilder;
+        $this->transactionRepository  = $transactionRepository;
+        $this->account                = $account;
+        $this->transactionCancel      = $transactionCancel;
+        $this->quoteRecreate          = $quoteRecreate;
     }
 
     /**
@@ -103,8 +102,9 @@ class Process extends Action
             return;
         }
 
-        $order = $this->getOrder();
-        $this->orderCancel->cancel($order);
+        $transaction = $this->getTransaction();
+        $order = $transaction->getOrder();
+        $this->transactionCancel->cancel($transaction);
         $this->quoteRecreate->recreate($order);
 
         $cancelledErrorMessage = __(
@@ -133,26 +133,25 @@ class Process extends Action
     }
 
     /**
-     * @return Order
+     * @return TransactionInterface|Transaction
      * @throws \TIG\Buckaroo\Exception
      */
-    private function getOrder()
+    private function getTransaction()
     {
-        if ($this->order != null) {
-            return $this->order;
+        if ($this->transaction != null) {
+            return $this->transaction;
         }
 
         $list = $this->getList();
 
         if ($list->getTotalCount() <= 0) {
-            throw new \TIG\Buckaroo\Exception(__('There was no order found by transaction Id'));
+            throw new \TIG\Buckaroo\Exception(__('There was no transaction found by transaction Id'));
         }
 
         $items = $list->getItems();
-        $transaction = array_shift($items);
-        $this->order = $transaction->getOrder();
+        $this->transaction = array_shift($items);
 
-        return $this->order;
+        return $this->transaction;
     }
 
     /**
@@ -164,7 +163,7 @@ class Process extends Action
         $transactionKey = $this->getTransactionKey();
 
         if (!$transactionKey) {
-            throw new \TIG\Buckaroo\Exception(__('There was no order found by transaction Id'));
+            throw new \TIG\Buckaroo\Exception(__('There was no transaction found by transaction Id'));
         }
 
         $searchCriteria = $this->searchCriteriaBuilder->addFilter('txn_id', $transactionKey);

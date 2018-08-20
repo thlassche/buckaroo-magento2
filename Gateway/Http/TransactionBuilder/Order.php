@@ -171,6 +171,11 @@ class Order extends AbstractTransactionBuilder
      */
     private function filterBody($body)
     {
+        if ($this->getMethod() == 'CancelTransaction') {
+            $body['TransactionKey'] = ['Key' => $body['OriginalTransactionKey']];
+            unset($body['OriginalTransactionKey']);
+        }
+
         $services = $this->getServices();
 
         if (!isset($services['Name']) || !isset($services['Action'])) {

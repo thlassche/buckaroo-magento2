@@ -29,11 +29,15 @@
  * @copyright   Copyright (c) Total Internet Group B.V. https://tig.nl/copyright
  * @license     http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US
  */
-namespace TIG\Buckaroo\Service\Sales\Order;
+namespace TIG\Buckaroo\Service\Sales\Transaction;
 
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Sales\Api\Data\OrderPaymentInterface;
+use Magento\Sales\Api\Data\TransactionInterface;
+use Magento\Sales\Api\OrderPaymentRepositoryInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Payment;
+use Magento\Sales\Model\Order\Payment\Transaction;
 use TIG\Buckaroo\Model\ConfigProvider\Account;
 use TIG\Buckaroo\Model\OrderStatusFactory;
 
@@ -42,37 +46,47 @@ class Cancel
     /** @var Account */
     private $account;
 
+    /** @var OrderPaymentRepositoryInterface */
+    private $orderPaymentRepository;
+
     /** @var OrderStatusFactory */
     private $orderStatusFactory;
 
     /**
-     * @param OrderStatusFactory $orderStatusFactory
-     * @param Account            $account
+     * @param OrderStatusFactory              $orderStatusFactory
+     * @param OrderPaymentRepositoryInterface $orderPaymentRepository
+     * @param Account                         $account
      */
     public function __construct(
         OrderStatusFactory $orderStatusFactory,
+        OrderPaymentRepositoryInterface $orderPaymentRepository,
         Account $account
     ) {
         $this->orderStatusFactory = $orderStatusFactory;
+        $this->orderPaymentRepository = $orderPaymentRepository;
         $this->account = $account;
     }
 
     /**
-     * @param Order $order
+     * @param TransactionInterface|Transaction $transaction
      *
      * @throws \Exception
      * @throws LocalizedException
      */
-    public function cancel($order)
+    public function cancel($transaction)
     {
+        $order = $transaction->getOrder();
+
         $store = $order->getStore();
         $cancelOnFailed = $this->account->getCancelOnFailed($store);
 
         if ($cancelOnFailed && $order->canCancel()) {
-            $this->performCancel($order);
+            $this->cancelOrder($order);
         }
 
         $this->updateStatus($order);
+
+        $this->cancelPayment($transaction);
     }
 
     /**
@@ -81,7 +95,7 @@ class Cancel
      * @throws \Exception
      * @throws LocalizedException
      */
-    private function performCancel($order)
+    private function cancelOrder($order)
     {
         /** @var Payment $payment */
         $payment = $order->getPayment();
@@ -111,5 +125,17 @@ class Cancel
 
         $order->addStatusHistoryComment($comment, $newStatus);
         $order->save();
+    }
+
+    /**
+     * @param TransactionInterface|Transaction $transaction
+     *
+     * @throws LocalizedException
+     */
+    private function cancelPayment($transaction)
+    {
+        /** @var OrderPaymentInterface|Payment $payment */
+        $payment = $this->orderPaymentRepository->get($transaction->getPaymentId());
+        $payment->getMethodInstance()->cancel($payment);
     }
 }
