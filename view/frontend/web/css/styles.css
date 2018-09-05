@@ -356,9 +356,15 @@
 }
 
 /* ======================= Payconiq ======================== */
-#tig_buckaroo_payconiq_qr {
+#tig_buckaroo_payconiq_container {
     position: relative;
+    text-align: center;
     z-index: 150;
+}
+
+#tig_buckaroo_payconiq_items {
+    display: inline-block;
+    text-align: right;
 }
 
 .tig_buckaroo_payconiq .tig_buckaroo_image_title:after {

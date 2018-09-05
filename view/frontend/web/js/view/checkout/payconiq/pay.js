@@ -28,16 +28,38 @@
  * @copyright   Copyright (c) Total Internet Group B.V. https://tig.nl/copyright
  * @license     http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US
  */
-var config = {
-    map: {
-        '*': {
-            "BuckarooPayconiqSDK": "//checkout.buckaroo.nl/api/buckaroosdk/script",
-            "buckaroo/payconiq/pay": "TIG_Buckaroo/js/view/checkout/payconiq/pay"
-        }
-    },
-    shim: {
-        'BuckarooPayconiqSDK': {
-            deps: ['jquery']
-        }
+define(
+    [
+        'mageUtils',
+        'mage/url',
+        'BuckarooPayconiqSDK'
+    ],
+    function(
+        utils,
+        url
+    ) {
+        'use strict';
+
+        return {
+            transactionKey : null,
+
+            setTransactionKey: function(newKey) {
+                this.transactionKey = newKey;
+            },
+
+            showQrCode: function() {
+                BuckarooSdk.Payconiq.initiate("#tig_buckaroo_payconiq_qr", this.transactionKey);
+            },
+
+            cancelPayment: function() {
+                var data = {};
+                data['transaction_key'] = this.transactionKey;
+
+                utils.submit({
+                    url: url.build('/buckaroo/payconiq/process'),
+                    data: data
+                });
+            }
+        };
     }
-};
+);
