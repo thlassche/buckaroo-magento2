@@ -75,6 +75,8 @@ class Cancel
      */
     public function cancel($transaction)
     {
+        $this->cancelPayment($transaction);
+
         $order = $transaction->getOrder();
 
         $store = $order->getStore();
@@ -85,8 +87,6 @@ class Cancel
         }
 
         $this->updateStatus($order);
-
-//        $this->cancelPayment($transaction);
     }
 
     /**
