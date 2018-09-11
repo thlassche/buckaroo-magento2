@@ -426,7 +426,7 @@ abstract class AbstractTransactionBuilder implements \TIG\Buckaroo\Gateway\Http\
         /** @var \Magento\Store\Model\Store $store */
         $store = $this->getOrder()->getStore();
 
-        $localeCountry = $this->scopeConfig->getValue('general/locale/code', ScopeInterface::SCOPE_STORE);
+        $localeCountry = $this->scopeConfig->getValue('general/locale/code', ScopeInterface::SCOPE_STORE, $store);
         $localeCountry = str_replace('_', '-', $localeCountry);
 
         $headers[] = new \SoapHeader(

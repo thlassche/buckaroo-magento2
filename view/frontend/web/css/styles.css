@@ -355,6 +355,29 @@
     content: ' ';
 }
 
+/* ======================= Payconiq ======================== */
+#tig_buckaroo_payconiq_container {
+    position: relative;
+    text-align: center;
+    z-index: 150;
+}
+
+#tig_buckaroo_payconiq_items {
+    display: inline-block;
+    text-align: right;
+}
+
+.tig_buckaroo_payconiq .tig_buckaroo_image_title:after {
+    background: url(../images/tig_buckaroo_payconiq_title.png) no-repeat;
+    float: right;
+    margin-right: 10px;
+    margin-top: 2px;
+    background-size: auto 15px;
+    width: 104px;
+    height: 30px;
+    content: ' ';
+}
+
 /* =============================================================== */
 /* ========== Responsive replacement -> payment logo's =========== */
 /* =============================================================== */
@@ -517,6 +540,18 @@
         float: left;
         margin-right: 10px;
         background-size: auto 30px;
+        width: 40px;
+        height: 30px;
+        content: ' ';
+    }
+
+    /* Payconiq */
+    .tig_buckaroo_payconiq .tig_buckaroo_image_title:before {
+        background: url(../images/tig_buckaroo_payconiq_title.png) no-repeat;
+        margin-top: -1px;
+        float: left;
+        margin-right: 10px;
+        background-size: auto 19px;
         width: 40px;
         height: 30px;
         content: ' ';

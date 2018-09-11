@@ -41,6 +41,7 @@ namespace TIG\Buckaroo\Test\Unit\Model\Method;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Payment\Model\InfoInterface;
+use Magento\Sales\Model\Order;
 use Magento\Store\Model\ScopeInterface;
 use TIG\Buckaroo\Gateway\Http\TransactionBuilderFactory;
 use TIG\Buckaroo\Model\ConfigProvider\Method\Giftcards as GiftcardsConfig;
@@ -122,9 +123,12 @@ class GiftcardsTest extends BaseTest
 
     public function testGetOrderTransactionBuilder()
     {
+        $orderMock = $this->getFakeMock(Order::class)->setMethods(['getStore'])->getMock();
+        $orderMock->expects($this->once())->method('getStore')->willReturn(0);
+
         $fixture = [
             'allowed_giftcards' => 'bookgiftcard,webshopgiftcard',
-            'order' => 'order'
+            'order' => $orderMock
         ];
 
         $payment = \Mockery::mock(
@@ -152,7 +156,7 @@ class GiftcardsTest extends BaseTest
 
         $this->transactionBuilderFactory->shouldReceive('get')->with('order')->andReturn($order);
         $this->scopeConfig->shouldReceive('getValue')
-            ->with(GiftcardsConfig::XPATH_GIFTCARDS_ALLOWED_GIFTCARDS, ScopeInterface::SCOPE_STORE)
+            ->with(GiftcardsConfig::XPATH_GIFTCARDS_ALLOWED_GIFTCARDS, ScopeInterface::SCOPE_STORE, 0)
             ->andReturn($fixture['allowed_giftcards']);
 
         $infoInterface = \Mockery::mock(InfoInterface::class)->makePartial();
@@ -208,7 +212,7 @@ class GiftcardsTest extends BaseTest
         $invoiceMock = \Mockery::mock(\Magento\Sales\Model\Order\Invoice::class);
         $invoiceMock->shouldReceive('getBaseGrandTotal')->andReturn(25);
 
-        $paymentOrder = \Mockery::mock(\Magento\Sales\Model\Order::class);
+        $paymentOrder = \Mockery::mock(Order::class);
         $paymentOrder->shouldReceive('getBaseGrandTotal')->andReturn(25);
         $paymentOrder->shouldReceive('hasInvoices')->andReturn(1);
         $paymentOrder->shouldReceive('getInvoiceCollection')->andReturn([$invoiceMock]);

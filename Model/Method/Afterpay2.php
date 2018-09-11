@@ -43,6 +43,7 @@ use Magento\Catalog\Model\Product\Type;
 use Magento\Sales\Api\Data\CreditmemoInterface;
 use Magento\Sales\Api\Data\InvoiceInterface;
 use Magento\Sales\Api\Data\OrderInterface;
+use TIG\Buckaroo\Service\Software\Data as SoftwareData;
 
 class Afterpay2 extends AbstractMethod
 {
@@ -150,6 +151,9 @@ class Afterpay2 extends AbstractMethod
     /** @var \TIG\Buckaroo\Model\ConfigProvider\BuckarooFee */
     protected $configProviderBuckarooFee;
 
+    /** @var SoftwareData */
+    private $softwareData;
+
     /**
      * @param \Magento\Framework\ObjectManagerInterface               $objectManager
      * @param \Magento\Framework\Model\Context                        $context
@@ -161,6 +165,7 @@ class Afterpay2 extends AbstractMethod
      * @param \Magento\Payment\Model\Method\Logger                    $logger
      * @param \Magento\Developer\Helper\Data                          $developmentHelper
      * @param \TIG\Buckaroo\Model\ConfigProvider\BuckarooFee          $configProviderBuckarooFee
+     * @param SoftwareData                                            $softwareData
      * @param \Magento\Framework\Model\ResourceModel\AbstractResource $resource
      * @param \Magento\Framework\Data\Collection\AbstractDb           $resourceCollection
      * @param \TIG\Buckaroo\Gateway\GatewayInterface                  $gateway
@@ -185,6 +190,7 @@ class Afterpay2 extends AbstractMethod
         \Magento\Payment\Model\Method\Logger $logger,
         \Magento\Developer\Helper\Data $developmentHelper,
         \TIG\Buckaroo\Model\ConfigProvider\BuckarooFee $configProviderBuckarooFee,
+        SoftwareData $softwareData,
         \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
         \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
         \TIG\Buckaroo\Gateway\GatewayInterface $gateway = null,
@@ -223,6 +229,7 @@ class Afterpay2 extends AbstractMethod
         );
 
         $this->configProviderBuckarooFee = $configProviderBuckarooFee;
+        $this->softwareData = $softwareData;
     }
 
     /**
@@ -653,7 +660,7 @@ class Afterpay2 extends AbstractMethod
                 $item->getProductId(),
                 1,
                 $this->calculateProductPrice($item, $includesTax),
-                $this->getTaxCategory($item->getTaxClassId())
+                $this->getTaxCategory($item->getTaxClassId(), $payment->getOrder()->getStore())
             );
 
             /*
@@ -731,7 +738,7 @@ class Afterpay2 extends AbstractMethod
                 $item->getProductId(),
                 1,
                 $this->calculateProductPrice($item, $includesTax),
-                $this->getTaxCategory($itemTaxClassId)
+                $this->getTaxCategory($itemTaxClassId, $invoice->getOrder()->getStore())
             );
 
             $articles = array_merge($articles, $article);
@@ -745,7 +752,7 @@ class Afterpay2 extends AbstractMethod
                     $item->getProductId(),
                     1,
                     number_format(($item->getDiscountAmount()*-1), 2),
-                    $this->getTaxCategory($item->getTaxClassId())
+                    $this->getTaxCategory($item->getTaxClassId(), $invoice->getOrder()->getStore())
                 );
                 $articles = array_merge($articles, $article);
             }
@@ -798,7 +805,7 @@ class Afterpay2 extends AbstractMethod
                 $item->getProductId(),
                 1,
                 $this->calculateProductPrice($item, $includesTax) - $item->getDiscountAmount(),
-                $this->getTaxCategory($itemTaxClassId)
+                $this->getTaxCategory($itemTaxClassId, $payment->getOrder()->getStore())
             );
 
             $articles = array_merge($articles, $article);
@@ -910,7 +917,7 @@ class Afterpay2 extends AbstractMethod
                 1,
                 1,
                 round($buckarooFeeLine, 2),
-                $this->getTaxCategory($this->configProviderBuckarooFee->getTaxClass($storeId))
+                $this->getTaxCategory($this->configProviderBuckarooFee->getTaxClass($storeId), $storeId)
             );
         }
 
@@ -957,25 +964,47 @@ class Afterpay2 extends AbstractMethod
      */
     public function getDiscountLine($latestKey, $payment)
     {
-        /**
-         * @var \Magento\Sales\Model\Order $order
-         */
-        $order      = $payment->getOrder();
-
         $article = [];
+        $discount = $this->getDiscountAmount($payment);
 
-        if ($order->getDiscountAmount() < 0) {
-            $article = $this->getArticleArrayLine(
-                $latestKey,
-                'Korting',
-                1,
-                1,
-                number_format($order->getDiscountAmount(), 2),
-                4
-            );
+        if ($discount >= 0) {
+            return $article;
         }
 
+        $article = $this->getArticleArrayLine(
+            $latestKey,
+            'Korting',
+            1,
+            1,
+            round($discount, 2),
+            4
+        );
+
         return $article;
+    }
+
+    /**
+     * @param \Magento\Sales\Api\Data\OrderPaymentInterface|\Magento\Payment\Model\InfoInterface $payment
+     *
+     * @return float|int
+     */
+    private function getDiscountAmount($payment)
+    {
+        /** @var \Magento\Sales\Model\Order $order */
+        $order = $payment->getOrder();
+
+        $discount = 0;
+        $edition = $this->softwareData->getProductMetaData()->getEdition();
+
+        if ($order->getDiscountAmount() < 0) {
+            $discount -= abs((double)$order->getDiscountAmount());
+        }
+
+        if ($edition == 'Enterprise' && $order->getCustomerBalanceAmount() > 0) {
+            $discount -= abs((double)$order->getCustomerBalanceAmount());
+        }
+
+        return $discount;
     }
 
     /**
@@ -1078,12 +1107,12 @@ class Afterpay2 extends AbstractMethod
     }
 
     /**
-     * @param $taxClassId
+     * @param      $taxClassId
+     * @param null|int $storeId
      *
      * @return int
-     * @throws \TIG\Buckaroo\Exception
      */
-    public function getTaxCategory($taxClassId)
+    public function getTaxCategory($taxClassId, $storeId = null)
     {
         $taxCategory = 4;
 
@@ -1096,10 +1125,10 @@ class Afterpay2 extends AbstractMethod
         $afterPayConfig = $this->configProviderMethodFactory
             ->get(\TIG\Buckaroo\Model\Method\Afterpay2::PAYMENT_METHOD_CODE);
 
-        $highClasses   = explode(',', $afterPayConfig->getHighTaxClasses());
-        $middleClasses = explode(',', $afterPayConfig->getMiddleTaxClasses());
-        $lowClasses    = explode(',', $afterPayConfig->getLowTaxClasses());
-        $zeroClasses   = explode(',', $afterPayConfig->getZeroTaxClasses());
+        $highClasses   = explode(',', $afterPayConfig->getHighTaxClasses($storeId));
+        $middleClasses = explode(',', $afterPayConfig->getMiddleTaxClasses($storeId));
+        $lowClasses    = explode(',', $afterPayConfig->getLowTaxClasses($storeId));
+        $zeroClasses   = explode(',', $afterPayConfig->getZeroTaxClasses($storeId));
 
         if (in_array($taxClassId, $highClasses)) {
             $taxCategory = 1;

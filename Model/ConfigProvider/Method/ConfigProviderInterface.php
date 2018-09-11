@@ -42,9 +42,11 @@ namespace TIG\Buckaroo\Model\ConfigProvider\Method;
 interface ConfigProviderInterface
 {
     /**
-     * @return float|false
+     * @param null|int $storeId
+     *
+     * @return false|float
      */
-    public function getPaymentFee();
+    public function getPaymentFee($storeId = null);
 
     /**
      * @return array
