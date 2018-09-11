@@ -30,11 +30,14 @@
  */
 define(
     [
+        'jquery',
         'mageUtils',
         'mage/url',
+        'mage/translate',
         'BuckarooPayconiqSDK'
     ],
     function(
+        $,
         utils,
         url
     ) {
@@ -48,10 +51,23 @@ define(
             },
 
             showQrCode: function() {
-                BuckarooSdk.Payconiq.initiate("#tig_buckaroo_payconiq_qr", this.transactionKey);
+                BuckarooSdk.Payconiq.initiate(
+                    "#tig_buckaroo_payconiq_qr",
+                    this.transactionKey,
+                    function(status, params) {
+                        if (status === 'SUCCESS') {
+                            $('#tig_buckaroo_payconiq_cancel').hide();
+                        }
+
+                        return true;
+                    }
+                );
             },
 
             cancelPayment: function() {
+                var cancelText = $.mage.__('You have canceled the order. We kindly ask you to not complete the payment in the Payconiq app - Your order will not be processed. Place the order again if you still want to make the payment.');
+                $('#tig_buckaroo_payconiq_qr').html(cancelText);
+
                 var data = {};
                 data['transaction_key'] = this.transactionKey;
 
