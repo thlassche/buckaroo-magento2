@@ -1,0 +1,9 @@
+<div id="tig_buckaroo_payconiq_loader" class="loading-mask"></div>
+
+<div id="tig_buckaroo_payconiq_qr"></div>
+
+<script>
+    require(['BuckarooPayconiqSDK'], function () {
+        BuckarooSdk.Payconiq.initiate("#tig_buckaroo_payconiq_qr", "<?php echo $this->getTransactionKey(); ?>");
+    });
+</script>

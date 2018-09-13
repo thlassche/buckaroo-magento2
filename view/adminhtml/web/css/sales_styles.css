@@ -202,6 +202,18 @@
     content            : ' ';
 }
 
+/* Payconiq */
+.tig_buckaroo_payment_payconiq:before {
+    background: url(../images/tig_buckaroo_payconiq_title.png) no-repeat;
+    float             : left;
+    margin-right      : 10px;
+    margin-top        : -2px;
+    width             : 137px;
+    height            : 26px;
+    background-size   : auto 20px;
+    content            : ' ';
+}
+
 /* ===================== Order Overview -  Credit Card / Debit Card Method Styling ======================= */
 
 .tig_buckaroo_payment_card_mastercard:before {
