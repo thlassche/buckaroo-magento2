@@ -120,7 +120,7 @@ class TransactionResponseStatus implements \TIG\Buckaroo\Model\ValidatorInterfac
 
         if ((!isset($statusCode) || $statusCode == null)
             && isset($this->transaction->Transaction->IsCanceled)
-            && isset($this->transaction->Transaction->IsCanceled) == true
+            && $this->transaction->Transaction->IsCanceled == true
         ) {
             $statusCode = $this->helper->getStatusCode('TIG_BUCKAROO_STATUSCODE_SUCCESS');
         }

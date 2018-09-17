@@ -191,16 +191,9 @@ class Payconiq extends AbstractMethod
             $originalTrxKey = $parentTrxKey;
         }
 
-        $services = [
-            'Name'    => 'payconiq',
-            'Action'  => 'CancelTransaction',
-            'Version' => 1,
-        ];
-
         $transactionBuilder->setOrder($payment->getOrder())
             ->setAmount(0)
             ->setType('void')
-//            ->setServices($services)
             ->setMethod('CancelTransaction')
             ->setOriginalTransactionKey($originalTrxKey);
 

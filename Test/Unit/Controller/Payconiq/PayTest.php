@@ -78,4 +78,46 @@ class PayTest extends \TIG\Buckaroo\Test\BaseTest
 
         $this->assertInstanceOf(Page::class, $result);
     }
+
+    public function canShowPageProvider()
+    {
+        return [
+            'empty value' => [
+                '',
+                false
+            ],
+            'null value' => [
+                null,
+                false
+            ],
+            'string value' => [
+                'abc123def',
+                true
+            ],
+            'int value' => [
+                456987,
+                true
+            ],
+        ];
+    }
+
+    /**
+     * @param $key
+     * @param $expected
+     *
+     * @dataProvider canShowPageProvider
+     */
+    public function testCanShowPage($key, $expected)
+    {
+        $requestMock = $this->getFakeMock(RequestInterface::class)->setMethods(['getParam'])->getMockForAbstractClass();
+        $requestMock->expects($this->once())->method('getParam')->with('Key')->willReturn($key);
+
+        $contextMock = $this->getFakeMock(Context::class)->setMethods(['getRequest'])->getMock();
+        $contextMock->expects($this->once())->method('getRequest')->willReturn($requestMock);
+
+        $instance = $this->getInstance(['context' => $contextMock]);
+        $result = $this->invoke('canShowPage', $instance);
+
+        $this->assertEquals($expected, $result);
+    }
 }
