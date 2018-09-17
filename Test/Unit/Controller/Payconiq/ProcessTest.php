@@ -31,8 +31,8 @@
  */
 namespace TIG\Buckaroo\Test\Unit\Controller\Payconiq;
 
+use Magento\Framework\Api\SearchCriteria;
 use Magento\Framework\Api\SearchCriteriaBuilder;
-use Magento\Framework\Api\SearchCriteriaInterface;
 use Magento\Framework\App\Action\Context;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\App\Response\RedirectInterface;
@@ -207,7 +207,7 @@ class ProcessTest extends BaseTest
         $contextMock = $this->getFakeMock(Context::class)->setMethods(['getRequest'])->getMock();
         $contextMock->method('getRequest')->willReturn($requestMock);
 
-        $searchCriteriaMock = $this->getFakeMock(SearchCriteriaInterface::class)->getMock();
+        $searchCriteriaMock = $this->getFakeMock(SearchCriteria::class)->getMock();
 
         $searchCriteriaBuildMock = $this->getFakeMock(SearchCriteriaBuilder::class)
             ->setMethods(['addFilter', 'create'])
@@ -273,7 +273,7 @@ class ProcessTest extends BaseTest
         $contextMock = $this->getFakeMock(Context::class)->setMethods(['getRequest'])->getMock();
         $contextMock->expects($this->once())->method('getRequest')->willReturn($requestMock);
 
-        $searchCriteriaMock = $this->getFakeMock(SearchCriteriaInterface::class)->getMock();
+        $searchCriteriaMock = $this->getFakeMock(SearchCriteria::class)->getMock();
 
         $searchCriteriaBuildMock = $this->getFakeMock(SearchCriteriaBuilder::class)
             ->setMethods(['addFilter', 'setPageSize', 'create'])
