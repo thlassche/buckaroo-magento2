@@ -38,62 +38,32 @@
  */
 namespace TIG\Buckaroo\Test\Unit\Model\ConfigProvider;
 
+use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Store\Model\ScopeInterface;
+use TIG\Buckaroo\Model\ConfigProvider\Refund;
+
 class RefundTest extends \TIG\Buckaroo\Test\BaseTest
 {
-    /**
-     * @var \Magento\Framework\App\Config\ScopeConfigInterface|\Mockery\MockInterface
-     */
-    protected $scopeConfig;
-
-    /**
-     * @var \TIG\Buckaroo\Model\ConfigProvider\Refund
-     */
-    protected $object;
-
-    /**
-     * Setup the base mocks.
-     */
-    public function setUp()
-    {
-        parent::setUp();
-
-        $this->scopeConfig = \Mockery::mock(\Magento\Framework\App\Config\ScopeConfigInterface::class)->makePartial();
-
-        $this->object = $this->objectManagerHelper->getObject(
-            \TIG\Buckaroo\Model\ConfigProvider\Refund::class,
-            [
-            'scopeConfig' => $this->scopeConfig,
-            ]
-        );
-    }
+    protected $instanceClass = Refund::class;
 
     /**
      * Test the getConfig method.
      */
     public function testGetConfig()
     {
-        $fixture = [
-            \TIG\Buckaroo\Model\ConfigProvider\Refund::XPATH_REFUND_ALLOW_PUSH => false,
-            \TIG\Buckaroo\Model\ConfigProvider\Refund::XPATH_REFUND_ENABLED => false,
-        ];
-
-        $this->scopeConfig->shouldReceive('getValue')
-            ->with(
-                \TIG\Buckaroo\Model\ConfigProvider\Refund::XPATH_REFUND_ALLOW_PUSH,
-                \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
-                null
+        $scopeConfigMock = $this->getFakeMock(ScopeConfigInterface::class)
+            ->setMethods(['getValue'])
+            ->getMockForAbstractClass();
+        $scopeConfigMock->expects($this->exactly(2))
+            ->method('getValue')
+            ->withConsecutive(
+                [Refund::XPATH_REFUND_ENABLED, ScopeInterface::SCOPE_STORE, null],
+                [Refund::XPATH_REFUND_ALLOW_PUSH, ScopeInterface::SCOPE_STORE, null]
             )
-            ->andReturn($fixture[\TIG\Buckaroo\Model\ConfigProvider\Refund::XPATH_REFUND_ALLOW_PUSH]);
+            ->willReturn(false);
 
-        $this->scopeConfig->shouldReceive('getValue')
-            ->with(
-                \TIG\Buckaroo\Model\ConfigProvider\Refund::XPATH_REFUND_ENABLED,
-                \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
-                null
-            )
-            ->andReturn($fixture[\TIG\Buckaroo\Model\ConfigProvider\Refund::XPATH_REFUND_ENABLED]);
-
-        $result = $this->object->getConfig();
+        $instance = $this->getInstance(['scopeConfig' => $scopeConfigMock]);
+        $result = $instance->getConfig();
 
         $this->assertFalse($result['enabled']);
         $this->assertFalse($result['allow_push']);
@@ -104,28 +74,19 @@ class RefundTest extends \TIG\Buckaroo\Test\BaseTest
      */
     public function testGetConfigWithStoreId()
     {
-        $fixture = [
-            \TIG\Buckaroo\Model\ConfigProvider\Refund::XPATH_REFUND_ALLOW_PUSH => false,
-            \TIG\Buckaroo\Model\ConfigProvider\Refund::XPATH_REFUND_ENABLED => false,
-        ];
-
-        $this->scopeConfig->shouldReceive('getValue')
-            ->with(
-                \TIG\Buckaroo\Model\ConfigProvider\Refund::XPATH_REFUND_ALLOW_PUSH,
-                \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
-                1
+        $scopeConfigMock = $this->getFakeMock(ScopeConfigInterface::class)
+            ->setMethods(['getValue'])
+            ->getMockForAbstractClass();
+        $scopeConfigMock->expects($this->exactly(2))
+            ->method('getValue')
+            ->withConsecutive(
+                [Refund::XPATH_REFUND_ENABLED, ScopeInterface::SCOPE_STORE, 1],
+                [Refund::XPATH_REFUND_ALLOW_PUSH, ScopeInterface::SCOPE_STORE, 1]
             )
-            ->andReturn($fixture[\TIG\Buckaroo\Model\ConfigProvider\Refund::XPATH_REFUND_ALLOW_PUSH]);
+            ->willReturn(false);
 
-        $this->scopeConfig->shouldReceive('getValue')
-            ->with(
-                \TIG\Buckaroo\Model\ConfigProvider\Refund::XPATH_REFUND_ENABLED,
-                \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
-                1
-            )
-            ->andReturn($fixture[\TIG\Buckaroo\Model\ConfigProvider\Refund::XPATH_REFUND_ENABLED]);
-
-        $result = $this->object->getConfig(1);
+        $instance = $this->getInstance(['scopeConfig' => $scopeConfigMock]);
+        $result = $instance->getConfig(1);
 
         $this->assertFalse($result['enabled']);
         $this->assertFalse($result['allow_push']);

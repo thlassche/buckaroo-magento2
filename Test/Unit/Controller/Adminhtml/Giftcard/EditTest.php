@@ -38,55 +38,39 @@
  */
 namespace TIG\Buckaroo\Test\Unit\Controller\Adminhtml\Giftcard;
 
+use Magento\Backend\Model\View\Result\Page;
+use Magento\Framework\View\Result\PageFactory;
 use \TIG\Buckaroo\Controller\Adminhtml\Giftcard\Edit;
+use TIG\Buckaroo\Model\Giftcard;
+use TIG\Buckaroo\Model\GiftcardFactory;
 use TIG\Buckaroo\Test\BaseTest;
 
 class EditTest extends BaseTest
 {
-    /**
-     * @var Edit
-     */
-    protected $controller;
-
-    public function setUp()
-    {
-        parent::setUp();
-
-        $context = $this->objectManagerHelper->getObject(\Magento\Backend\App\Action\Context::class);
-        $giftcardModel = \Mockery::mock(\TIG\Buckaroo\Model\Giftcard::class)->makePartial();
-
-        $registry = $registryMock = \Mockery::mock(\Magento\Framework\Registry::class);
-        $registry->shouldReceive('register')->with('buckaroo_giftcard', $giftcardModel);
-
-        $resultPageConfig = $this->objectManagerHelper->getObject(\Magento\Framework\View\Page\Config::class);
-
-        $resultPageModel = \Mockery::mock(\Magento\Backend\Model\View\Result\Page::class)->makePartial();
-        $resultPageModel->shouldReceive('setActiveMenu')->andReturnSelf();
-        $resultPageModel->shouldReceive('getConfig')->andReturn($resultPageConfig);
-
-        $resultPageFactory = \Mockery::mock(\Magento\Framework\View\Result\PageFactory::class);
-        $resultPageFactory->shouldReceive('create')->andReturn($resultPageModel);
-
-        $giftcardFactory = \Mockery::mock(\TIG\Buckaroo\Model\GiftcardFactory::class);
-        $giftcardFactory->shouldReceive('create')->andReturn($giftcardModel);
-
-        $this->controller = $this->objectManagerHelper->getObject(
-            Edit::class,
-            [
-                'context' => $context,
-                'coreRegistry' => $registry,
-                'resultPageFactory' => $resultPageFactory,
-                'giftcardFactory' => $giftcardFactory
-            ]
-        );
-    }
+    protected $instanceClass = Edit::class;
 
     public function testExecute()
     {
-        $this->controller->execute();
+        $resultPageMock = $this->getFakeMock(Page::class)
+            ->setMethods(['setActiveMenu', 'getConfig', 'getTitle', 'prepend'])
+            ->getMock();
+        $resultPageMock->expects($this->once())->method('setActiveMenu')->willReturnSelf();
+        $resultPageMock->expects($this->once())->method('getConfig')->willReturnSelf();
+        $resultPageMock->expects($this->once())->method('getTitle')->willReturnSelf();
+        $resultPageMock->expects($this->once())->method('prepend')->with('Buckaroo Giftcards');
 
-        if ($container = \Mockery::getContainer()) {
-            $this->addToAssertionCount($container->mockery_getExpectationCount());
-        }
+        $resultPageFactoryMock = $this->getFakeMock(PageFactory::class)->setMethods(['create'])->getMock();
+        $resultPageFactoryMock->expects($this->once())->method('create')->willReturn($resultPageMock);
+
+        $giftcardMock = $this->getFakeMock(Giftcard::class)->getMock();
+
+        $giftcardFactoryMock = $this->getFakeMock(GiftcardFactory::class)->setMethods(['create'])->getMock();
+        $giftcardFactoryMock->expects($this->once())->method('create')->willReturn($giftcardMock);
+
+        $instance = $this->getInstance([
+            'giftcardFactory' => $giftcardFactoryMock,
+            'resultPageFactory' => $resultPageFactoryMock
+        ]);
+        $instance->execute();
     }
 }

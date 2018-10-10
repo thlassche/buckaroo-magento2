@@ -38,60 +38,38 @@
  */
 namespace TIG\Buckaroo\Test\Unit\Model\ConfigProvider\Method;
 
-use Mockery as m;
+use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Store\Model\ScopeInterface;
 use TIG\Buckaroo\Test\BaseTest;
 use TIG\Buckaroo\Model\ConfigProvider\Method\Giftcards;
-use Magento\Framework\View\Asset\Repository;
 
 class GiftcardsTest extends BaseTest
 {
-    /**
-     * @var Giftcards
-     */
-    protected $object;
-
-    /**
-     * @var m\MockInterface
-     */
-    protected $assetRepository;
-
-    /**
-     * @var m\MockInterface
-     */
-    protected $scopeConfig;
-
-    public function setUp()
-    {
-        parent::setUp();
-
-        $this->assetRepository = m::mock(Repository::class);
-        $this->scopeConfig = \Mockery::mock(\Magento\Framework\App\Config\ScopeConfigInterface::class);
-        $this->object = $this->objectManagerHelper->getObject(
-            Giftcards::class,
-            [
-            'assetRepo' => $this->assetRepository,
-            'scopeConfig' => $this->scopeConfig
-            ]
-        );
-    }
-
+    protected $instanceClass = Giftcards::class;
     /**
      * Test that the config returns the right values
      */
     public function testGetConfig()
     {
-        $this->scopeConfig->shouldReceive('getValue')
-            ->with('payment/tig_buckaroo_giftcards/active', \Magento\Store\Model\ScopeInterface::SCOPE_STORE)
-            ->andReturn(true);
-        $this->scopeConfig->shouldReceive('getValue')->andReturn(false);
+        $scopeConfigMock = $this->getFakeMock(ScopeConfigInterface::class)
+            ->setMethods(['getValue'])
+            ->getMockForAbstractClass();
+        $scopeConfigMock->expects($this->exactly(2))
+            ->method('getValue')
+            ->withConsecutive(
+                ['payment/tig_buckaroo_giftcards/active', ScopeInterface::SCOPE_STORE],
+                ['payment/tig_buckaroo_giftcards/allowed_currencies', ScopeInterface::SCOPE_STORE, null]
+            )
+            ->willReturnOnConsecutiveCalls(true, '');
 
-        $result = $this->object->getConfig();
+        $instance = $this->getInstance(['scopeConfig' => $scopeConfigMock]);
+        $result = $instance->getConfig();
 
-        $this->assertTrue(array_key_exists('payment', $result));
-        $this->assertTrue(array_key_exists('buckaroo', $result['payment']));
-        $this->assertTrue(array_key_exists('giftcards', $result['payment']['buckaroo']));
-        $this->assertTrue(array_key_exists('paymentFeeLabel', $result['payment']['buckaroo']['giftcards']));
-        $this->assertTrue(array_key_exists('allowedCurrencies', $result['payment']['buckaroo']['giftcards']));
+        $this->assertArrayHasKey('payment', $result);
+        $this->assertArrayHasKey('buckaroo', $result['payment']);
+        $this->assertArrayHasKey('giftcards', $result['payment']['buckaroo']);
+        $this->assertArrayHasKey('paymentFeeLabel', $result['payment']['buckaroo']['giftcards']);
+        $this->assertArrayHasKey('allowedCurrencies', $result['payment']['buckaroo']['giftcards']);
     }
 
     /**
@@ -99,8 +77,17 @@ class GiftcardsTest extends BaseTest
      */
     public function testGetPaymentFee()
     {
-        $this->scopeConfig->shouldReceive('getValue')->once()->andReturn(0);
+        $scopeConfigMock = $this->getFakeMock(ScopeConfigInterface::class)
+            ->setMethods(['getValue'])
+            ->getMockForAbstractClass();
+        $scopeConfigMock->expects($this->once())
+            ->method('getValue')
+            ->with('payment/tig_buckaroo_giftcards/active', ScopeInterface::SCOPE_STORE)
+            ->willReturn(false);
 
-        $this->assertFalse((bool) $this->object->getPaymentFee());
+        $instance = $this->getInstance(['scopeConfig' => $scopeConfigMock]);
+        $result = $instance->getConfig();
+
+        $this->assertEmpty($result);
     }
 }

@@ -38,85 +38,47 @@
  */
 namespace TIG\Buckaroo\Test\Unit\Model\Config\Source;
 
+use Magento\Framework\Locale\Bundle\CurrencyBundle;
+use TIG\Buckaroo\Model\Config\Source\AllowedCurrencies;
+use TIG\Buckaroo\Model\ConfigProvider\AllowedCurrencies as AllowedCurrenciesConfig;
+
 class AllowedCurrenciesTest extends \TIG\Buckaroo\Test\BaseTest
 {
-    /**
-     * @var \TIG\Buckaroo\Model\Config\Source\AllowedCurrencies
-     */
-    protected $object;
-
-    /**
-     * @var \Mockery\MockInterface
-     */
-    protected $resource;
-
-    /**
-     * @var \TIG\Buckaroo\Model\ConfigProvider\AllowedCurrencies|\Mockery\MockInterface
-     */
-    protected $allowedCurrenciesConfig;
-
-    /**
-     * @var \Magento\Framework\Locale\Bundle\CurrencyBundle|\Mockery\MockInterface
-     */
-    protected $currencyBundle;
-
-    /**
-     * @var array
-     */
-    protected $fixture = [
-        'ABC' => [1 => 'Alphabet'],
-        'DEF' => [1 => 'DOOF'],
-        'GHI' => [1 => 'GHIGHI'],
-    ];
-
-    /**
-     * Setup the base mocks.
-     */
-    public function setUp()
-    {
-        parent::setUp();
-
-        $this->resource = \Mockery::mock(\Magento\Framework\Model\ResourceModel\AbstractResource::class);
-        $this->resource->shouldReceive('save');
-
-        $this->allowedCurrenciesConfig = \Mockery::mock(\TIG\Buckaroo\Model\ConfigProvider\AllowedCurrencies::class)
-            ->makePartial();
-        $this->allowedCurrenciesConfig->shouldReceive('getAllowedCurrencies')->andReturn(['ABC', 'DEF', 'GHI']);
-
-        $this->currencyBundle = \Mockery::mock(\Magento\Framework\Locale\Bundle\CurrencyBundle::class)->makePartial();
-        $this->currencyBundle->shouldReceive('get')->andReturn(
-            [
-            'Currencies' => $this->fixture,
-            ]
-        );
-
-        $this->object = $this->objectManagerHelper->getObject(
-            \TIG\Buckaroo\Model\Config\Source\AllowedCurrencies::class,
-            [
-                'resource' => $this->resource,
-                'currencyBundle' => $this->currencyBundle,
-                'allowedCurrenciesConfig' => $this->allowedCurrenciesConfig,
-            ]
-        );
-    }
+    protected $instanceClass = AllowedCurrencies::class;
 
     /**
      * Test what happens when there is no value provided.
-     *
-     * @throws \Magento\Framework\Exception\LocalizedException
      */
-    public function testSaveNoValue()
+    public function testToOptionArray()
     {
-        $result = $this->object->toOptionArray();
+        $currenciesConfigMock = $this->getFakeMock(AllowedCurrenciesConfig::class)
+            ->setMethods(['getAllowedCurrencies'])
+            ->getMock();
+        $currenciesConfigMock->expects($this->once())->method('getAllowedCurrencies')->willReturn(['USD', 'EUR']);
+
+        $currenctBundleData = [
+            'Currencies' => [
+                'USD' => [1 => 'US Dollar'],
+                'EUR' => [1 => 'Euro']
+            ]
+        ];
+
+        $currencyBundleMock = $this->getFakeMock(CurrencyBundle::class)->setMethods(['get'])->getMock();
+        $currencyBundleMock->expects($this->once())->method('get')->willReturn($currenctBundleData);
+
+        $instance = $this->getInstance([
+            'allowedCurrenciesConfig' => $currenciesConfigMock,'currencyBundle' => $currencyBundleMock
+        ]);
+        $result = $instance->toOptionArray();
 
         $this->assertTrue(is_array($result));
-        $this->assertEquals(3, count($result));
+        $this->assertEquals(2, count($result));
 
-        $count = 0;
-        foreach ($this->fixture as $key => $data) {
-            $this->assertEquals($key, $result[$count]['value']);
-            $this->assertEquals($data[1], $result[$count]['label']);
-            $count++;
-        }
+        $expectedResult = [
+            ['value' => 'USD', 'label' => 'US Dollar'],
+            ['value' => 'EUR', 'label' => 'Euro']
+        ];
+
+        $this->assertEquals($expectedResult, $result);
     }
 }

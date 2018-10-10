@@ -38,10 +38,12 @@
  */
 namespace TIG\Buckaroo\Test\Unit\Model;
 
+use Magento\Directory\Model\Currency;
 use Magento\Framework\Webapi\Rest\Request;
 use Magento\Payment\Model\MethodInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Email\Sender\OrderSender;
+use Magento\Sales\Model\Order\Invoice;
 use Magento\Sales\Model\Order\Payment;
 use TIG\Buckaroo\Model\ConfigProvider\Account;
 use TIG\Buckaroo\Model\Method\AbstractMethod;
@@ -53,66 +55,6 @@ use TIG\Buckaroo\Model\Push;
 class PushTest extends \TIG\Buckaroo\Test\BaseTest
 {
     protected $instanceClass = Push::class;
-
-    /**
-     * @var Push
-     */
-    protected $object;
-
-    /**
-     * @var \Mockery\MockInterface
-     */
-    protected $objectManager;
-
-    /**
-     * @var \Mockery\MockInterface
-     */
-    protected $request;
-
-    /**
-     * @var \Mockery\MockInterface
-     */
-    protected $helper;
-
-    /**
-     * @var \Mockery\MockInterface
-     */
-    protected $configAccount;
-
-    /**
-     * @var \Mockery\MockInterface
-     */
-    public $orderSender;
-
-    /**
-     * Setup the standard mocks
-     */
-    public function setUp()
-    {
-        parent::setUp();
-
-        $this->objectManager = \Mockery::mock(\Magento\Framework\ObjectManagerInterface::class);
-        $this->request = \Mockery::mock(Request::class);
-        $this->helper = \Mockery::mock(\TIG\Buckaroo\Helper\Data::class);
-        $this->configAccount = \Mockery::mock(\TIG\Buckaroo\Model\ConfigProvider\Account::class);
-
-        $this->orderSender = \Mockery::mock(OrderSender::class);
-
-        /**
-         * We are using the temporary class declared above, but it could be any class extending from the AbstractMethod
-         * class.
-         */
-        $this->object = $this->objectManagerHelper->getObject(
-            Push::class,
-            [
-                'objectManager' => $this->objectManager,
-                'request' => $this->request,
-                'helper' => $this->helper,
-                'configAccount' => $this->configAccount,
-                'orderSender' => $this->orderSender,
-            ]
-        );
-    }
 
     /**
      * @return array
@@ -297,6 +239,11 @@ class PushTest extends \TIG\Buckaroo\Test\BaseTest
      */
     public function testGiftcardPartialPayment($methodCode, $orderAmount, $pushAmount, $relatedTransaction, $expected)
     {
+        $postData = [
+            'brq_amount' => $pushAmount,
+            'brq_relatedtransaction_partialpayment' => $relatedTransaction
+        ];
+
         $paymentMock = $this->getFakeMock(Payment::class)
             ->setMethods(['getMethod', 'setAdditionalInformation'])
             ->getMock();
@@ -307,13 +254,11 @@ class PushTest extends \TIG\Buckaroo\Test\BaseTest
         $orderMock->expects($this->atLeastOnce())->method('getPayment')->willReturn($paymentMock);
         $orderMock->method('getGrandTotal')->willReturn($orderAmount);
 
-        $this->object->order = $orderMock;
-        $this->object->postData = [
-            'brq_amount' => $pushAmount,
-            'brq_relatedtransaction_partialpayment' => $relatedTransaction
-        ];
+        $instance = $this->getInstance();
+        $instance->order = $orderMock;
+        $instance->postData = $postData;
 
-        $result = $this->invoke('giftcardPartialPayment', $this->object);
+        $result = $this->invoke('giftcardPartialPayment', $instance);
 
         $this->assertEquals($expected, $result);
     }
@@ -447,21 +392,29 @@ class PushTest extends \TIG\Buckaroo\Test\BaseTest
 
         $pendingPaymentState = Order::STATE_PROCESSING;
 
-        $orderMock = \Mockery::mock(Order::class);
-        $orderMock->shouldReceive('getState')->atLeast(1)->andReturn($state);
-        $orderMock->shouldReceive('getStore')->andReturn(0);
-        $orderMock->shouldReceive('getPayment')->andReturnSelf();
-        $orderMock->shouldReceive('getMethodInstance')->andReturnSelf();
-        $orderMock->shouldReceive('getEmailSent')->andReturn(true);
+        $orderMock = $this->getFakeMock(Order::class)
+            ->setMethods([
+                'getState', 'getStore', 'getPayment', 'getMethodInstance', 'getEmailSent', 'addStatusHistoryComment'
+            ])
+            ->getMock();
+        $orderMock->expects($this->once())->method('getState')->willReturn($state);
+        $orderMock->expects($this->once())->method('getStore')->willReturn(0);
+        $orderMock->expects($this->once())->method('getPayment')->willReturnSelf();
+        $orderMock->expects($this->once())->method('getMethodInstance')->willReturnSelf();
+        $orderMock->expects($this->once())->method('getEmailSent')->willReturn(true);
 
         if ($state == $pendingPaymentState) {
-            $orderMock->shouldReceive('addStatusHistoryComment')->once()->with($expectedDescription, $status);
+            $orderMock->expects($this->once())->method('addStatusHistoryComment')->with($expectedDescription, $status);
         } else {
-            $orderMock->shouldReceive('addStatusHistoryComment')->once()->with($expectedDescription);
+            $orderMock->expects($this->once())->method('addStatusHistoryComment')->with($expectedDescription);
         }
-        $this->object->order = $orderMock;
 
-        $this->assertTrue($this->object->processPendingPaymentPush($status, $message));
+        $instance = $this->getInstance();
+        $instance->order = $orderMock;
+
+        $result = $instance->processPendingPaymentPush($status, $message);
+
+        $this->assertTrue($result);
     }
 
     public function processPendingPaymentPushDataProvider()
@@ -492,7 +445,8 @@ class PushTest extends \TIG\Buckaroo\Test\BaseTest
 
         $canceledPaymentState = Order::STATE_CANCELED;
 
-        $this->configAccount->shouldReceive('getCancelOnFailed')->andReturn($cancelOnFailed);
+        $configAccountMock = $this->getFakeMock(Account::class)->setMethods(['getCancelOnFailed'])->getMock();
+        $configAccountMock->expects($this->once())->method('getCancelOnFailed')->willReturn($cancelOnFailed);
 
         $orderMock = $this->getFakeMock(Order::class)
             ->setMethods(['getState', 'getStore', 'addStatusHistoryComment', 'canCancel', 'getPayment', 'cancel', 'save'])
@@ -526,9 +480,14 @@ class PushTest extends \TIG\Buckaroo\Test\BaseTest
             }
         }
 
-        $this->object->order = $orderMock;
+        $instance = $this->getInstance([
+            'configAccount' => $configAccountMock
+        ]);
+        $instance->order = $orderMock;
 
-        $this->assertTrue($this->object->processFailedPush($status, $message));
+        $result = $instance->processFailedPush($status, $message);
+
+        $this->assertTrue($result);
     }
 
     public function processFailedPushDataProvider()
@@ -605,72 +564,50 @@ class PushTest extends \TIG\Buckaroo\Test\BaseTest
     ) {
         $message = 'testMessage';
         $status = 'testStatus';
-
-        /**
-         * Only orders with this state should have their status updated
-         */
         $successPaymentState = Order::STATE_PROCESSING;
 
-        /**
-         * Set config values on config provider mock
-         */
-        $this->configAccount->shouldReceive('getOrderConfirmationEmail')
-            ->andReturn($sendOrderConfirmationEmail);
-        $this->configAccount->shouldReceive('getInvoiceEmail');
+        $configAccountMock = $this->getFakeMock(Account::class)
+            ->setMethods(['getOrderConfirmationEmail'])
+            ->getMock();
+        $configAccountMock->method('getOrderConfirmationEmail')->willReturn($sendOrderConfirmationEmail);
 
-        /**
-         * Build an order mock and set several non mandatory method calls
-         */
-        $orderMock = \Mockery::mock(Order::class);
-        $orderMock->shouldReceive('getEmailSent')->andReturn($orderEmailSent);
-        $orderMock->shouldReceive('getGrandTotal')->andReturn($amount);
-        $orderMock->shouldReceive('getBaseGrandTotal')->andReturn($amount);
-        $orderMock->shouldReceive('getTotalDue')->andReturn($amount);
-        $orderMock->shouldReceive('getStore')->andReturnSelf();
+        $paymentMock = $this->getFakeMock(Payment::class)
+            ->setMethods(['getMethodInstance', 'getConfigData', 'registerCaptureNotification', 'save'])
+            ->getMock();
+        $paymentMock->expects($this->once())->method('getMethodInstance')->willReturnSelf();
+        $paymentMock->method('getConfigData')->willReturn($paymentAction);
 
-        /**
-         * The order state has to be checked at least once
-         */
-        $orderMock->shouldReceive('getState')->atLeast(1)->andReturn($state);
+        $currencyMock = $this->getFakeMock(Currency::class)->setMethods(['formatTxt'])->getMock();
+        $currencyMock->expects($this->once())->method('formatTxt')->willReturn($textAmount);
 
-        /**
-         * If order email is not sent and order email should be sent, expect sending of order email
-         */
+        $orderMock = $this->getFakeMock(Order::class)
+            ->setMethods([
+                'getEmailSent', 'getGrandTotal', 'getBaseGrandTotal', 'getTotalDue', 'getStore', 'getState',
+                'getPayment', 'getBaseCurrency', 'addStatusHistoryComment', 'canInvoice', 'hasInvoices', 'save', 'getInvoiceCollection'
+            ])
+            ->getMock();
+        $orderMock->expects($this->once())->method('getEmailSent')->willReturn($orderEmailSent);
+        $orderMock->method('getGrandTotal')->willReturn($amount);
+        $orderMock->method('getBaseGrandTotal')->willReturn($amount);
+        $orderMock->method('getTotalDue')->willReturn($amount);
+        $orderMock->expects($this->once())->method('getStore')->willReturnSelf();
+        $orderMock->method('getState')->willReturn($state);
+        $orderMock->expects($this->once())->method('getPayment')->willReturn($paymentMock);
+        $orderMock->expects($this->once())->method('getBaseCurrency')->willReturn($currencyMock);
+
+        $orderSenderMock = $this->getFakeMock(OrderSender::class)->setMethods(['send'])->getMock();
+
+        $instance = $this->getInstance([
+            'configAccount' => $configAccountMock,
+            'orderSender' => $orderSenderMock
+        ]);
+
         if (!$orderEmailSent && $sendOrderConfirmationEmail) {
-            $this->orderSender->shouldReceive('send')->with($orderMock);
+            $orderSenderMock->expects($this->once())->method('send')->with($orderMock);
         }
-
-        /**
-         * Build a payment mock and set the payment action
-         */
-        $paymentMock = \Mockery::mock(Payment::class);
-        $paymentMock->shouldReceive('getMethodInstance')->andReturnSelf();
-        $paymentMock->shouldReceive('getConfigData')->with('payment_action')->andReturn($paymentAction);
-        $paymentMock->shouldReceive('getConfigData');
-        $paymentMock->shouldReceive('getMethod');
-        $paymentMock->shouldReceive('setTransactionAdditionalInfo');
-        $paymentMock->shouldReceive('setTransactionId');
-        $paymentMock->shouldReceive('setParentTransactionId');
-        $paymentMock->shouldReceive('setAdditionalInformation');
-
-        /**
-         * Build a currency mock
-         */
-        $currencyMock = \Mockery::mock(\Magento\Directory\Model\Currency::class);
-        $currencyMock->shouldReceive('formatTxt')->andReturn($textAmount);
-
-        /**
-         * Update order mock with payment and currency mock
-         */
-        $orderMock->shouldReceive('getPayment')->andReturn($paymentMock);
-        $orderMock->shouldReceive('getBaseCurrency')->andReturn($currencyMock);
 
         $forced = false;
 
-        /**
-         * If no auto invoicing is required, or if auto invoice is required and the order can be invoiced and
-         *  has no invoices, expect a status update
-         */
         if (!$autoInvoice || ($autoInvoice && $orderCanInvoice && !$orderHasInvoices)) {
             if ($paymentAction != 'authorize') {
                 $expectedDescription = 'Payment status : <strong>' . $message . "</strong><br/>";
@@ -682,1185 +619,337 @@ class PushTest extends \TIG\Buckaroo\Test\BaseTest
                 $forced = true;
             }
 
-            /**
-             * Only orders with the success state should have their status updated
-             */
             if ($state == $successPaymentState || $forced) {
-                $orderMock->shouldReceive('addStatusHistoryComment')->once()->with($expectedDescription, $status);
+                $orderMock->expects($this->once())
+                    ->method('addStatusHistoryComment')
+                    ->willReturn($expectedDescription, $status);
             } else {
-                $orderMock->shouldReceive('addStatusHistoryComment')->once()->with($expectedDescription);
+                $orderMock->expects($this->once())->method('addStatusHistoryComment')->willReturn($expectedDescription);
             }
         }
 
-        /**
-         * If autoInvoice is required, also test protected method saveInvoice
-         */
         if ($autoInvoice) {
-            $orderMock->shouldReceive('canInvoice')->andReturn($orderCanInvoice);
-            $orderMock->shouldReceive('hasInvoices')->andReturn($orderHasInvoices);
+            $orderMock->expects($this->once())->method('canInvoice')->willReturn($orderCanInvoice);
+            $orderMock->method('hasInvoices')->willReturn($orderCanInvoice);
 
             if (!$orderCanInvoice || $orderHasInvoices) {
-                /**
-                 * If order cannot be invoiced or if order already has invoices, expect an exception
-                 */
                 $this->setExpectedException(Exception::class);
             } else {
+                $paymentMock->expects($this->once())->method('registerCaptureNotification')->with($amount);
+                $paymentMock->expects($this->once())->method('save');
 
-                /**
-                 * Payment should receive register capture notification only once and payment should be saved
-                 */
-                $paymentMock->shouldReceive('registerCaptureNotification')->once()->with($amount);
-                $paymentMock->shouldReceive('save')->once()->withNoArgs();
+                $orderMock->expects($this->once())->method('save');
 
-                /**
-                 * Order should be saved at least once
-                 */
-                $orderMock->shouldReceive('save')->atLeast(1)->withNoArgs();
+                $instance->postData = $postData;
 
-                $this->object->postData = $postData;
+                $invoiceMock = $this->getFakeMock(Invoice::class)
+                    ->setMethods(['getEmailSent', 'setTransactionId', 'save'])
+                    ->getMock();
+                $invoiceMock->expects($this->once())->method('getEmailSent')->willReturn(false);
 
-                $invoiceMock = \Mockery::mock(\Magento\Sales\Model\Order\Invoice::class);
-                $invoiceMock->shouldReceive('getEmailSent')->andReturn(false);
+                $orderMock->expects($this->once())->method('getInvoiceCollection')->willReturn([$invoiceMock]);
 
-                /**
-                 * Invoice collection should be array iterable so a simple array is used for a mock collection
-                 */
-                $orderMock->shouldReceive('getInvoiceCollection')->andReturn([$invoiceMock]);
-
-                /**
-                 * If key brq_transactions is set in postData, invoice should expect a transaction id to be set
-                 */
                 if (isset($postData['brq_transactions'])) {
-                    $invoiceMock->shouldReceive('setTransactionId')
+                    $invoiceMock->expects($this->once())
+                        ->method('setTransactionId')
                         ->with($postData['brq_transactions'])
-                        ->andReturnSelf();
-                    $invoiceMock->shouldReceive('save');
+                        ->willReturnSelf();
+                    $invoiceMock->expects($this->once())->method('save');
                 }
             }
         }
 
+        $instance->order = $orderMock;
 
-        $this->helper->shouldReceive('getTransactionAdditionalInfo');
-
-        $this->object->order = $orderMock;
-
-        /**
-         * @noinspection PhpUndefinedMethodInspection
-         */
-        $this->assertTrue($this->object->processSucceededPush($status, $message));
+        $result = $instance->processSucceededPush($status, $message);
+        $this->assertTrue($result);
     }
 
     public function processSucceededPushDataProvider()
     {
         return [
             /**
-             * CANCELED && AUTHORIZE
+             * Parameter order:
+             * $state
+             * $orderEmailSent
+             * $sendOrderConfirmationEmail
+             * $paymentAction
+             * $amount
+             * $textAmount
+             * $autoInvoice
+             * $orderCanInvoice
+             * $orderHasInvoices
+             * $postData
              */
+            /** CANCELED && AUTHORIZE */
             0 => [
-                /**
-                 * $state
-                 */
                 Order::STATE_CANCELED,
-                /**
-                 * $orderEmailSent
-                 */
                 true,
-                /**
-                 * $sendOrderConfirmationEmail
-                 */
                 true,
-                /**
-                 * $paymentAction
-                 */
                 'authorize',
-                /**
-                 * $amount
-                 */
                 '15.95',
-                /**
-                 * $textAmount
-                 */
                 '$15.95',
-                /**
-                 * $autoInvoice
-                 */
                 false,
-                /**
-                 * $orderCanInvoice
-                 */
                 false,
-                /**
-                 * $orderHasInvoices
-                 */
                 false,
-                /**
-                 * $postData
-                 */
+                false,
                 [],
             ],
             1 => [
-                /**
-                 * $state
-                 */
                 Order::STATE_CANCELED,
-                /**
-                 * $orderEmailSent
-                 */
                 false,
-                /**
-                 * $sendOrderConfirmationEmail
-                 */
                 true,
-                /**
-                 * $paymentAction
-                 */
                 'authorize',
-                /**
-                 * $amount
-                 */
                 '15.95',
-                /**
-                 * $textAmount
-                 */
                 '$15.95',
-                /**
-                 * $autoInvoice
-                 */
                 false,
-                /**
-                 * $orderCanInvoice
-                 */
                 false,
-                /**
-                 * $orderHasInvoices
-                 */
                 false,
-                /**
-                 * $postData
-                 */
                 [],
             ],
             2 => [
-                /**
-                 * $state
-                 */
                 Order::STATE_CANCELED,
-                /**
-                 * $orderEmailSent
-                 */
                 true,
-                /**
-                 * $sendOrderConfirmationEmail
-                 */
                 false,
-                /**
-                 * $paymentAction
-                 */
                 'authorize',
-                /**
-                 * $amount
-                 */
                 '15.95',
-                /**
-                 * $textAmount
-                 */
                 '$15.95',
-                /**
-                 * $autoInvoice
-                 */
                 false,
-                /**
-                 * $orderCanInvoice
-                 */
                 false,
-                /**
-                 * $orderHasInvoices
-                 */
                 false,
-                /**
-                 * $postData
-                 */
                 [],
             ],
             3 => [
-                /**
-                 * $state
-                 */
                 Order::STATE_CANCELED,
-                /**
-                 * $orderEmailSent
-                 */
                 false,
-                /**
-                 * $sendOrderConfirmationEmail
-                 */
                 false,
-                /**
-                 * $paymentAction
-                 */
                 'authorize',
-                /**
-                 * $amount
-                 */
                 '15.95',
-                /**
-                 * $textAmount
-                 */
                 '$15.95',
-                /**
-                 * $autoInvoice
-                 */
                 false,
-                /**
-                 * $orderCanInvoice
-                 */
                 false,
-                /**
-                 * $orderHasInvoices
-                 */
                 false,
-                /**
-                 * $postData
-                 */
                 [],
             ],
-            /**
-             * CANCELED && NOT AUTHORIZE
-             */
+            /** CANCELED && NOT AUTHORIZE */
             4 => [
-                /**
-                 * $state
-                 */
                 Order::STATE_CANCELED,
-                /**
-                 * $orderEmailSent
-                 */
                 true,
-                /**
-                 * $sendOrderConfirmationEmail
-                 */
                 true,
-                /**
-                 * $paymentAction
-                 */
                 'not_authorize',
-                /**
-                 * $amount
-                 */
                 '15.95',
-                /**
-                 * $textAmount
-                 */
                 '$15.95',
-                /**
-                 * $autoInvoice
-                 */
                 true,
-                /**
-                 * $orderCanInvoice
-                 */
                 false,
-                /**
-                 * $orderHasInvoices
-                 */
                 false,
-                /**
-                 * $postData
-                 */
                 [],
             ],
             5 => [
-                /**
-                 * $state
-                 */
                 Order::STATE_CANCELED,
-                /**
-                 * $orderEmailSent
-                 */
                 false,
-                /**
-                 * $sendOrderConfirmationEmail
-                 */
                 true,
-                /**
-                 * $paymentAction
-                 */
                 'not_authorize',
-                /**
-                 * $amount
-                 */
                 '15.95',
-                /**
-                 * $textAmount
-                 */
                 '$15.95',
-                /**
-                 * $autoInvoice
-                 */
                 true,
-                /**
-                 * $orderCanInvoice
-                 */
                 false,
-                /**
-                 * $orderHasInvoices
-                 */
                 false,
-                /**
-                 * $postData
-                 */
                 [],
             ],
             6 => [
-                /**
-                 * $state
-                 */
                 Order::STATE_CANCELED,
-                /**
-                 * $orderEmailSent
-                 */
                 true,
-                /**
-                 * $sendOrderConfirmationEmail
-                 */
                 false,
-                /**
-                 * $paymentAction
-                 */
                 'not_authorize',
-                /**
-                 * $amount
-                 */
                 '15.95',
-                /**
-                 * $textAmount
-                 */
                 '$15.95',
-                /**
-                 * $autoInvoice
-                 */
                 true,
-                /**
-                 * $orderCanInvoice
-                 */
                 false,
-                /**
-                 * $orderHasInvoices
-                 */
                 false,
-                /**
-                 * $postData
-                 */
                 [],
             ],
             7 => [
-                /**
-                 * $state
-                 */
                 Order::STATE_CANCELED,
-                /**
-                 * $orderEmailSent
-                 */
                 false,
-                /**
-                 * $sendOrderConfirmationEmail
-                 */
                 false,
-                /**
-                 * $paymentAction
-                 */
                 'not_authorize',
-                /**
-                 * $amount
-                 */
                 '15.95',
-                /**
-                 * $textAmount
-                 */
                 '$15.95',
-                /**
-                 * $autoInvoice
-                 */
                 true,
-                /**
-                 * $orderCanInvoice
-                 */
                 false,
-                /**
-                 * $orderHasInvoices
-                 */
                 false,
-                /**
-                 * $postData
-                 */
                 [],
             ],
-            /**
-             * CANCELED && NOT AUTHORIZE && AUTO INVOICE
-             */
+            /** CANCELED && NOT AUTHORIZE && AUTO INVOICE*/
             8 => [
-                /**
-                 * $state
-                 */
                 Order::STATE_CANCELED,
-                /**
-                 * $orderEmailSent
-                 */
                 true,
-                /**
-                 * $sendOrderConfirmationEmail
-                 */
                 true,
-                /**
-                 * $paymentAction
-                 */
                 'not_authorize',
-                /**
-                 * $amount
-                 */
                 '15.95',
-                /**
-                 * $textAmount
-                 */
                 '$15.95',
-                /**
-                 * $autoInvoice
-                 */
                 true,
-                /**
-                 * $orderCanInvoice
-                 */
                 false,
-                /**
-                 * $orderHasInvoices
-                 */
                 false,
-                /**
-                 * $postData
-                 */
                 [],
             ],
             9 => [
-                /**
-                 * $state
-                 */
                 Order::STATE_CANCELED,
-                /**
-                 * $orderEmailSent
-                 */
                 true,
-                /**
-                 * $sendOrderConfirmationEmail
-                 */
                 true,
-                /**
-                 * $paymentAction
-                 */
                 'not_authorize',
-                /**
-                 * $amount
-                 */
                 '15.95',
-                /**
-                 * $textAmount
-                 */
                 '$15.95',
-                /**
-                 * $autoInvoice
-                 */
                 true,
-                /**
-                 * $orderCanInvoice
-                 */
-                true,
-                /**
-                 * $orderHasInvoices
-                 */
                 false,
-                /**
-                 * $postData
-                 */
-                ['brq_transactions' => 'test_transaction_id'],
+                true,
+                [],
             ],
             10 => [
-                /**
-                 * $state
-                 */
                 Order::STATE_CANCELED,
-                /**
-                 * $orderEmailSent
-                 */
                 true,
-                /**
-                 * $sendOrderConfirmationEmail
-                 */
                 true,
-                /**
-                 * $paymentAction
-                 */
                 'not_authorize',
-                /**
-                 * $amount
-                 */
                 '15.95',
-                /**
-                 * $textAmount
-                 */
                 '$15.95',
-                /**
-                 * $autoInvoice
-                 */
                 true,
-                /**
-                 * $orderCanInvoice
-                 */
                 true,
-                /**
-                 * $orderHasInvoices
-                 */
-                false,
-                /**
-                 * $postData
-                 */
-                ['brq_transactions' => 'test_transaction_id'],
+                true,
+                [],
             ],
+            /** PROCESSING && AUTHORIZE*/
             11 => [
-                /**
-                 * $state
-                 */
-                Order::STATE_CANCELED,
-                /**
-                 * $orderEmailSent
-                 */
+                Order::STATE_PROCESSING,
                 true,
-                /**
-                 * $sendOrderConfirmationEmail
-                 */
                 true,
-                /**
-                 * $paymentAction
-                 */
-                'not_authorize',
-                /**
-                 * $amount
-                 */
+                'authorize',
                 '15.95',
-                /**
-                 * $textAmount
-                 */
                 '$15.95',
-                /**
-                 * $autoInvoice
-                 */
-                true,
-                /**
-                 * $orderCanInvoice
-                 */
                 false,
-                /**
-                 * $orderHasInvoices
-                 */
-                true,
-                /**
-                 * $postData
-                 */
+                false,
+                false,
                 [],
             ],
             12 => [
-                /**
-                 * $state
-                 */
-                Order::STATE_CANCELED,
-                /**
-                 * $orderEmailSent
-                 */
+                Order::STATE_PROCESSING,
+                false,
                 true,
-                /**
-                 * $sendOrderConfirmationEmail
-                 */
-                true,
-                /**
-                 * $paymentAction
-                 */
-                'not_authorize',
-                /**
-                 * $amount
-                 */
+                'authorize',
                 '15.95',
-                /**
-                 * $textAmount
-                 */
                 '$15.95',
-                /**
-                 * $autoInvoice
-                 */
-                true,
-                /**
-                 * $orderCanInvoice
-                 */
-                true,
-                /**
-                 * $orderHasInvoices
-                 */
-                true,
-                /**
-                 * $postData
-                 */
+                false,
+                false,
+                false,
                 [],
             ],
-            /**
-             * PROCESSING && AUTHORIZE
-             */
             13 => [
-                /**
-                 * $state
-                 */
                 Order::STATE_PROCESSING,
-                /**
-                 * $orderEmailSent
-                 */
                 true,
-                /**
-                 * $sendOrderConfirmationEmail
-                 */
-                true,
-                /**
-                 * $paymentAction
-                 */
+                false,
                 'authorize',
-                /**
-                 * $amount
-                 */
                 '15.95',
-                /**
-                 * $textAmount
-                 */
                 '$15.95',
-                /**
-                 * $autoInvoice
-                 */
                 false,
-                /**
-                 * $orderCanInvoice
-                 */
                 false,
-                /**
-                 * $orderHasInvoices
-                 */
                 false,
-                /**
-                 * $postData
-                 */
                 [],
             ],
             14 => [
-                /**
-                 * $state
-                 */
                 Order::STATE_PROCESSING,
-                /**
-                 * $orderEmailSent
-                 */
                 false,
-                /**
-                 * $sendOrderConfirmationEmail
-                 */
-                true,
-                /**
-                 * $paymentAction
-                 */
+                false,
                 'authorize',
-                /**
-                 * $amount
-                 */
                 '15.95',
-                /**
-                 * $textAmount
-                 */
                 '$15.95',
-                /**
-                 * $autoInvoice
-                 */
                 false,
-                /**
-                 * $orderCanInvoice
-                 */
                 false,
-                /**
-                 * $orderHasInvoices
-                 */
                 false,
-                /**
-                 * $postData
-                 */
                 [],
             ],
+            /** PROCESSING && NOT AUTHORIZE*/
             15 => [
-                /**
-                 * $state
-                 */
                 Order::STATE_PROCESSING,
-                /**
-                 * $orderEmailSent
-                 */
                 true,
-                /**
-                 * $sendOrderConfirmationEmail
-                 */
-                false,
-                /**
-                 * $paymentAction
-                 */
-                'authorize',
-                /**
-                 * $amount
-                 */
+                true,
+                'not_authorize',
                 '15.95',
-                /**
-                 * $textAmount
-                 */
                 '$15.95',
-                /**
-                 * $autoInvoice
-                 */
+                true,
                 false,
-                /**
-                 * $orderCanInvoice
-                 */
                 false,
-                /**
-                 * $orderHasInvoices
-                 */
-                false,
-                /**
-                 * $postData
-                 */
                 [],
             ],
             16 => [
-                /**
-                 * $state
-                 */
                 Order::STATE_PROCESSING,
-                /**
-                 * $orderEmailSent
-                 */
                 false,
-                /**
-                 * $sendOrderConfirmationEmail
-                 */
-                false,
-                /**
-                 * $paymentAction
-                 */
-                'authorize',
-                /**
-                 * $amount
-                 */
+                true,
+                'not_authorize',
                 '15.95',
-                /**
-                 * $textAmount
-                 */
                 '$15.95',
-                /**
-                 * $autoInvoice
-                 */
+                true,
                 false,
-                /**
-                 * $orderCanInvoice
-                 */
                 false,
-                /**
-                 * $orderHasInvoices
-                 */
-                false,
-                /**
-                 * $postData
-                 */
                 [],
             ],
-            /**
-             * PROCESSING && NOT AUTHORIZE
-             */
             17 => [
-                /**
-                 * $state
-                 */
                 Order::STATE_PROCESSING,
-                /**
-                 * $orderEmailSent
-                 */
                 true,
-                /**
-                 * $sendOrderConfirmationEmail
-                 */
-                true,
-                /**
-                 * $paymentAction
-                 */
+                false,
                 'not_authorize',
-                /**
-                 * $amount
-                 */
                 '15.95',
-                /**
-                 * $textAmount
-                 */
                 '$15.95',
-                /**
-                 * $autoInvoice
-                 */
                 true,
-                /**
-                 * $orderCanInvoice
-                 */
                 false,
-                /**
-                 * $orderHasInvoices
-                 */
                 false,
-                /**
-                 * $postData
-                 */
                 [],
             ],
             18 => [
-                /**
-                 * $state
-                 */
                 Order::STATE_PROCESSING,
-                /**
-                 * $orderEmailSent
-                 */
                 false,
-                /**
-                 * $sendOrderConfirmationEmail
-                 */
-                true,
-                /**
-                 * $paymentAction
-                 */
+                false,
                 'not_authorize',
-                /**
-                 * $amount
-                 */
                 '15.95',
-                /**
-                 * $textAmount
-                 */
                 '$15.95',
-                /**
-                 * $autoInvoice
-                 */
                 true,
-                /**
-                 * $orderCanInvoice
-                 */
                 false,
-                /**
-                 * $orderHasInvoices
-                 */
                 false,
-                /**
-                 * $postData
-                 */
                 [],
             ],
+            /** PROCESSING && NOT AUTHORIZE && AUTO INVOICE */
             19 => [
-                /**
-                 * $state
-                 */
                 Order::STATE_PROCESSING,
-                /**
-                 * $orderEmailSent
-                 */
                 true,
-                /**
-                 * $sendOrderConfirmationEmail
-                 */
-                false,
-                /**
-                 * $paymentAction
-                 */
+                true,
                 'not_authorize',
-                /**
-                 * $amount
-                 */
                 '15.95',
-                /**
-                 * $textAmount
-                 */
                 '$15.95',
-                /**
-                 * $autoInvoice
-                 */
                 true,
-                /**
-                 * $orderCanInvoice
-                 */
                 false,
-                /**
-                 * $orderHasInvoices
-                 */
                 false,
-                /**
-                 * $postData
-                 */
                 [],
             ],
             20 => [
-                /**
-                 * $state
-                 */
                 Order::STATE_PROCESSING,
-                /**
-                 * $orderEmailSent
-                 */
-                false,
-                /**
-                 * $sendOrderConfirmationEmail
-                 */
-                false,
-                /**
-                 * $paymentAction
-                 */
-                'not_authorize',
-                /**
-                 * $amount
-                 */
-                '15.95',
-                /**
-                 * $textAmount
-                 */
-                '$15.95',
-                /**
-                 * $autoInvoice
-                 */
                 true,
-                /**
-                 * $orderCanInvoice
-                 */
+                true,
+                'not_authorize',
+                '15.95',
+                '$15.95',
+                true,
                 false,
-                /**
-                 * $orderHasInvoices
-                 */
-                false,
-                /**
-                 * $postData
-                 */
+                true,
                 [],
             ],
-            /**
-             * PROCESSING && NOT AUTHORIZE && AUTO INVOICE
-             */
             21 => [
-                /**
-                 * $state
-                 */
                 Order::STATE_PROCESSING,
-                /**
-                 * $orderEmailSent
-                 */
                 true,
-                /**
-                 * $sendOrderConfirmationEmail
-                 */
                 true,
-                /**
-                 * $paymentAction
-                 */
                 'not_authorize',
-                /**
-                 * $amount
-                 */
                 '15.95',
-                /**
-                 * $textAmount
-                 */
                 '$15.95',
-                /**
-                 * $autoInvoice
-                 */
                 true,
-                /**
-                 * $orderCanInvoice
-                 */
-                false,
-                /**
-                 * $orderHasInvoices
-                 */
-                false,
-                /**
-                 * $postData
-                 */
-                [],
-            ],
-            22 => [
-                /**
-                 * $state
-                 */
-                Order::STATE_PROCESSING,
-                /**
-                 * $orderEmailSent
-                 */
                 true,
-                /**
-                 * $sendOrderConfirmationEmail
-                 */
                 true,
-                /**
-                 * $paymentAction
-                 */
-                'not_authorize',
-                /**
-                 * $amount
-                 */
-                '15.95',
-                /**
-                 * $textAmount
-                 */
-                '$15.95',
-                /**
-                 * $autoInvoice
-                 */
-                true,
-                /**
-                 * $orderCanInvoice
-                 */
-                true,
-                /**
-                 * $orderHasInvoices
-                 */
-                false,
-                /**
-                 * $postData
-                 */
-                ['brq_transactions' => 'test_transaction_id'],
-            ],
-            23 => [
-                /**
-                 * $state
-                 */
-                Order::STATE_PROCESSING,
-                /**
-                 * $orderEmailSent
-                 */
-                true,
-                /**
-                 * $sendOrderConfirmationEmail
-                 */
-                true,
-                /**
-                 * $paymentAction
-                 */
-                'not_authorize',
-                /**
-                 * $amount
-                 */
-                '15.95',
-                /**
-                 * $textAmount
-                 */
-                '$15.95',
-                /**
-                 * $autoInvoice
-                 */
-                true,
-                /**
-                 * $orderCanInvoice
-                 */
-                true,
-                /**
-                 * $orderHasInvoices
-                 */
-                false,
-                /**
-                 * $postData
-                 */
-                ['brq_transactions' => 'test_transaction_id'],
-            ],
-            24 => [
-                /**
-                 * $state
-                 */
-                Order::STATE_PROCESSING,
-                /**
-                 * $orderEmailSent
-                 */
-                true,
-                /**
-                 * $sendOrderConfirmationEmail
-                 */
-                true,
-                /**
-                 * $paymentAction
-                 */
-                'not_authorize',
-                /**
-                 * $amount
-                 */
-                '15.95',
-                /**
-                 * $textAmount
-                 */
-                '$15.95',
-                /**
-                 * $autoInvoice
-                 */
-                true,
-                /**
-                 * $orderCanInvoice
-                 */
-                false,
-                /**
-                 * $orderHasInvoices
-                 */
-                true,
-                /**
-                 * $postData
-                 */
-                [],
-            ],
-            25 => [
-                /**
-                 * $state
-                 */
-                Order::STATE_PROCESSING,
-                /**
-                 * $orderEmailSent
-                 */
-                true,
-                /**
-                 * $sendOrderConfirmationEmail
-                 */
-                true,
-                /**
-                 * $paymentAction
-                 */
-                'not_authorize',
-                /**
-                 * $amount
-                 */
-                '15.95',
-                /**
-                 * $textAmount
-                 */
-                '$15.95',
-                /**
-                 * $autoInvoice
-                 */
-                true,
-                /**
-                 * $orderCanInvoice
-                 */
-                true,
-                /**
-                 * $orderHasInvoices
-                 */
-                true,
-                /**
-                 * $postData
-                 */
                 [],
             ],
         ];

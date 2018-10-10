@@ -42,17 +42,7 @@ use TIG\Buckaroo\Model\Giftcard;
 
 class GiftcardTest extends \TIG\Buckaroo\Test\BaseTest
 {
-    /**
-    * @var Giftcard
-    */
-    protected $object;
-
-    public function setUp()
-    {
-        parent::setUp();
-
-        $this->object = $this->objectManagerHelper->getObject(Giftcard::class);
-    }
+    protected $instanceClass = Giftcard::class;
 
     /**
      * @return array
@@ -83,10 +73,10 @@ class GiftcardTest extends \TIG\Buckaroo\Test\BaseTest
      */
     public function testShouldBeAbleToSetAndGetServicecode($servicecode, $expected)
     {
-        $object = $this->object;
-        $object->setServicecode($servicecode);
+        $instance = $this->getInstance();
+        $instance->setServicecode($servicecode);
 
-        $this->assertEquals($expected, $object->getServicecode());
+        $this->assertEquals($expected, $instance->getServicecode());
     }
 
     /**
@@ -118,9 +108,9 @@ class GiftcardTest extends \TIG\Buckaroo\Test\BaseTest
      */
     public function testShouldBeAbleToSetAndGetLabel($label, $expected)
     {
-        $object = $this->object;
-        $object->setLabel($label);
+        $instance = $this->getInstance();
+        $instance->setLabel($label);
 
-        $this->assertEquals($expected, $object->getLabel());
+        $this->assertEquals($expected, $instance->getLabel());
     }
 }

@@ -38,80 +38,38 @@
  */
 namespace TIG\Buckaroo\Test\Unit\Model\ConfigProvider\Method;
 
-use Mockery as m;
+use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Store\Model\ScopeInterface;
 use TIG\Buckaroo\Test\BaseTest;
 use TIG\Buckaroo\Model\ConfigProvider\Method\Creditcard;
-use Magento\Framework\View\Asset\Repository;
 
 class CreditcardTest extends BaseTest
 {
-    /**
-     * @var Creditcard
-     */
-    protected $object;
+    protected $instanceClass = Creditcard::class;
 
-    /**
-     * @var m\MockInterface
-     */
-    protected $assetRepository;
-
-    /**
-     * @var m\MockInterface
-     */
-    protected $scopeConfig;
-
-    public function setUp()
-    {
-        parent::setUp();
-
-        $this->assetRepository = m::mock(Repository::class);
-        $this->scopeConfig = \Mockery::mock(\Magento\Framework\App\Config\ScopeConfigInterface::class);
-        $this->object = $this->objectManagerHelper->getObject(
-            Creditcard::class,
-            [
-                'assetRepo' => $this->assetRepository,
-                'scopeConfig' => $this->scopeConfig
-            ]
-        );
-    }
-
-    public function testGetImageUrl()
+    public function testGetConfig()
     {
         $issuers = 'amex,visa';
         $allowedCurrencies = 'USD,EUR';
-        $this->scopeConfig->shouldReceive('getValue')
-            ->once()
-            ->withArgs(
-                [
-                    Creditcard::XPATH_CREDITCARD_ALLOWED_CREDITCARDS,
-                    \Magento\Store\Model\ScopeInterface::SCOPE_STORE
-                ]
-            )
-            ->andReturn($issuers);
 
-        $this->scopeConfig->shouldReceive('getValue')
-            ->once()
-            ->withArgs(
-                [
-                    Creditcard::XPATH_ALLOWED_CURRENCIES,
-                    \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
-                    null
-                ]
-            )
-            ->andReturn($allowedCurrencies);
+        $scopeConfigMock = $this->getFakeMock(ScopeConfigInterface::class)
+            ->setMethods(['getValue'])
+            ->getMockForAbstractClass();
+        $scopeConfigMock->method('getValue')
+            ->withConsecutive(
+                [Creditcard::XPATH_CREDITCARD_ALLOWED_CREDITCARDS, ScopeInterface::SCOPE_STORE],
+                [Creditcard::XPATH_ALLOWED_CURRENCIES, ScopeInterface::SCOPE_STORE, null]
+            )->willReturnOnConsecutiveCalls($issuers, $allowedCurrencies);
 
-        $shouldReceive = $this->assetRepository
-            ->shouldReceive('getUrl')
-            ->with(\Mockery::type('string'));
+        $instance = $this->getInstance(['scopeConfig' => $scopeConfigMock]);
+        $result = $instance->getConfig();
 
-        $options = $this->object->getConfig();
-
-        $shouldReceive->times(count($options['payment']['buckaroo']['creditcard']['cards']));
-
-        $this->assertTrue(array_key_exists('payment', $options));
-        $this->assertTrue(array_key_exists('buckaroo', $options['payment']));
-        $this->assertTrue(array_key_exists('creditcard', $options['payment']['buckaroo']));
-        $this->assertTrue(array_key_exists('cards', $options['payment']['buckaroo']['creditcard']));
+        $this->assertInternalType('array', $result);
+        $this->assertArrayHasKey('payment', $result);
+        $this->assertArrayHasKey('buckaroo', $result['payment']);
+        $this->assertArrayHasKey('creditcard', $result['payment']['buckaroo']);
+        $this->assertArrayHasKey('cards', $result['payment']['buckaroo']['creditcard']);
+        $this->assertInternalType('array', $result['payment']['buckaroo']['creditcard']['cards']);
     }
 
     /**
@@ -119,17 +77,16 @@ class CreditcardTest extends BaseTest
      */
     public function testGetActive()
     {
-        $this->scopeConfig->shouldReceive('getValue')
-            ->once()
-            ->withArgs(
-                [
-                    \TIG\Buckaroo\Model\ConfigProvider\Method\Creditcard::XPATH_CREDITCARD_ACTIVE,
-                    \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
-                    null
-                ]
-            )
-            ->andReturn('1');
+        $scopeConfigMock = $this->getFakeMock(ScopeConfigInterface::class)
+            ->setMethods(['getValue'])
+            ->getMockForAbstractClass();
+        $scopeConfigMock->method('getValue')
+            ->with(Creditcard::XPATH_CREDITCARD_ACTIVE, ScopeInterface::SCOPE_STORE, null)
+            ->willReturn('1');
 
-        $this->assertEquals(1, $this->object->getActive());
+        $instance = $this->getInstance(['scopeConfig' => $scopeConfigMock]);
+        $result = $instance->getActive();
+
+        $this->assertEquals(1, $result);
     }
 }

@@ -39,9 +39,11 @@
  */
 namespace TIG\Buckaroo\Test\Unit\Model\Method;
 
+use Magento\Payment\Model\InfoInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Address;
 use Magento\Sales\Model\Order\Payment;
+use TIG\Buckaroo\Gateway\Http\TransactionBuilder\Order as TransactionOrder;
 use TIG\Buckaroo\Gateway\Http\TransactionBuilderFactory;
 use TIG\Buckaroo\Model\ConfigProvider\Method\Factory;
 use TIG\Buckaroo\Model\ConfigProvider\Method\Transfer;
@@ -50,66 +52,6 @@ use TIG\Buckaroo\Service\CreditManagement\ServiceParameters;
 class TransferTest extends \TIG\Buckaroo\Test\BaseTest
 {
     protected $instanceClass = \TIG\Buckaroo\Model\Method\Transfer::class;
-
-    /**
-     * @var \TIG\Buckaroo\Model\Method\Transfer
-     */
-    protected $object;
-
-    /**
-     * @var TransactionBuilderFactory|\Mockery\MockInterface
-     */
-    protected $transactionBuilderFactory;
-
-    /**
-     * @var \Magento\Framework\ObjectManagerInterface|\Mockery\MockInterface
-     */
-    protected $objectManager;
-
-    /**
-     * @var \Magento\Payment\Model\InfoInterface|\Magento\Sales\Api\Data\OrderPaymentInterface|\Mockery\MockInterface
-     */
-    protected $paymentInterface;
-
-    /**
-     * @var \Magento\Framework\App\Config\ScopeConfigInterface|\Mockery\MockInterface
-     */
-    protected $scopeConfig;
-
-    /**
-     * @var
-     */
-    protected $configProviderMethodFactory;
-
-    /**
-     * Setup the base mocks.
-     */
-    public function setUp()
-    {
-        parent::setUp();
-
-        $this->objectManager               = \Mockery::mock(\Magento\Framework\ObjectManagerInterface::class);
-        $this->transactionBuilderFactory   = \Mockery::mock(
-            TransactionBuilderFactory::class
-        );
-        $this->scopeConfig                 = \Mockery::mock(\Magento\Framework\App\Config\ScopeConfigInterface::class);
-        $this->configProviderMethodFactory = \Mockery::mock(Factory::class);
-
-        $this->object = $this->objectManagerHelper->getObject(
-            \TIG\Buckaroo\Model\Method\Transfer::class,
-            [
-                'scopeConfig'                 => $this->scopeConfig,
-                'objectManager'               => $this->objectManager,
-                'transactionBuilderFactory'   => $this->transactionBuilderFactory,
-                'configProviderMethodFactory' => $this->configProviderMethodFactory
-            ]
-        );
-
-        $this->paymentInterface = \Mockery::mock(
-            \Magento\Payment\Model\InfoInterface::class,
-            \Magento\Sales\Api\Data\OrderPaymentInterface::class
-        );
-    }
 
     /**
      * Test the getOrderTransactionBuilder method.
@@ -123,19 +65,23 @@ class TransferTest extends \TIG\Buckaroo\Test\BaseTest
             'email'     => 'john@doe.com',
         ];
 
-        $order = \Mockery::mock(\TIG\Buckaroo\Gateway\Http\TransactionBuilder\Order::class);
-        $order->shouldReceive('getCustomerEmail')->andReturn($fixture['email']);
-        $order->shouldReceive('setOrder')->with($order)->andReturnSelf();
-        $order->shouldReceive('setMethod')->with('TransactionRequest')->andReturnSelf();
+        $billingAddress = $this->getFakeMock(Address::class)
+            ->setMethods(['getFirstname', 'getLastname', 'getCountryId'])
+            ->getMock();
+        $billingAddress->expects($this->once())->method('getFirstname')->willReturn($fixture['firstname']);
+        $billingAddress->expects($this->once())->method('getLastname')->willReturn($fixture['lastname']);
+        $billingAddress->expects($this->once())->method('getCountryId')->willReturn($fixture['country']);
 
-        $billingAddress = \Mockery::mock(Address::class);
-        $billingAddress->shouldReceive('getFirstname')->andReturn($fixture['firstname']);
-        $billingAddress->shouldReceive('getLastname')->andReturn($fixture['lastname']);
-        $billingAddress->shouldReceive('getCountryId')->andReturn($fixture['country']);
-        $order->shouldReceive('getBillingAddress')->andReturn($billingAddress);
 
-        $order->shouldReceive('setServices')->andReturnUsing(
-            function ($services) use ($fixture, $order) {
+        $orderMock = $this->getFakeMock(TransactionOrder::class)
+            ->setMethods(['getCustomerEmail', 'setOrder', 'setMethod', 'getBillingAddress', 'setServices'])
+            ->getMock();
+        $orderMock->expects($this->once())->method('getCustomerEmail')->willReturn($fixture['email']);
+        $orderMock->expects($this->once())->method('setOrder')->with($orderMock)->willReturnSelf();
+        $orderMock->expects($this->once())->method('setMethod')->with('TransactionRequest')->willReturnSelf();
+        $orderMock->expects($this->once())->method('getBillingAddress')->willReturn($billingAddress);
+        $orderMock->expects($this->once())->method('setServices')->willReturnCallback(
+            function ($services) use ($fixture, $orderMock) {
                 $this->assertEquals($fixture['firstname'], $services[0]['RequestParameter'][0]['_']);
                 $this->assertEquals($fixture['lastname'], $services[0]['RequestParameter'][1]['_']);
                 $this->assertEquals($fixture['country'], $services[0]['RequestParameter'][2]['_']);
@@ -144,34 +90,36 @@ class TransferTest extends \TIG\Buckaroo\Test\BaseTest
                 $this->assertEquals('transfer', $services[0]['Name']);
                 $this->assertEquals('Pay', $services[0]['Action']);
 
-                return $order;
+                return $orderMock;
             }
         );
 
-        /**
-         * @noinspection PhpUndefinedMethodInspection
-         */
-        $this->configProviderMethodFactory->shouldReceive('get')->once()->with('transfer')->andReturnSelf();
-        /**
-         * @noinspection PhpUndefinedMethodInspection
-         */
-        $this->configProviderMethodFactory->shouldReceive('getDueDate')->once()->andReturn('7');
-        $this->configProviderMethodFactory->shouldReceive('getSendEmail')->once()->andReturn('true');
+        $configFactoryMock = $this->getFakeMock(Factory::class)
+            ->setMethods(['get', 'getDueDate', 'getSendEmail'])
+            ->getMock();
+        $configFactoryMock->expects($this->once())->method('get')->with('transfer')->willReturnSelf();
+        $configFactoryMock->expects($this->once())->method('getDueDate')->willReturn('7');
+        $configFactoryMock->expects($this->once())->method('getSendEmail')->willReturn('true');
 
-        $this->paymentInterface->shouldReceive('getOrder')->andReturn($order);
-        $this->paymentInterface->shouldReceive('setAdditionalInformation')->withArgs(['skip_push', 1]);
-        $this->transactionBuilderFactory->shouldReceive('get')->with('order')->andReturn($order);
+        $paymentMock = $this->getFakeMock(Payment::class)
+            ->setMethods(['getOrder', 'setAdditionalInformation'])
+            ->getMock();
+        $paymentMock->expects($this->exactly(3))->method('getOrder')->willReturn($orderMock);
+        $paymentMock->expects($this->once())->method('setAdditionalInformation')->with('skip_push', 1);
 
-        $infoInterface = \Mockery::mock(\Magento\Payment\Model\InfoInterface::class)->makePartial();
+        $trxFactoryMock = $this->getFakeMock(TransactionBuilderFactory::class)->setMethods(['get'])->getMock();
+        $trxFactoryMock->expects($this->once())->method('get')->with('order')->willReturn($orderMock);
 
-        /**
-         * @noinspection PhpUndefinedMethodInspection
-         */
-        $this->object->setData('info_instance', $infoInterface);
-        /**
-         * @noinspection PhpUndefinedMethodInspection
-         */
-        $this->assertEquals($order, $this->object->getOrderTransactionBuilder($this->paymentInterface));
+        $infoInterface = $this->getFakeMock(InfoInterface::class)->getMockForAbstractClass();
+
+        $instance = $this->getInstance([
+            'configProviderMethodFactory' => $configFactoryMock,
+            'transactionBuilderFactory' => $trxFactoryMock
+        ]);
+
+        $instance->setData('info_instance', $infoInterface);
+
+        $this->assertEquals($orderMock, $instance->getOrderTransactionBuilder($paymentMock));
     }
 
     public function testGetTransferService()
@@ -285,10 +233,9 @@ class TransferTest extends \TIG\Buckaroo\Test\BaseTest
      */
     public function testGetCaptureTransactionBuilder()
     {
-        /**
-         * @noinspection PhpUndefinedMethodInspection
-         */
-        $this->assertFalse($this->object->getCaptureTransactionBuilder($this->paymentInterface));
+        $paymentMock = $this->getFakeMock(Payment::class, true);
+        $instance = $this->getInstance();
+        $this->assertFalse($instance->getCaptureTransactionBuilder($paymentMock));
     }
 
     /**
@@ -296,10 +243,9 @@ class TransferTest extends \TIG\Buckaroo\Test\BaseTest
      */
     public function testGetAuthorizeTransactionBuilder()
     {
-        /**
-         * @noinspection PhpUndefinedMethodInspection
-         */
-        $this->assertFalse($this->object->getAuthorizeTransactionBuilder($this->paymentInterface));
+        $paymentMock = $this->getFakeMock(Payment::class, true);
+        $instance = $this->getInstance();
+        $this->assertFalse($instance->getAuthorizeTransactionBuilder($paymentMock));
     }
 
     /**
@@ -311,37 +257,36 @@ class TransferTest extends \TIG\Buckaroo\Test\BaseTest
             'order' => 'orderrr!',
         ];
 
-        $this->paymentInterface->shouldReceive('getOrder')->andReturn($fixture['order']);
-        $this->paymentInterface->shouldReceive('getAdditionalInformation')->with(
-            'buckaroo_transaction_key'
-        )->andReturn('getAdditionalInformation');
-        $this->paymentInterface->shouldReceive('getAdditionalInformation')->with(
-            'buckaroo_original_transaction_key'
-        )->andReturn('getAdditionalInformation');
+        $paymentMock = $this->getFakeMock(Payment::class)
+            ->setMethods(['getOrder', 'getAdditionalInformation'])
+            ->getMock();
+        $paymentMock->expects($this->once())->method('getOrder')->willReturn($fixture['order']);
+        $paymentMock->expects($this->once())
+            ->method('getAdditionalInformation')
+            ->with('buckaroo_original_transaction_key')
+            ->willReturn('getAdditionalInformation');
 
-        $this->transactionBuilderFactory->shouldReceive('get')->with('refund')->andReturnSelf();
-        $this->transactionBuilderFactory->shouldReceive('setOrder')->with($fixture['order'])->andReturnSelf();
-        $this->transactionBuilderFactory->shouldReceive('setServices')->andReturnUsing(
-            function ($services) {
+        $trxFactoryMock = $this->getFakeMock(TransactionBuilderFactory::class)
+            ->setMethods(['get', 'setOrder', 'setMethod', 'setOriginalTransactionKey', 'setServices'])
+            ->getMock();
+        $trxFactoryMock->expects($this->once())->method('get')->with('refund')->willReturnSelf();
+        $trxFactoryMock->expects($this->once())->method('setOrder')->with($fixture['order'])->willReturnSelf();
+        $trxFactoryMock->expects($this->once())->method('setMethod')->with('TransactionRequest')->willReturnSelf();
+        $trxFactoryMock->expects($this->once())
+            ->method('setOriginalTransactionKey')
+            ->with('getAdditionalInformation')
+            ->willReturnSelf();
+        $trxFactoryMock->expects($this->once())->method('setServices')->willReturnCallback(
+            function ($services) use ($trxFactoryMock) {
                 $services['Name']   = 'sofortbanking';
                 $services['Action'] = 'Refund';
 
-                return $this->transactionBuilderFactory;
+                return $trxFactoryMock;
             }
         );
-        $this->transactionBuilderFactory->shouldReceive('setMethod')->with('TransactionRequest')->andReturnSelf();
-        $this->transactionBuilderFactory->shouldReceive('setOriginalTransactionKey')
-            ->with('getAdditionalInformation')
-            ->andReturnSelf();
-        $this->transactionBuilderFactory->shouldReceive('setChannel')->with('CallCenter')->andReturnSelf();
 
-        /**
-         * @noinspection PhpUndefinedMethodInspection
-         */
-        $this->assertEquals(
-            $this->transactionBuilderFactory,
-            $this->object->getRefundTransactionBuilder($this->paymentInterface)
-        );
+        $instance = $this->getInstance(['transactionBuilderFactory' => $trxFactoryMock]);
+        $this->assertEquals($trxFactoryMock, $instance->getRefundTransactionBuilder($paymentMock));
     }
 
     /**

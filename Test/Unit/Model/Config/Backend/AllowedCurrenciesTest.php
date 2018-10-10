@@ -38,118 +38,103 @@
  */
 namespace TIG\Buckaroo\Test\Unit\Model\Config\Backend;
 
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Locale\Bundle\CurrencyBundle;
+use Magento\Framework\Model\ResourceModel\AbstractResource;
+use TIG\Buckaroo\Model\Config\Backend\AllowedCurrencies;
+use TIG\Buckaroo\Model\ConfigProvider\AllowedCurrencies as AllowedCurrenciesProvider;
+
 class AllowedCurrenciesTest extends \TIG\Buckaroo\Test\BaseTest
 {
-    /**
-     * @var \TIG\Buckaroo\Model\Config\Backend\AllowedCurrencies
-     */
-    protected $object;
-
-    /**
-     * @var \Mockery\MockInterface
-     */
-    protected $resource;
-
-    /**
-     * @var \TIG\Buckaroo\Model\ConfigProvider\AllowedCurrencies|\Mockery\MockInterface
-     */
-    protected $configProvider;
-
-    /**
-     * @var \Magento\Framework\Locale\Bundle\CurrencyBundle|\Mockery\MockInterface
-     */
-    protected $currencyBundle;
-
-    /**
-     * Setup the base mocks.
-     */
-    public function setUp()
-    {
-        parent::setUp();
-
-        $this->resource = \Mockery::mock(\Magento\Framework\Model\ResourceModel\AbstractResource::class);
-        $this->resource->shouldReceive('save');
-
-        $this->configProvider = \Mockery::mock(\TIG\Buckaroo\Model\ConfigProvider\AllowedCurrencies::class)
-            ->makePartial();
-        $this->configProvider->shouldReceive('getAllowedCurrencies')->andReturn(['ABC', 'DEF', 'GHI']);
-
-        $this->currencyBundle = \Mockery::mock(\Magento\Framework\Locale\Bundle\CurrencyBundle::class)->makePartial();
-
-        $this->object = $this->objectManagerHelper->getObject(
-            \TIG\Buckaroo\Model\Config\Backend\AllowedCurrencies::class,
-            [
-                'resource' => $this->resource,
-                'currencyBundle' => $this->currencyBundle,
-                'configProvider' => $this->configProvider,
-            ]
-        );
-    }
+    protected $instanceClass = AllowedCurrencies::class;
 
     /**
      * Test what happens when there is no value provided.
-     *
-     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function testSaveNoValue()
     {
-        $this->assertInstanceOf(\TIG\Buckaroo\Model\Config\Backend\AllowedCurrencies::class, $this->object->save());
+        $resourceMock = $this->getFakeMock(AbstractResource::class)->setMethods(['save'])->getMockForAbstractClass();
+        $resourceMock->expects($this->once())->method('save');
+
+        $instance = $this->getInstance(['resource' => $resourceMock]);
+
+        $result = $instance->save();
+        $this->assertInstanceOf(AllowedCurrencies::class, $result);
     }
 
     /**
      * Test what happens when there is a valid value provided.
-     *
-     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function testSaveWithValidValue()
     {
-        $this->object->setData('value', ['ABC']);
+        $configProviderMock = $this->getFakeMock(AllowedCurrenciesProvider::class)
+            ->setMethods(['getAllowedCurrencies'])
+            ->getMock();
+        $configProviderMock->expects($this->once())->method('getAllowedCurrencies')->willReturn(['EUR', 'USD']);
 
-        $this->assertInstanceOf(\TIG\Buckaroo\Model\Config\Backend\AllowedCurrencies::class, $this->object->save());
+        $resourceMock = $this->getFakeMock(AbstractResource::class)->setMethods(['save'])->getMockForAbstractClass();
+        $resourceMock->expects($this->once())->method('save');
+
+        $instance = $this->getInstance(['configProvider' => $configProviderMock, 'resource' => $resourceMock]);
+        $instance->setValue(['EUR']);
+
+        $result = $instance->save();
+        $this->assertInstanceOf(AllowedCurrencies::class, $result);
     }
 
     /**
      * Test what happens when there is a invalid value provided.
-     *
-     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function testSaveWithInvalidValue()
     {
-        $this->object->setData('value', ['XYZ']);
+        $configProviderMock = $this->getFakeMock(AllowedCurrenciesProvider::class)
+            ->setMethods(['getAllowedCurrencies'])
+            ->getMock();
+        $configProviderMock->expects($this->once())->method('getAllowedCurrencies')->willReturn(['EUR', 'USD']);
+
+        $instance = $this->getInstance(['configProvider' => $configProviderMock]);
+        $instance->setValue(['GBP']);
 
         try {
-            $this->assertInstanceOf(\TIG\Buckaroo\Model\Config\Backend\AllowedCurrencies::class, $this->object->save());
-            $this->fail();
-        } catch (\Exception $e) {
-            $this->assertInstanceOf(\Magento\Framework\Exception\LocalizedException::class, $e);
-            $this->assertNotFalse(strpos($e->getMessage(), 'XYZ'));
+            $instance->save();
+        } catch (LocalizedException $e) {
+            $this->assertEquals("Please enter a valid currency: 'GBP'.", $e->getMessage());
         }
     }
 
     /**
      * Test what happens when there is a invalid value provided.
      *
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws LocalizedException
      */
     public function testSaveWithInvalidValueThatHasCurrency()
     {
-        $this->object->setData('value', ['XYZ']);
-        $this->currencyBundle->shouldReceive('get')->andReturn(
-            [
+        $currencyBundleData = [
             'Currencies' => [
-                'XYZ' => [
-                    1 => 'Alphabet',
+                'GBP' => [
+                    1 => 'British Pound',
                 ]
             ]
-            ]
-        );
+        ];
+
+        $currencyBundleMock = $this->getFakeMock(CurrencyBundle::class)->setMethods(['get'])->getMock();
+        $currencyBundleMock->expects($this->once())->method('get')->willReturn($currencyBundleData);
+
+        $configProviderMock = $this->getFakeMock(AllowedCurrenciesProvider::class)
+            ->setMethods(['getAllowedCurrencies'])
+            ->getMock();
+        $configProviderMock->expects($this->once())->method('getAllowedCurrencies')->willReturn(['EUR', 'USD']);
+
+        $instance = $this->getInstance([
+            'currencyBundle' => $currencyBundleMock,
+            'configProvider' => $configProviderMock
+        ]);
+        $instance->setValue(['GBP']);
 
         try {
-            $this->assertInstanceOf(\TIG\Buckaroo\Model\Config\Backend\AllowedCurrencies::class, $this->object->save());
-            $this->fail();
-        } catch (\Exception $e) {
-            $this->assertInstanceOf(\Magento\Framework\Exception\LocalizedException::class, $e);
-            $this->assertNotFalse(strpos($e->getMessage(), 'Alphabet'));
+            $instance->save();
+        } catch (LocalizedException $e) {
+            $this->assertEquals("Please enter a valid currency: 'British Pound'.", $e->getMessage());
         }
     }
 }

@@ -43,58 +43,38 @@ use TIG\Buckaroo\Test\BaseTest;
 
 class EnableModeTest extends BaseTest
 {
-    /**
-     * @var Enablemode
-     */
-    protected $object;
+    protected $instanceClass = Enablemode::class;
 
     /**
      * @var array
      */
-    protected $shouldHaveOptions;
-
-    public function setUp()
-    {
-        parent::setUp();
-
-        $this->object = new Enablemode();
-
-        $this->shouldHaveOptions = [
-            0 => __('Off'),
-            1 => __('Test'),
-            2 => __('Live'),
-        ];
-    }
+    protected $expectedOptions = [
+        'Off',
+        'Test',
+        'Live',
+    ];
 
     public function testToOptionArray()
     {
-        $options = $this->object->toOptionArray();
-        $this->assertTrue($options >= 3);
+        $instance = $this->getInstance();
+        $result = $instance->toOptionArray();
 
-        foreach ($this->shouldHaveOptions as $key => $shouldHaveOptionValue) {
-            foreach ($options as $option) {
-                if ($option['value'] == $key) {
-                    /**
-                     * @noinspection PhpUndefinedMethodInspection
-                     */
-                    $this->assertEquals($option['label']->getText(), $shouldHaveOptionValue->getText());
-                    break;
-                }
-            }
+        $this->assertCount(3, $result);
+
+        foreach ($result as $option) {
+            $this->assertContains($option['label']->getText(), $this->expectedOptions);
         }
     }
 
     public function testToArray()
     {
-        $options = $this->object->toArray();
+        $instance = $this->getInstance();
+        $result = $instance->toArray();
 
-        foreach ($options as $key => $option) {
-            if (array_key_exists($key, $this->shouldHaveOptions)) {
-                /**
-                 * @noinspection PhpUndefinedMethodInspection
-                 */
-                $this->assertEquals($option->getText(), $this->shouldHaveOptions[$key]->getText());
-            }
+        $this->assertCount(3, $result);
+
+        foreach ($result as $option) {
+            $this->assertContains($option->getText(), $this->expectedOptions);
         }
     }
 }

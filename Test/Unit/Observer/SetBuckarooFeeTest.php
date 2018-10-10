@@ -41,26 +41,12 @@ namespace TIG\Buckaroo\Test\Unit\Observer;
 use Magento\Framework\Event\Observer;
 use Magento\Quote\Model\Quote;
 use Magento\Sales\Model\Order;
-use Mockery as m;
 use TIG\Buckaroo\Test\BaseTest;
 use TIG\Buckaroo\Observer\SetBuckarooFee;
 
 class SetBuckarooFeeTest extends BaseTest
 {
-    /**
-     * @var SetBuckarooFee
-     */
-    protected $object;
-
-    /**
-     * Setup the basic mock object.
-     */
-    public function setUp()
-    {
-        parent::setUp();
-
-        $this->object = $this->objectManagerHelper->getObject(SetBuckarooFee::class);
-    }
+    protected $instanceClass = SetBuckarooFee::class;
 
     /**
      * Test the happy path. No Buckaroo Payment Fee
@@ -77,7 +63,8 @@ class SetBuckarooFeeTest extends BaseTest
         $observerMock->expects($this->exactly(2))->method('getEvent')->willReturnSelf();
         $observerMock->expects($this->once())->method('getQuote')->willReturn($quoteMock);
 
-        $this->object->execute($observerMock);
+        $instance = $this->getInstance();
+        $instance->execute($observerMock);
     }
 
     /**
@@ -135,6 +122,7 @@ class SetBuckarooFeeTest extends BaseTest
         $observerMock->expects($this->once())->method('getOrder')->willReturn($orderMock);
         $observerMock->expects($this->once())->method('getQuote')->willReturn($quoteMock);
 
-        $this->object->execute($observerMock);
+        $instance = $this->getInstance();
+        $instance->execute($observerMock);
     }
 }

@@ -38,7 +38,7 @@
  */
 namespace TIG\Buckaroo\Test\Unit\Gateway\Http;
 
-use Mockery as m;
+use Magento\Framework\DataObject;
 use TIG\Buckaroo\Exception;
 use TIG\Buckaroo\Test\BaseTest;
 use Magento\Framework\ObjectManagerInterface;
@@ -47,53 +47,26 @@ use TIG\Buckaroo\Gateway\Http\TransactionBuilderInterface;
 
 class TransactionBuilderFactoryTest extends BaseTest
 {
-    /**
-     * @var TransactionBuilderFactory
-     */
-    protected $object;
-
-    /**
-     * @var m\MockInterface|ObjectManagerInterface
-     */
-    protected $objectManager;
-
-    public function setUp()
-    {
-        parent::setUp();
-
-        $this->objectManager = m::mock(ObjectManagerInterface::class);
-    }
-
-    public function getTransactionBuilder($transactionBuilders = [])
-    {
-        $object = $this->objectManagerHelper->getObject(
-            TransactionBuilderFactory::class,
-            [
-            'objectManager' => $this->objectManager,
-            'transactionBuilders' => $transactionBuilders,
-            ]
-        );
-
-        return $object;
-    }
+    protected $instanceClass = TransactionBuilderFactory::class;
 
     /**
      * Test the happy path
      */
     public function testGet()
     {
-        $model = m::mock(TransactionBuilderInterface::class);
-        $this->objectManager->shouldReceive('get')->with('model1')->andReturn($model);
+        $model = $this->getFakeMock(TransactionBuilderInterface::class, true);
 
-        $object = $this->getTransactionBuilder(
-            [
-            [
-                'type' => 'model1',
-                'model' => 'model1',
-            ]
-            ]
-        );
-        $result = $object->get('model1');
+        $objectManagerMock = $this->getFakeMock(ObjectManagerInterface::class)
+            ->setMethods(['get'])
+            ->getMockForAbstractClass();
+        $objectManagerMock->expects($this->once())->method('get')->with('model1')->willReturn($model);
+
+        $instance = $this->getInstance([
+            'objectManager' => $objectManagerMock,
+            'transactionBuilders' => [['type' => 'model1', 'model' => 'model1']]
+        ]);
+
+        $result = $instance->get('model1');
 
         $this->assertInstanceOf(TransactionBuilderInterface::class, $result);
     }
@@ -103,20 +76,12 @@ class TransactionBuilderFactoryTest extends BaseTest
      */
     public function testGetInvalidClass()
     {
-        $object = $this->getTransactionBuilder(
-            [
-            [
-                'type' => '',
-                'model' => '',
-            ]
-            ]
-        );
+        $instance = $this->getInstance(['transactionBuilders' => [['type' => '', 'model' => '']]]);
 
         try {
-            $object->get('model1');
-            $this->fail();
-        } catch (\Exception $e) {
-            $this->assertInstanceOf(Exception::class, $e);
+            $instance->get('model1');
+        } catch (Exception $e) {
+            $this->assertEquals('Unknown transaction builder type requested: model1.', $e->getMessage());
         }
     }
 
@@ -125,23 +90,22 @@ class TransactionBuilderFactoryTest extends BaseTest
      */
     public function testGetInvalidInstance()
     {
-        $model = m::mock();
-        $this->objectManager->shouldReceive('get')->with('model1')->andReturn($model);
+        $model = $this->getObject(DataObject::class);
+        $objectManagerMock = $this->getFakeMock(ObjectManagerInterface::class)
+            ->setMethods(['get'])
+            ->getMockForAbstractClass();
+        $objectManagerMock->expects($this->once())->method('get')->with('model1')->willReturn($model);
 
-        $object = $this->getTransactionBuilder(
-            [
-            [
-                'type' => 'model1',
-                'model' => 'model1',
-            ]
-            ]
-        );
+        $instance = $this->getInstance([
+            'objectManager' => $objectManagerMock,
+            'transactionBuilders' => [['type' => 'model1', 'model' => 'model1']]
+        ]);
 
         try {
-            $object->get('model1');
-            $this->fail();
-        } catch (\Exception $e) {
-            $this->assertInstanceOf(\LogicException::class, $e);
+            $instance->get('model1');
+        } catch (\LogicException $e) {
+            $msg = 'The transaction builder must implement "TIG\Buckaroo\Gateway\Http\TransactionBuilderInterface".';
+            $this->assertEquals($msg, $e->getMessage());
         }
     }
 
@@ -150,13 +114,12 @@ class TransactionBuilderFactoryTest extends BaseTest
      */
     public function testGetNoProviders()
     {
-        $object = $this->getTransactionBuilder();
+        $instance = $this->getInstance();
 
         try {
-            $object->get('');
-            $this->fail();
-        } catch (\Exception $e) {
-            $this->assertInstanceOf(\LogicException::class, $e);
+            $instance->get('');
+        } catch (\LogicException $e) {
+            $this->assertEquals('Transaction builder adapter is not set.', $e->getMessage());
         }
     }
 }

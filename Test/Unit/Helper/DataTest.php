@@ -38,44 +38,36 @@
  */
 namespace TIG\Buckaroo\Test\Helper;
 
-use \Mockery as m;
 use TIG\Buckaroo\Test\BaseTest;
 use TIG\Buckaroo\Helper\Data;
 
-class HelperTest extends BaseTest
+class DataTest extends BaseTest
 {
-    /**
-     * @var Data
-     */
-    protected $helper;
-
-    public function setUp()
-    {
-        parent::setUp();
-
-        $this->helper = $this->objectManagerHelper->getObject(Data::class);
-    }
+    protected $instanceClass = Data::class;
 
     public function testGetStatusCode()
     {
-        $this->assertNull($this->helper->getStatusCode(''));
+        $instance = $this->getInstance();
+        $this->assertNull($instance->getStatusCode(''));
 
-        foreach ($this->helper->getStatusCodes() as $name => $code) {
-            $this->assertEquals($code, $this->helper->getStatusCode($name));
+        foreach ($instance->getStatusCodes() as $name => $code) {
+            $this->assertEquals($code, $instance->getStatusCode($name));
         }
     }
 
     public function testGetStatusByValue()
     {
-        $this->assertNull($this->helper->getStatusByValue(''));
+        $instance = $this->getInstance();
+        $this->assertNull($instance->getStatusByValue(''));
 
-        foreach ($this->helper->getStatusCodes() as $name => $code) {
-            $this->assertEquals($name, $this->helper->getStatusByValue($code));
+        foreach ($instance->getStatusCodes() as $name => $code) {
+            $this->assertEquals($name, $instance->getStatusByValue($code));
         }
     }
 
     public function testGetStatusCodes()
     {
-        $this->assertNotEquals(0, count($this->helper->getStatusCodes()));
+        $instance = $this->getInstance();
+        $this->assertNotEquals(0, count($instance->getStatusCodes()));
     }
 }

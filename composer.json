@@ -32,7 +32,6 @@
         }
     },
     "require-dev": {
-        "mockery/mockery": "^0.9.4",
         "satooshi/php-coveralls": "^1.0",
         "facebook/webdriver": "^1.1"
     },

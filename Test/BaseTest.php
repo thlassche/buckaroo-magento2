@@ -38,7 +38,6 @@
  */
 namespace TIG\Buckaroo\Test;
 
-use Mockery as m;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 
 class BaseTest extends TestCaseFinder
@@ -241,8 +240,8 @@ class BaseTest extends TestCaseFinder
             $fixture['buckaroo_skip_validation'] = false;
         }
 
-        $data = \Mockery::mock(\Magento\Framework\DataObject::class)->makePartial();
-        $infoInterface = \Mockery::mock(\Magento\Payment\Model\InfoInterface::class)->makePartial();
+        $data = $this->getFakeMock(\Magento\Framework\DataObject::class)->getMock();
+        $infoInterface = $this->getFakeMock(\Magento\Payment\Model\InfoInterface::class)->getMockForAbstractClass();
 
         foreach ($fixture as $key => $value) {
             $camelCase = preg_replace_callback(
@@ -276,10 +275,5 @@ class BaseTest extends TestCaseFinder
         $mock = $this->getMock($object, $mockMethods, $constructorArgs);
 
         return $mock;
-    }
-
-    public function tearDown()
-    {
-        m::close();
     }
 }

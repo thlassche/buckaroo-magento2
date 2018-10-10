@@ -39,30 +39,13 @@
 namespace TIG\Buckaroo\Test\Unit\Observer;
 
 use Magento\Framework\Event\Observer;
-use Mockery as m;
+use TIG\Buckaroo\Model\ConfigProvider\Account;
 use TIG\Buckaroo\Observer\UpdateOrderStatus;
 use TIG\Buckaroo\Test\BaseTest;
 
 class UpdateOrderStatusTest extends BaseTest
 {
-    /**
-     * @var UpdateOrderStatus
-     */
-    protected $object;
-
-    /**
-     * Setup the basic mocks.
-     */
-    public function setUp()
-    {
-        parent::setUp();
-
-        $account = \Mockery::mock(\TIG\Buckaroo\Model\ConfigProvider\Account::class)->makePartial();
-        $account->shouldReceive('getOrderStatusNew')->andReturn('tig_buckaroo_pending_payment');
-        $account->shouldReceive('getCreateOrderBeforeTransaction')->andReturn(0);
-
-        $this->object = new UpdateOrderStatus($account);
-    }
+    protected $instanceClass = UpdateOrderStatus::class;
 
     /**
      * Test what happens when this function is called but the payment method is not Buckaroo.
@@ -73,7 +56,8 @@ class UpdateOrderStatusTest extends BaseTest
         $observerMock->expects($this->once())->method('getPayment')->willReturnSelf();
         $observerMock->expects($this->once())->method('getMethod')->willReturn('other_payment_method');
 
-        $this->object->execute($observerMock);
+        $instance = $this->getInstance();
+        $instance->execute($observerMock);
     }
 
     /**
@@ -90,6 +74,13 @@ class UpdateOrderStatusTest extends BaseTest
         $observerMock->method('getStore')->willReturnSelf();
         $observerMock->expects($this->once())->method('setStatus')->willReturn('tig_buckaroo_pending_payment');
 
-        $this->object->execute($observerMock);
+        $accountMock = $this->getFakeMock(Account::class)
+            ->setMethods(['getOrderStatusNew', 'getCreateOrderBeforeTransaction'])
+            ->getMock();
+        $accountMock->expects($this->once())->method('getOrderStatusNew')->willReturn('tig_buckaroo_pending_payment');
+        $accountMock->expects($this->once())->method('getCreateOrderBeforeTransaction')->willReturn(0);
+
+        $instance = $this->getInstance(['account' => $accountMock]);
+        $instance->execute($observerMock);
     }
 }

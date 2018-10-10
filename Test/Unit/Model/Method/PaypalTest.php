@@ -39,58 +39,15 @@
  */
 namespace TIG\Buckaroo\Test\Unit\Model\Method;
 
+use Magento\Payment\Model\InfoInterface;
+use Magento\Sales\Model\Order\Payment;
+use TIG\Buckaroo\Gateway\Http\TransactionBuilder\Order;
+use TIG\Buckaroo\Gateway\Http\TransactionBuilderFactory;
+use TIG\Buckaroo\Model\Method\Paypal;
+
 class PaypalTest extends \TIG\Buckaroo\Test\BaseTest
 {
-    /**
-     * @var \TIG\Buckaroo\Model\Method\Paypal
-     */
-    protected $object;
-
-    /**
-     * @var \TIG\Buckaroo\Gateway\Http\TransactionBuilderFactory|\Mockery\MockInterface
-     */
-    protected $transactionBuilderFactory;
-
-    /**
-     * @var \Magento\Framework\ObjectManagerInterface|\Mockery\MockInterface
-     */
-    protected $objectManager;
-
-    /**
-     * @var \Magento\Payment\Model\InfoInterface|\Magento\Sales\Api\Data\OrderPaymentInterface|\Mockery\MockInterface
-     */
-    protected $paymentInterface;
-
-    /**
-     * @var \Magento\Framework\App\Config\ScopeConfigInterface|\Mockery\MockInterface
-     */
-    protected $scopeConfig;
-
-    /**
-     * Setup the base mocks.
-     */
-    public function setUp()
-    {
-        parent::setUp();
-
-        $this->objectManager = \Mockery::mock(\Magento\Framework\ObjectManagerInterface::class);
-        $this->transactionBuilderFactory = \Mockery::mock(\TIG\Buckaroo\Gateway\Http\TransactionBuilderFactory::class);
-        $this->scopeConfig = \Mockery::mock(\Magento\Framework\App\Config\ScopeConfigInterface::class);
-
-        $this->object = $this->objectManagerHelper->getObject(
-            \TIG\Buckaroo\Model\Method\Paypal::class,
-            [
-            'scopeConfig' => $this->scopeConfig,
-            'objectManager' => $this->objectManager,
-            'transactionBuilderFactory' => $this->transactionBuilderFactory,
-            ]
-        );
-
-        $this->paymentInterface = \Mockery::mock(
-            \Magento\Payment\Model\InfoInterface::class,
-            \Magento\Sales\Api\Data\OrderPaymentInterface::class
-        );
-    }
+    protected $instanceClass = Paypal::class;
 
     /**
      * Test the getOrderTransactionBuilder method.
@@ -101,27 +58,30 @@ class PaypalTest extends \TIG\Buckaroo\Test\BaseTest
             'order' => 'orderrr!',
         ];
 
-        $this->paymentInterface->shouldReceive('getOrder')->andReturn($fixture['order']);
+        $paymentMock = $this->getFakeMock(Payment::class)->setMethods(['getOrder'])->getMock();
+        $paymentMock->expects($this->once())->method('getOrder')->willReturn($fixture['order']);
 
-        $order = \Mockery::mock(\TIG\Buckaroo\Gateway\Http\TransactionBuilder\Order::class);
-        $order->shouldReceive('setOrder')->with($fixture['order'])->andReturnSelf();
-        $order->shouldReceive('setMethod')->with('TransactionRequest')->andReturnSelf();
-
-        $order->shouldReceive('setServices')->andReturnUsing(
-            function ($services) use ($fixture, $order) {
+        $orderMock = $this->getFakeMock(Order::class)->setMethods(['setOrder', 'setMethod', 'setServices'])->getMock();
+        $orderMock->expects($this->once())->method('setOrder')->with($fixture['order'])->willReturnSelf();
+        $orderMock->expects($this->once())->method('setMethod')->with('TransactionRequest')->willReturnSelf();
+        $orderMock->expects($this->once())->method('setServices')->willReturnCallback(
+            function ($services) use ($orderMock) {
                 $this->assertEquals('paypal', $services['Name']);
                 $this->assertEquals('Pay', $services['Action']);
 
-                return $order;
+                return $orderMock;
             }
         );
 
-        $this->transactionBuilderFactory->shouldReceive('get')->with('order')->andReturn($order);
+        $trxFactoryMock = $this->getFakeMock(TransactionBuilderFactory::class)->setMethods(['get'])->getMock();
+        $trxFactoryMock->expects($this->once())->method('get')->with('order')->willReturn($orderMock);
 
-        $infoInterface = \Mockery::mock(\Magento\Payment\Model\InfoInterface::class)->makePartial();
+        $infoInterface = $this->getFakeMock(InfoInterface::class)->getMockForAbstractClass();
 
-        $this->object->setData('info_instance', $infoInterface);
-        $this->assertEquals($order, $this->object->getOrderTransactionBuilder($this->paymentInterface));
+        $instance = $this->getInstance(['transactionBuilderFactory' => $trxFactoryMock]);
+        $instance->setData('info_instance', $infoInterface);
+
+        $this->assertEquals($orderMock, $instance->getOrderTransactionBuilder($paymentMock));
     }
 
     /**
@@ -129,7 +89,9 @@ class PaypalTest extends \TIG\Buckaroo\Test\BaseTest
      */
     public function testGetCaptureTransactionBuilder()
     {
-        $this->assertFalse($this->object->getCaptureTransactionBuilder($this->paymentInterface));
+        $paymentMock = $this->getFakeMock(Payment::class, true);
+        $instance = $this->getInstance();
+        $this->assertFalse($instance->getCaptureTransactionBuilder($paymentMock));
     }
 
     /**
@@ -137,7 +99,9 @@ class PaypalTest extends \TIG\Buckaroo\Test\BaseTest
      */
     public function testGetAuthorizeTransactionBuilder()
     {
-        $this->assertFalse($this->object->getAuthorizeTransactionBuilder($this->paymentInterface));
+        $paymentMock = $this->getFakeMock(Payment::class, true);
+        $instance = $this->getInstance();
+        $this->assertFalse($instance->getAuthorizeTransactionBuilder($paymentMock));
     }
 
     /**
@@ -150,34 +114,38 @@ class PaypalTest extends \TIG\Buckaroo\Test\BaseTest
             'order' => 'orderrr!',
         ];
 
-        $this->paymentInterface->shouldReceive('getOrder')->andReturn('orderr');
-        $this->paymentInterface->shouldReceive('getAdditionalInformation')
-            ->with('card_type')
-            ->andReturn($fixture['card_type']);
-        $this->paymentInterface->shouldReceive('getAdditionalInformation')->with(
-            \TIG\Buckaroo\Model\Method\Paypal::BUCKAROO_ORIGINAL_TRANSACTION_KEY_KEY
-        )->andReturn('getAdditionalInformation');
+        $paymentMock = $this->getFakeMock(Payment::class)
+            ->setMethods(['getOrder', 'getAdditionalInformation'])
+            ->getMock();
+        $paymentMock->expects($this->once())->method('getOrder')->willReturn($fixture['order']);
+        $paymentMock->expects($this->once())
+            ->method('getAdditionalInformation')
+            ->with(Paypal::BUCKAROO_ORIGINAL_TRANSACTION_KEY_KEY)
+            ->willReturn('getAdditionalInformation');
 
-        $this->transactionBuilderFactory->shouldReceive('get')->with('refund')->andReturnSelf();
-        $this->transactionBuilderFactory->shouldReceive('setOrder')->with('orderr')->andReturnSelf();
-        $this->transactionBuilderFactory->shouldReceive('setServices')->andReturnUsing(
-            function ($services) {
+        $trxFactoryMock = $this->getFakeMock(TransactionBuilderFactory::class)
+            ->setMethods(['get', 'setOrder', 'setMethod', 'setChannel', 'setOriginalTransactionKey', 'setServices'])
+            ->getMock();
+        $trxFactoryMock->expects($this->once())->method('get')->with('refund')->willReturnSelf();
+        $trxFactoryMock->expects($this->once())->method('setOrder')->with($fixture['order'])->willReturnSelf();
+        $trxFactoryMock->expects($this->once())->method('setMethod')->with('TransactionRequest')->willReturnSelf();
+        $trxFactoryMock->expects($this->once())->method('setChannel')->with('CallCenter')->willReturnSelf();
+        $trxFactoryMock->expects($this->once())
+            ->method('setOriginalTransactionKey')
+            ->with('getAdditionalInformation')
+            ->willReturnSelf();
+        $trxFactoryMock->expects($this->once())->method('setServices')->willReturnCallback(
+            function ($services) use ($trxFactoryMock) {
                 $services['Name'] = 'paypal';
                 $services['Action'] = 'Refund';
 
-                return $this->transactionBuilderFactory;
+                return $trxFactoryMock;
             }
         );
-        $this->transactionBuilderFactory->shouldReceive('setMethod')->with('TransactionRequest')->andReturnSelf();
-        $this->transactionBuilderFactory->shouldReceive('setOriginalTransactionKey')
-            ->with('getAdditionalInformation')
-            ->andReturnSelf();
-        $this->transactionBuilderFactory->shouldReceive('setChannel')->with('CallCenter')->andReturnSelf();
 
-        $this->assertEquals(
-            $this->transactionBuilderFactory,
-            $this->object->getRefundTransactionBuilder($this->paymentInterface)
-        );
+        $instance = $this->getInstance(['transactionBuilderFactory' => $trxFactoryMock]);
+
+        $this->assertEquals($trxFactoryMock, $instance->getRefundTransactionBuilder($paymentMock));
     }
 
     /**
@@ -185,6 +153,7 @@ class PaypalTest extends \TIG\Buckaroo\Test\BaseTest
      */
     public function testGetVoidTransactionBuilder()
     {
-        $this->assertTrue($this->object->getVoidTransactionBuilder(''));
+        $instance = $this->getInstance();
+        $this->assertTrue($instance->getVoidTransactionBuilder(''));
     }
 }

@@ -39,85 +39,60 @@
 namespace TIG\Buckaroo\Test\Unit\Model\Method;
 
 use Magento\Framework\App\Config\ScopeConfigInterface;
-use Magento\Framework\ObjectManagerInterface;
 use Magento\Payment\Model\InfoInterface;
+use Magento\Quote\Api\Data\CartInterface;
+use Magento\Sales\Model\Order as MagentoOrder;
+use Magento\Sales\Model\Order\Invoice;
+use Magento\Sales\Model\Order\Payment;
 use Magento\Store\Model\ScopeInterface;
+use TIG\Buckaroo\Gateway\Http\TransactionBuilder\Order;
 use TIG\Buckaroo\Gateway\Http\TransactionBuilderFactory;
+use TIG\Buckaroo\Model\ConfigProvider\Method\Factory;
 use TIG\Buckaroo\Model\ConfigProvider\Method\Giftcards as GiftcardsConfig;
 use TIG\Buckaroo\Model\Method\Giftcards;
 use TIG\Buckaroo\Test\BaseTest;
 
 class GiftcardsTest extends BaseTest
 {
-    /**
-     * @var \TIG\Buckaroo\Model\Method\Giftcards
-     */
-    protected $object;
-
-    /**
-     * @var \TIG\Buckaroo\Gateway\Http\TransactionBuilderFactory|\Mockery\MockInterface
-     */
-    protected $transactionBuilderFactory;
-
-    /**
-     * @var \Magento\Framework\App\Config\ScopeConfigInterface|\Mockery\MockInterface
-     */
-    protected $scopeConfig;
-
-    /**
-     * @var \TIG\Buckaroo\Model\ConfigProvider\Method\Factory|\Mockery\MockInterface
-     */
-    protected $configProviderMethodFactory;
-
-    /**
-     * @var \Magento\Framework\ObjectManagerInterface|\Mockery\MockInterface
-     */
-    protected $objectManager;
-
-    public function setUp()
-    {
-        parent::setUp();
-
-        $this->objectManager = \Mockery::mock(ObjectManagerInterface::class);
-        $this->transactionBuilderFactory = \Mockery::mock(TransactionBuilderFactory::class);
-        $this->scopeConfig = \Mockery::mock(ScopeConfigInterface::class);
-        $this->configProviderMethodFactory = \Mockery::mock(\TIG\Buckaroo\Model\ConfigProvider\Method\Factory::class);
-
-        $this->object = $this->objectManagerHelper->getObject(
-            Giftcards::class,
-            [
-            'objectManager' => $this->objectManager,
-            'scopeConfig' => $this->scopeConfig,
-            'transactionBuilderFactory' => $this->transactionBuilderFactory,
-            'configProviderMethodFactory' => $this->configProviderMethodFactory,
-            ]
-        );
-    }
+    protected $instanceClass = Giftcards::class;
 
     public function testCanCaptureShouldReturnTrue()
     {
-        $this->scopeConfig->shouldReceive('getValue')->andReturn('fake_order');
+        $scopeConfigMock = $this->getFakeMock(ScopeConfigInterface::class)
+            ->setMethods(['getValue'])
+            ->getMockForAbstractClass();
+        $scopeConfigMock->expects($this->once())->method('getValue')->willReturn('fake_order');
 
-        $this->assertTrue($this->object->canCapture());
+        $instance = $this->getInstance(['scopeConfig' => $scopeConfigMock]);
+
+        $this->assertTrue($instance->canCapture());
     }
 
     public function testCanCaptureShouldReturnFalse()
     {
-        $this->scopeConfig->shouldReceive('getValue')->andReturn('order');
+        $scopeConfigMock = $this->getFakeMock(ScopeConfigInterface::class)
+            ->setMethods(['getValue'])
+            ->getMockForAbstractClass();
+        $scopeConfigMock->expects($this->once())->method('getValue')->willReturn('order');
 
-        $this->assertFalse($this->object->canCapture());
+        $instance = $this->getInstance(['scopeConfig' => $scopeConfigMock]);
+
+        $this->assertFalse($instance->canCapture());
     }
 
     public function testIsAvailableNotAllowedGiftcards()
     {
-        $giftcardsConfig = \Mockery::mock(GiftcardsConfig::class);
-        $giftcardsConfig->shouldReceive('getAllowedGiftcards')->andReturn(null);
+        $gcConfigMock = $this->getFakeMock(GiftcardsConfig::class)->setMethods(['getAllowedGiftcards'])->getMock();
+        $gcConfigMock->expects($this->once())->method('getAllowedGiftcards')->willReturn(null);
 
-        $this->configProviderMethodFactory->shouldReceive('get')->with('giftcards')->andReturn($giftcardsConfig);
+        $configFactoryMock = $this->getFakeMock(Factory::class)->setMethods(['get'])->getMock();
+        $configFactoryMock->expects($this->once())->method('get')->with('giftcards')->willReturn($gcConfigMock);
 
-        $quote = \Mockery::mock(\Magento\Quote\Api\Data\CartInterface::class);
+        $quoteMock = $this->getFakeMock(CartInterface::class)->getMockForAbstractClass();
 
-        $this->assertFalse($this->object->isAvailable($quote));
+        $instance = $this->getInstance(['configProviderMethodFactory' => $configFactoryMock]);
+
+        $this->assertFalse($instance->isAvailable($quoteMock));
     }
 
     public function testGetOrderTransactionBuilder()
@@ -127,38 +102,44 @@ class GiftcardsTest extends BaseTest
             'order' => 'order'
         ];
 
-        $payment = \Mockery::mock(
-            InfoInterface::class,
-            \Magento\Sales\Api\Data\OrderPaymentInterface::class
-        );
+        $paymentMock = $this->getFakeMock(Payment::class)->setMethods(['getOrder'])->getMock();
+        $paymentMock->expects($this->once())->method('getOrder')->willReturn($fixture['order']);
 
-        $payment->shouldReceive('getOrder')->andReturn($fixture['order']);
-
-        $order = \Mockery::mock(\TIG\Buckaroo\Gateway\Http\TransactionBuilder\Order::class);
-        $order->shouldReceive('setOrder')->with($fixture['order'])->andReturnSelf();
-        $order->shouldReceive('setMethod')->with('TransactionRequest')->andReturnSelf();
-
-        $order->shouldReceive('setCustomVars')->andReturnUsing(
-            function ($customVars) use ($fixture, $order) {
+        $orderMock =$this->getFakeMock(Order::class)->setMethods(['setOrder', 'setMethod', 'setCustomVars'])->getMock();
+        $orderMock->expects($this->once())->method('setOrder')->with($fixture['order'])->willReturnSelf();
+        $orderMock->expects($this->once())->method('setMethod')->with('TransactionRequest')->willReturnSelf();
+        $orderMock->expects($this->once())->method('setCustomVars')->willReturnCallback(
+            function ($customVars) use ($fixture, $orderMock) {
                 $this->assertEquals(
                     $fixture['allowed_giftcards'] . ',ideal',
                     $customVars['ServicesSelectableByClient']
                 );
                 $this->assertEquals('RedirectToHTML', $customVars['ContinueOnIncomplete']);
 
-                return $order;
+                return $orderMock;
             }
         );
 
-        $this->transactionBuilderFactory->shouldReceive('get')->with('order')->andReturn($order);
-        $this->scopeConfig->shouldReceive('getValue')
+        $trxFactoryMock = $this->getFakeMock(TransactionBuilderFactory::class)->setMethods(['get'])->getMock();
+        $trxFactoryMock->expects($this->once())->method('get')->with('order')->willReturn($orderMock);
+
+        $scopeConfigMock = $this->getFakeMock(ScopeConfigInterface::class)
+            ->setMethods(['getValue'])
+            ->getMockForAbstractClass();
+        $scopeConfigMock->expects($this->once())
+            ->method('getValue')
             ->with(GiftcardsConfig::XPATH_GIFTCARDS_ALLOWED_GIFTCARDS, ScopeInterface::SCOPE_STORE)
-            ->andReturn($fixture['allowed_giftcards']);
+            ->willReturn($fixture['allowed_giftcards']);
 
-        $infoInterface = \Mockery::mock(InfoInterface::class)->makePartial();
+        $infoInterface = $this->getFakeMock(InfoInterface::class)->getMockForAbstractClass();
 
-        $this->object->setData('info_instance', $infoInterface);
-        $this->assertEquals($order, $this->object->getOrderTransactionBuilder($payment));
+        $instance = $this->getInstance([
+            'scopeConfig' => $scopeConfigMock,
+            'transactionBuilderFactory' => $trxFactoryMock
+        ]);
+
+        $instance->setData('info_instance', $infoInterface);
+        $this->assertEquals($orderMock, $instance->getOrderTransactionBuilder($paymentMock));
     }
 
     public function testGetAuthorizeTransactionBuilder()
@@ -169,32 +150,30 @@ class GiftcardsTest extends BaseTest
             'order' => 'order'
         ];
 
-        $payment = \Mockery::mock(
-            InfoInterface::class,
-            \Magento\Sales\Api\Data\OrderPaymentInterface::class
-        );
+        $paymentMock = $this->getFakeMock(Payment::class)->setMethods(['getOrder'])->getMock();
+        $paymentMock->expects($this->once())->method('getOrder')->willReturn($fixture['order']);
 
-        $payment->shouldReceive('getOrder')->andReturn($fixture['order']);
-
-        $order = \Mockery::mock(\TIG\Buckaroo\Gateway\Http\TransactionBuilder\Order::class);
-        $order->shouldReceive('setOrder')->with($fixture['order'])->andReturnSelf();
-        $order->shouldReceive('setMethod')->with('TransactionRequest')->andReturnSelf();
-
-        $order->shouldReceive('setServices')->andReturnUsing(
-            function ($services) use ($fixture, $order) {
+        $orderMock =$this->getFakeMock(Order::class)->setMethods(['setOrder', 'setMethod', 'setServices'])->getMock();
+        $orderMock->expects($this->once())->method('setOrder')->with($fixture['order'])->willReturnSelf();
+        $orderMock->expects($this->once())->method('setMethod')->with('TransactionRequest')->willReturnSelf();
+        $orderMock->expects($this->once())->method('setServices')->willReturnCallback(
+            function ($services) use ($fixture, $orderMock) {
                 $this->assertEquals($fixture['name'], $services['Name']);
                 $this->assertEquals($fixture['action'], $services['Action']);
 
-                return $order;
+                return $orderMock;
             }
         );
 
-        $this->transactionBuilderFactory->shouldReceive('get')->with('order')->andReturn($order);
+        $trxFactoryMock = $this->getFakeMock(TransactionBuilderFactory::class)->setMethods(['get'])->getMock();
+        $trxFactoryMock->expects($this->once())->method('get')->with('order')->willReturn($orderMock);
 
-        $infoInterface = \Mockery::mock(InfoInterface::class)->makePartial();
+        $infoInterface = $this->getFakeMock(InfoInterface::class)->getMockForAbstractClass();
 
-        $this->object->setData('info_instance', $infoInterface);
-        $this->assertEquals($order, $this->object->getAuthorizeTransactionBuilder($payment));
+        $instance = $this->getInstance(['transactionBuilderFactory' => $trxFactoryMock]);
+
+        $instance->setData('info_instance', $infoInterface);
+        $this->assertEquals($orderMock, $instance->getAuthorizeTransactionBuilder($paymentMock));
     }
 
     public function testGetCaptureTransactionBuilder()
@@ -205,54 +184,63 @@ class GiftcardsTest extends BaseTest
             'transaction_key' => 'key!'
         ];
 
-        $invoiceMock = \Mockery::mock(\Magento\Sales\Model\Order\Invoice::class);
-        $invoiceMock->shouldReceive('getBaseGrandTotal')->andReturn(25);
+        $invoiceMock = $this->getFakeMock(Invoice::class)->setMethods(['getBaseGrandTotal'])->getMock();
+        $invoiceMock->expects($this->once())->method('getBaseGrandTotal')->willReturn(25);
 
-        $paymentOrder = \Mockery::mock(\Magento\Sales\Model\Order::class);
-        $paymentOrder->shouldReceive('getBaseGrandTotal')->andReturn(25);
-        $paymentOrder->shouldReceive('hasInvoices')->andReturn(1);
-        $paymentOrder->shouldReceive('getInvoiceCollection')->andReturn([$invoiceMock]);
+        $paymentOrderMock = $this->getFakeMock(MagentoOrder::class)
+            ->setMethods(['getBaseGrandTotal', 'hasInvoices', 'getInvoiceCollection'])
+            ->getMock();
+        $paymentOrderMock->expects($this->once())->method('getBaseGrandTotal')->willReturn(25);
+        $paymentOrderMock->expects($this->once())->method('hasInvoices')->willReturn(1);
+        $paymentOrderMock->expects($this->once())->method('getInvoiceCollection')->willReturn([$invoiceMock]);
 
-        $payment = \Mockery::mock(
-            InfoInterface::class,
-            \Magento\Sales\Api\Data\OrderPaymentInterface::class
-        );
-
-        $payment->shouldReceive('getOrder')->andReturn($paymentOrder);
-        $payment->shouldReceive('getAdditionalInformation')
+        $paymentMock = $this->getFakeMock(Payment::class)
+            ->setMethods(['getOrder', 'getAdditionalInformation'])
+            ->getMock();
+        $paymentMock->expects($this->exactly(2))->method('getOrder')->willReturn($paymentOrderMock);
+        $paymentMock->expects($this->once())->method('getAdditionalInformation')
             ->with(Giftcards::BUCKAROO_ORIGINAL_TRANSACTION_KEY_KEY)
-            ->andReturn($fixture['transaction_key']);
+            ->willReturn($fixture['transaction_key']);
 
-        $order = \Mockery::mock(\TIG\Buckaroo\Gateway\Http\TransactionBuilder\Order::class);
-        $order->shouldReceive('setOrder')->with($paymentOrder)->andReturnSelf();
-        $order->shouldReceive('setMethod')->with('TransactionRequest')->andReturnSelf();
-        $order->shouldReceive('setChannel')->with('CallCenter')->andReturnSelf();
-        $order->shouldReceive('setOriginalTransactionKey')->with($fixture['transaction_key'])->andReturnSelf();
-
-        $order->shouldReceive('setServices')->andReturnUsing(
-            function ($services) use ($fixture, $order) {
+        $orderMock = $this->getFakeMock(Order::class)
+            ->setMethods(['setOrder', 'setMethod', 'setChannel', 'setOriginalTransactionKey', 'setServices'])
+            ->getMock();
+        $orderMock->expects($this->once())->method('setOrder')->with($paymentOrderMock)->willReturnSelf();
+        $orderMock->expects($this->once())->method('setMethod')->with('TransactionRequest')->willReturnSelf();
+        $orderMock->expects($this->once())->method('setChannel')->with('CallCenter')->willReturnSelf();
+        $orderMock->expects($this->once())
+            ->method('setOriginalTransactionKey')
+            ->with($fixture['transaction_key'])
+            ->willReturnSelf();
+        $orderMock->expects($this->once())->method('setServices')->willReturnCallback(
+            function ($services) use ($fixture, $orderMock) {
                 $this->assertEquals($fixture['name'], $services['Name']);
                 $this->assertEquals($fixture['action'], $services['Action']);
 
-                return $order;
+                return $orderMock;
             }
         );
 
-        $this->transactionBuilderFactory->shouldReceive('get')->with('order')->andReturn($order);
+        $trxFactoryMock = $this->getFakeMock(TransactionBuilderFactory::class)->setMethods(['get'])->getMock();
+        $trxFactoryMock->expects($this->once())->method('get')->with('order')->willReturn($orderMock);
 
-        $infoInterface = \Mockery::mock(InfoInterface::class)->makePartial();
+        $infoInterface = $this->getFakeMock(InfoInterface::class)->getMockForAbstractClass();
 
-        $this->object->setData('info_instance', $infoInterface);
-        $this->assertEquals($order, $this->object->getCaptureTransactionBuilder($payment));
+        $instance = $this->getInstance(['transactionBuilderFactory' => $trxFactoryMock]);
+        $instance->setData('info_instance', $infoInterface);
+
+        $this->assertEquals($orderMock, $instance->getCaptureTransactionBuilder($paymentMock));
     }
 
     public function testGetRefundTransactionBuilder()
     {
-        $this->assertFalse($this->object->getRefundTransactionBuilder(null));
+        $instance = $this->getInstance();
+        $this->assertFalse($instance->getRefundTransactionBuilder(null));
     }
 
     public function testGetVoidTransactionBuilder()
     {
-        $this->assertTrue($this->object->getVoidTransactionBuilder(null));
+        $instance = $this->getInstance();
+        $this->assertTrue($instance->getVoidTransactionBuilder(null));
     }
 }
