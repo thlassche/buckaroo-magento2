@@ -213,7 +213,7 @@ class BuckarooFee extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
         }
 
         $configProvider = $this->configProviderMethodFactory->get($buckarooPaymentMethodCode);
-        $basePaymentFee = trim($configProvider->getPaymentFee());
+        $basePaymentFee = trim($configProvider->getPaymentFee($quote->getStore()));
 
         if (is_numeric($basePaymentFee)) {
             if ($inclTax) {

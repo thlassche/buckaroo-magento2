@@ -156,7 +156,8 @@ class Giftcards extends AbstractMethod
 
         $availableCards = $this->_scopeConfig->getValue(
             GiftcardsConfig::XPATH_GIFTCARDS_ALLOWED_GIFTCARDS,
-            ScopeInterface::SCOPE_STORE
+            ScopeInterface::SCOPE_STORE,
+            $payment->getOrder()->getStore()
         );
         $availableCards .= ',ideal';
 

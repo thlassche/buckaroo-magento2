@@ -89,13 +89,16 @@ class Giftcards extends AbstractConfigProvider
     }
 
     /**
+     * @param null|int $storeId
+     *
      * @return bool|float
      */
-    public function getPaymentFee()
+    public function getPaymentFee($storeId = null)
     {
         $paymentFee = $this->scopeConfig->getValue(
             self::XPATH_GIFTCARDS_PAYMENT_FEE,
-            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
+            $storeId
         );
 
         return $paymentFee ? $paymentFee : false;

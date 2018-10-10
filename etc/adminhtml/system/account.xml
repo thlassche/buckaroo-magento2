@@ -47,7 +47,7 @@
         <field id="active" translate="label comment tooltip" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Enabled</label>
             <comment>Enable or disable the Buckaroo module.</comment>
-            <tooltip>Selecting 'No' will overrule all individual settings.</tooltip>
+            <tooltip>Selecting 'Off' will overrule all individual settings.</tooltip>
             <source_model>TIG\Buckaroo\Model\Config\Source\Enablemode</source_model>
             <config_path>tig_buckaroo/account/active</config_path>
         </field>
@@ -55,14 +55,14 @@
         <field id="secret_key" translate="label comment tooltip" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Secret key</label>
             <comment><![CDATA[Enter your Buckaroo Secret Key.]]></comment>
-            <tooltip>The Secret Key can be retrieved in Payment Plaza under the configuration tab. For support contact Buckaroo.</tooltip>
+            <tooltip>The Secret Key can be retrieved in Payment Plaza under Configuration > Security > Secret Key. For support contact Buckaroo.</tooltip>
             <config_path>tig_buckaroo/account/secret_key</config_path>
         </field>
 
         <field id="merchant_key" translate="label comment tooltip" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>(Merchant) key</label>
             <comment><![CDATA[Enter your Buckaroo merchant/website key.]]></comment>
-            <tooltip>The (Merchant) Key can be retrieved in Payment Plaza under the profile tab. For support contact Buckaroo.</tooltip>
+            <tooltip>The (Merchant) Key can be retrieved in Payment Plaza under My Buckaroo > Websites. For support contact Buckaroo.</tooltip>
             <config_path>tig_buckaroo/account/merchant_key</config_path>
         </field>
 
@@ -86,7 +86,7 @@
 
         <field id="certificate_file" translate="label tooltip" type="select" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Certificate file</label>
-            <tooltip>The certificate can be retrieved in Payment Plaza under the profile tab. For support contact Buckaroo.</tooltip>
+            <tooltip>The certificate can be retrieved in Payment Plaza under Configuration > Security > Certificates. For support contact Buckaroo.</tooltip>
             <source_model>TIG\Buckaroo\Model\Config\Source\Certificates</source_model>
             <config_path>tig_buckaroo/account/certificate_file</config_path>
         </field>

@@ -97,9 +97,12 @@ class GiftcardsTest extends BaseTest
 
     public function testGetOrderTransactionBuilder()
     {
+        $orderMock = $this->getFakeMock(Order::class)->setMethods(['getStore'])->getMock();
+        $orderMock->expects($this->once())->method('getStore')->willReturn(0);
+
         $fixture = [
             'allowed_giftcards' => 'bookgiftcard,webshopgiftcard',
-            'order' => 'order'
+            'order' => $orderMock
         ];
 
         $paymentMock = $this->getFakeMock(Payment::class)->setMethods(['getOrder'])->getMock();

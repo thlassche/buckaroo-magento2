@@ -39,21 +39,55 @@
 
 namespace TIG\Buckaroo\Block\Order\Creditmemo;
 
-class Totals extends \TIG\Buckaroo\Block\Order\Totals
+use Magento\Framework\DataObject;
+use Magento\Framework\Registry;
+use Magento\Framework\View\Element\Template\Context;
+use Magento\Sales\Block\Order\Creditmemo\Totals as CreditmemoTotals;
+use TIG\Buckaroo\Helper\PaymentFee;
+
+class Totals extends CreditmemoTotals
 {
     /**
-     * @param \Magento\Framework\View\Element\Template\Context $context
-     * @param \Magento\Framework\Registry                      $registry
-     * @param \TIG\Buckaroo\Helper\PaymentFee                  $helper
-     * @param array                                            $data
+     * @var PaymentFee
+     */
+    protected $helper = null;
+
+    /**
+     * @param Context    $context
+     * @param Registry   $registry
+     * @param PaymentFee $helper
+     * @param array      $data
      */
     public function __construct(
-        \Magento\Framework\View\Element\Template\Context $context,
-        \Magento\Framework\Registry $registry,
-        \TIG\Buckaroo\Helper\PaymentFee $helper,
+        Context $context,
+        Registry $registry,
+        PaymentFee $helper,
         array $data = []
     ) {
+        $this->helper = $helper;
         parent::__construct($context, $registry, $data);
-        $this->_isScopePrivate = true;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getTotals($area = null)
+    {
+        $this->addBuckarooFeeTotals();
+
+        return parent::getTotals($area);
+    }
+
+    /**
+     * Initialize buckaroo fee totals for order/invoice/creditmemo
+     */
+    private function addBuckarooFeeTotals()
+    {
+        $source = $this->getSource();
+        $totals = $this->helper->getTotals($source);
+
+        foreach ($totals as $total) {
+            $this->addTotalBefore(new DataObject($total), 'grand_total');
+        }
     }
 }
