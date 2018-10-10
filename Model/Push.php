@@ -865,6 +865,7 @@ class Push implements PushInterface
             $payment->save();
         }
 
+        $this->order->setIsInProcess(true);
         $this->order->save();
 
         /** @var \Magento\Sales\Model\Order\Invoice $invoice */
