@@ -45,6 +45,9 @@ use Magento\Framework\App\ProductMetadataInterface;
 
 class SupportTab extends \Magento\Framework\View\Element\Template implements RendererInterface
 {
+
+    const BUCKAROO_VERSION = '1.7.3-RC1';
+
     // @codingStandardsIgnoreStart
     protected $_template = 'supportTab.phtml';
     // @codingStandardsIgnoreEnd
@@ -53,7 +56,7 @@ class SupportTab extends \Magento\Framework\View\Element\Template implements Ren
     protected $phpVersionSupport = ['2.0' => ['5.5' => ['22','+'],'5.6' => ['+'],'7.0' => ['2', '6', '+']],
                                     '2.1' => ['5.6' => ['5', '+'],'7.0' => ['2', '4', '6', '+']],
                                     '2.2' => ['7.0' => ['2', '4', '6', '+'],'7.1' => ['+']],
-                                    '2.3' => ['7.0' => ['2', '4', '6', '+'],'7.1' => ['+']]
+                                    '2.3' => ['7.0' => ['2', '4', '6', '+'],'7.1' => ['3','+'], '7.2' => ['+']]
                                 ];
 
     /**
@@ -102,13 +105,13 @@ class SupportTab extends \Magento\Framework\View\Element\Template implements Ren
     }
 
     /**
-     * Retrieve the version number from the database.
+     * Retrieve the version number from constant
      *
      * @return bool|false|string
      */
     public function getVersionNumber()
     {
-        $version = $this->moduleContext->getDbVersion('TIG_Buckaroo');
+        $version = self::BUCKAROO_VERSION;
 
         return $version;
     }
