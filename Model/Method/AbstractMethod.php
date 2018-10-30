@@ -273,13 +273,10 @@ abstract class AbstractMethod extends \Magento\Payment\Model\Method\AbstractMeth
     public function assignData(\Magento\Framework\DataObject $data)
     {
         if ($data instanceof \Magento\Framework\DataObject) {
-            /**
-             * @noinspection PhpUndefinedMethodInspection
-             */
-            $this->getInfoInstance()->setAdditionalInformation(
-                'buckaroo_skip_validation',
-                $data->getBuckarooSkipValidation()
-            );
+            $backupSkip = $data->getAdditionalData()['buckaroo_skip_validation'];
+            $skipValidation = ($data->getBuckarooSkipValidation() ? $data->getBuckarooSkipValidation() : $backupSkip);
+
+            $this->getInfoInstance()->setAdditionalInformation('buckaroo_skip_validation', $skipValidation);
         }
         return $this;
     }
