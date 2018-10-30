@@ -106,7 +106,7 @@ class GiftcardsTest extends BaseTest
         ];
 
         $paymentMock = $this->getFakeMock(Payment::class)->setMethods(['getOrder'])->getMock();
-        $paymentMock->expects($this->once())->method('getOrder')->willReturn($fixture['order']);
+        $paymentMock->method('getOrder')->willReturn($fixture['order']);
 
         $orderMock =$this->getFakeMock(Order::class)->setMethods(['setOrder', 'setMethod', 'setCustomVars'])->getMock();
         $orderMock->expects($this->once())->method('setOrder')->with($fixture['order'])->willReturnSelf();

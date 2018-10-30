@@ -1093,12 +1093,20 @@ class AbstractMethodTest extends \TIG\Buckaroo\Test\BaseTest
      */
     public function testAddExtraFields($params, $extraFields, $expected)
     {
-        $this->request->shouldReceive('getParams')->once()->andReturn($params);
-        $this->refundFieldsFactory->shouldReceive('get')
-            ->with($this->object->getCode())
-            ->andReturn($extraFields);
+        $requestMock =$this->getFakeMock(RequestInterface::class)->setMethods(['getParams'])->getMockForAbstractClass();
+        $requestMock->expects($this->once())->method('getParams')->willReturn($params);
 
-        $this->assertEquals($expected, $this->object->addExtraFields($this->object->getCode()));
+        $refundFactoryMock = $this->getFakeMock(RefundFieldsFactory::class)->setMethods(['get'])->getMock();
+
+        $instance = $this->getInstance([
+            'refundFieldsFactory' => $refundFactoryMock,
+            'request' => $requestMock
+        ]);
+
+        $refundFactoryMock->method('get')->with($instance->getCode())->willReturn($extraFields);
+
+
+        $this->assertEquals($expected, $instance->addExtraFields($instance->getCode()));
     }
 
     public function testCreateCreditNoteRequest()
