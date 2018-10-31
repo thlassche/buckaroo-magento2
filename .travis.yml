@@ -19,15 +19,15 @@ env:
     - MAGENTO_VERSION=2.0.18
     - MAGENTO_VERSION=2.1.14
     - MAGENTO_VERSION=2.1.15
-    - MAGENTO_VERSION=2.2.5
-    - MAGENTO_VERSION=2.2.6
+    - MAGENTO_VERSION=2.2.2
+    - MAGENTO_VERSION=2.2.3
 
 matrix:
   include:
   # PHP 7.1 would be supported in Magento since Magento 2.2
   # And there wouldn't be support of PHP 7.1 in Magento 2.0 or 2.1
     php: 7.1
-    env: MAGENTO_VERSION=2.2.6 CODE_COVERAGE=true
+    env: MAGENTO_VERSION=2.2.3 CODE_COVERAGE=true
 
 before_script:
   - composer config -a -g http-basic.repo.magento.com $MAGENTO_USERNAME $MAGENTO_PASSWORD
