@@ -1084,6 +1084,7 @@ class AbstractMethodTest extends \TIG\Buckaroo\Test\BaseTest
         ];
     }
 
+
     /**
      * @param $params
      * @param $extraFields
@@ -1093,7 +1094,7 @@ class AbstractMethodTest extends \TIG\Buckaroo\Test\BaseTest
      */
     public function testAddExtraFields($params, $extraFields, $expected)
     {
-        $requestMock =$this->getFakeMock(RequestInterface::class)->setMethods(['getParams'])->getMockForAbstractClass();
+        $requestMock = $this->getFakeMock(RequestInterface::class)->setMethods(['getParams'])->getMockForAbstractClass();
         $requestMock->expects($this->once())->method('getParams')->willReturn($params);
 
         $refundFactoryMock = $this->getFakeMock(RefundFieldsFactory::class)->setMethods(['get'])->getMock();
@@ -1103,8 +1104,7 @@ class AbstractMethodTest extends \TIG\Buckaroo\Test\BaseTest
             'request' => $requestMock
         ]);
 
-        $refundFactoryMock->method('get')->with($instance->getCode())->willReturn($extraFields);
-
+        $refundFactoryMock->expects($this->once())->method('get')->with($instance->getCode())->willReturn($extraFields);
 
         $this->assertEquals($expected, $instance->addExtraFields($instance->getCode()));
     }

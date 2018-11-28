@@ -92,7 +92,7 @@ class Payconiq extends AbstractConfigProvider
     /**
      * @return float
      */
-    public function getPaymentFee()
+    public function getPaymentFee($storeId = null)
     {
         $paymentFee = $this->scopeConfig->getValue(
             self::XPATH_PAYCONIQ_PAYMENT_FEE,
