@@ -89,6 +89,10 @@ define(
                 component: 'TIG_Buckaroo/js/view/payment/method-renderer/paypal'
             },
             {
+                type: 'tig_buckaroo_payconiq',
+                component: 'TIG_Buckaroo/js/view/payment/method-renderer/payconiq'
+            },
+            {
                 type: 'tig_buckaroo_creditcard',
                 component: 'TIG_Buckaroo/js/view/payment/method-renderer/creditcard'
             },
