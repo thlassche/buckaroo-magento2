@@ -103,6 +103,10 @@ class Ideal extends AbstractConfigProvider
             'name' => 'Van Lanschot',
             'code' => 'FVLBNL22',
         ],
+        [
+            'name' => 'Handelsbanken',
+            'code' => 'HANDNL2A',
+        ],
     ];
 
     /**
