@@ -62,7 +62,6 @@ class TransferTest extends \TIG\Buckaroo\Test\BaseTest
             ->method('getValue')
             ->with(Transfer::XPATH_TRANSFER_PAYMENT_FEE, ScopeInterface::SCOPE_STORE)
             ->willReturn($value);
-
         return $scopeConfigMock;
     }
 

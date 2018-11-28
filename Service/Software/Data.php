@@ -70,11 +70,19 @@ class Data
     }
 
     /**
+     * @return ProductMetadataInterface
+     */
+    public function getProductMetaData()
+    {
+        return $this->productMetadata;
+    }
+
+    /**
      * @return array
      */
     private function getPlatformData()
     {
-        $platformName = $this->productMetadata->getName() . ' - ' . $this->productMetadata->getEdition();
+        $platformName = $this->getProductMetaData()->getName() . ' - ' . $this->getProductMetaData()->getEdition();
 
         $platformData = [
             'PlatformName' => $platformName,

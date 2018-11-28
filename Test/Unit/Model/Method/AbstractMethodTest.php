@@ -1014,32 +1014,85 @@ class AbstractMethodTest extends \TIG\Buckaroo\Test\BaseTest
         ];
     }
 
-    public function testAddExtraFields()
+    public function addExtraFieldsProvider()
     {
-        $testCode = 'testCode';
-        $testValue = 'testValue';
-
-        $params = [
-            'creditmemo' => [
-                $testCode => $testValue
-            ],
-        ];
-
-        $extraFields = [
-            [
-                'code' => $testCode,
-            ],
-        ];
-
-        $expectedServices = [
-            'RequestParameter' => [
+        return [
+            'with creditmemo params' => [
                 [
-                    '_' => $testValue,
-                    'Name' => $testCode,
+                    'creditmemo' => ['code-1' => 'value-2']
                 ],
+                [
+                    ['code' => 'code-1']
+                ],
+                [
+                    'RequestParameter' => [
+                        [
+                            '_' => 'value-2',
+                            'Name' => 'code-1',
+                        ],
+                    ],
+                ]
             ],
+            'creditmemo params no value' => [
+                [
+                    'creditmemo' => ['TIG_code' => null]
+                ],
+                [
+                    ['code' => 'TIG_code']
+                ],
+                [
+                    'RequestParameter' => [
+                        [
+                            '_' => '',
+                            'Name' => 'TIG_code',
+                        ],
+                    ],
+                ]
+            ],
+            'creditmemo params no code' => [
+                [
+                    'creditmemo' => []
+                ],
+                [
+                    ['code' => 'TIG_code']
+                ],
+                []
+            ],
+            'no creditmemo params' => [
+                [
+                    'transaction' => ['123qwerty456']
+                ],
+                [
+                    ['code' => 'TIG_code']
+                ],
+                []
+            ],
+            'no params at all' => [
+                [],
+                [
+                    ['code' => 'TIG_code']
+                ],
+                []
+            ],
+            'no extra fields' => [
+                [
+                    'creditmemo' => ['refund_code' => '123']
+                ],
+                [],
+                []
+            ]
         ];
+    }
 
+    /**
+     * @param $params
+     * @param $extraFields
+     * @param $expected
+     *
+     * @dataProvider addExtraFieldsProvider
+     */
+    public function testAddExtraFields($params, $extraFields, $expected)
+    {
         $requestMock =$this->getFakeMock(RequestInterface::class)->setMethods(['getParams'])->getMockForAbstractClass();
         $requestMock->expects($this->once())->method('getParams')->willReturn($params);
 
@@ -1050,9 +1103,10 @@ class AbstractMethodTest extends \TIG\Buckaroo\Test\BaseTest
             'request' => $requestMock
         ]);
 
-        $refundFactoryMock->expects($this->once())->method('get')->with($instance->getCode())->willReturn($extraFields);
+        $refundFactoryMock->method('get')->with($instance->getCode())->willReturn($extraFields);
 
-        $this->assertEquals($expectedServices, $instance->addExtraFields($instance->getCode()));
+
+        $this->assertEquals($expected, $instance->addExtraFields($instance->getCode()));
     }
 
     public function testCreateCreditNoteRequest()
@@ -1075,5 +1129,73 @@ class AbstractMethodTest extends \TIG\Buckaroo\Test\BaseTest
         $instance = $this->getInstance();
         $result = $instance->createCreditNoteRequest($infoInstanceMock);
         $this->assertInstanceOf(AbstractMethodMock::class, $result);
+    }
+
+    public function addToRegistryProvider()
+    {
+        return [
+            'single data, empty registry' => [
+                ['some data'],
+                null,
+                ['some data']
+            ],
+            'multiple data, empty registry' => [
+                ['string data', array('array data'), 12345],
+                null,
+                ['string data', array('array data'), 12345]
+            ],
+            'no data, empty registry' => [
+                [],
+                null,
+                null
+            ],
+            'null data, empty registry' => [
+                [null],
+                null,
+                [null]
+            ],
+            'single data, filled registry' => [
+                ['some data'],
+                ['existing data'],
+                ['existing data', 'some data']
+            ],
+            'multiple data, filled registry' => [
+                ['string data', array('array data'), 12345],
+                [987258, (Object)array('existing array')],
+                [987258, (Object)array('existing array'), 'string data', array('array data'), 12345]
+            ],
+            'no data, filled registry' => [
+                [],
+                [987258, 'existing data', (Object)array('existing array')],
+                [987258, 'existing data', (Object)array('existing array')]
+            ],
+            'null data, filled registry' => [
+                [null],
+                ['tig 123'],
+                ['tig 123', null]
+            ],
+        ];
+    }
+
+    /**
+     * @param $newData
+     * @param $registryData
+     * @param $expected
+     *
+     * @dataProvider addToRegistryProvider
+     */
+    public function testAddToRegistry($newData, $registryData, $expected)
+    {
+        $registryMock = $this->getFakeMock(Registry::class)->setMethods(null)->getMock();
+        $registryMock->register('tig_registry_key', $registryData);
+
+        $instance = $this->getInstance(['registry' => $registryMock]);
+
+        foreach ($newData as $data) {
+            $this->invokeArgs('addToRegistry', ['tig_registry_key', $data], $instance);
+        }
+
+        $result = $registryMock->registry('tig_registry_key');
+        $this->assertEquals($expected, $result);
     }
 }

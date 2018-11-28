@@ -82,13 +82,16 @@ class SepaDirectDebit extends AbstractConfigProvider
     }
 
     /**
+     * @param null|int $storeId
+     *
      * @return float
      */
-    public function getPaymentFee()
+    public function getPaymentFee($storeId = null)
     {
         $paymentFee = $this->scopeConfig->getValue(
             self::XPATH_SEPADIRECTDEBIT_PAYMENT_FEE,
-            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
+            $storeId
         );
 
         return $paymentFee ? $paymentFee : false;

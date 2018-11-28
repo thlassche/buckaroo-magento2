@@ -1,11 +1,15 @@
 <?xml version="1.0"?>
 <!--
-/**
- *                  ___________  ___    ________
- *                  \__    ___/ |   |  /  _____/
- *                    |    |    |   | /   \  ___
- *                    |    |    |   | \    \_\  \
- *                    |____|    |___|  \________/
+ *
+ *          ..::..
+ *     ..::::::::::::..
+ *   ::'''''':''::'''''::
+ *   ::..  ..:  :  ....::
+ *   ::::  :::  :  :   ::
+ *   ::::  :::  :  ''' ::
+ *   ::::..:::..::.....::
+ *     ''::::::::::::''
+ *          ''::''
  *
  *
  * NOTICE OF LICENSE
@@ -24,12 +28,11 @@
  *
  * @copyright   Copyright (c) Total Internet Group B.V. https://tig.nl/copyright
  * @license     http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US
- */
- -->
-<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:TIG_Buckaroo:etc/tig_module.xsd">
-    <module name="TIG_Buckaroo" setup_version="1.7.2" build_number="1506" stability="rc">
-        <sequence>
-            <module name="Magento_Payment"/>
-        </sequence>
-    </module>
-</config>
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceBlock name="creditmemo_totals">
+            <block class="TIG\Buckaroo\Block\Order\Creditmemo\TotalsEmail" name="buckaroo.sales.creditmemo.total.fee" />
+        </referenceBlock>
+    </body>
+</page>
