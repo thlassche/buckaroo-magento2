@@ -1419,13 +1419,7 @@ class Afterpay2 extends AbstractMethod
      */
     public function formatStreet($street)
     {
-        // Street is always an array since it is parsed with two field objects.
-        // Nondeless it could be that only the first field is parsed to the array
-        if (isset($street[1])) {
-            $street = $street[0] . ' ' . $street[1];
-        } else {
-            $street = $street[0];
-        }
+        $street = implode(' ', $street);
 
         $format = [
             'house_number'    => '',
