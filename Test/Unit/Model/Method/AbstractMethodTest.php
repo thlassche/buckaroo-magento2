@@ -1104,7 +1104,7 @@ class AbstractMethodTest extends \TIG\Buckaroo\Test\BaseTest
             'request' => $requestMock
         ]);
 
-        $refundFactoryMock->expects($this->once())->method('get')->with($instance->getCode())->willReturn($extraFields);
+        $refundFactoryMock->method('get')->with($instance->getCode())->willReturn($extraFields);
 
         $this->assertEquals($expected, $instance->addExtraFields($instance->getCode()));
     }

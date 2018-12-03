@@ -44,6 +44,7 @@ use Magento\Quote\Api\Data\CartInterface;
 use Magento\Sales\Model\Order as MagentoOrder;
 use Magento\Sales\Model\Order\Invoice;
 use Magento\Sales\Model\Order\Payment;
+use Magento\Sales\Model\ResourceModel\Order\Invoice\Collection;
 use Magento\Store\Model\ScopeInterface;
 use TIG\Buckaroo\Gateway\Http\TransactionBuilder\Order;
 use TIG\Buckaroo\Gateway\Http\TransactionBuilderFactory;
@@ -181,8 +182,6 @@ class GiftcardsTest extends BaseTest
 
     public function testGetCaptureTransactionBuilder()
     {
-	$this->markTestSkipped('invoice counter not supported');
-
         $fixture = [
             'name' => 'giftcards',
             'action' => 'Capture',
@@ -192,12 +191,14 @@ class GiftcardsTest extends BaseTest
         $invoiceMock = $this->getFakeMock(Invoice::class)->setMethods(['getBaseGrandTotal'])->getMock();
         $invoiceMock->expects($this->once())->method('getBaseGrandTotal')->willReturn(25);
 
+        $invoiceCollection = $this->objectManagerHelper->getCollectionMock(Collection::class, [$invoiceMock]);
+        $invoiceCollection->expects($this->once())->method('count')->willReturn(1);
+
         $paymentOrderMock = $this->getFakeMock(MagentoOrder::class)
             ->setMethods(['getBaseGrandTotal', 'hasInvoices', 'getInvoiceCollection'])
             ->getMock();
         $paymentOrderMock->expects($this->once())->method('getBaseGrandTotal')->willReturn(25);
-        $paymentOrderMock->expects($this->once())->method('hasInvoices')->willReturn(1);
-        $paymentOrderMock->expects($this->once())->method('getInvoiceCollection')->willReturn([$invoiceMock]);
+        $paymentOrderMock->expects($this->exactly(2))->method('getInvoiceCollection')->willReturn($invoiceCollection);
 
         $paymentMock = $this->getFakeMock(Payment::class)
             ->setMethods(['getOrder', 'getAdditionalInformation'])
