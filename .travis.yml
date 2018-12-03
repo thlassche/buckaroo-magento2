@@ -11,8 +11,6 @@ language: php
 
 php:
     - 7.0
-    - 7.1
-    - 7.2
 
 env:
   global:
@@ -24,18 +22,17 @@ env:
     - MAGENTO_VERSION=2.1.15
     - MAGENTO_VERSION=2.2.2
     - MAGENTO_VERSION=2.2.3
-    - MAGENTO_VERSION=2.2.7
 
 matrix:
   include:
   # PHP 7.1 would be supported in Magento since Magento 2.2
   # And there wouldn't be support of PHP 7.1 in Magento 2.0 or 2.1
-    php: 7.1
-    env: MAGENTO_VERSION=2.2.7 CODE_COVERAGE=true
+    - php: 7.1
+      env: MAGENTO_VERSION=2.2.4 CODE_COVERAGE=true
+    - php: 7.1:
+      env: MAGENTO_VERSION=2.2.7
 
   allow_failures:
-  - php: 7.1
-  - php: 7.2
   - env: MAGENTO_VERSION=2.2.7
 
 before_script:
