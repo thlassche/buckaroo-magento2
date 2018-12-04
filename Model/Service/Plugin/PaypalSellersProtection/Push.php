@@ -59,12 +59,12 @@ class Push
     protected $configProviderPaypal;
 
     /**
-     * @param Paypal $congigProviderPaypal
+     * @param Paypal $configProviderPaypal
      */
     public function __construct(
-        Paypal $congigProviderPaypal
+        Paypal $configProviderPaypal
     ) {
-        $this->configProviderPaypal = $congigProviderPaypal;
+        $this->configProviderPaypal = $configProviderPaypal;
     }
 
     /**
@@ -84,43 +84,78 @@ class Push
             return $result;
         }
 
-        $eligibility = $push->postData['brq_service_paypal_protectioneligibility'];
-        if ($eligibility == self::ELIGIBILITY_INELIGIBLE) {
-            $eligibilityType = self::ELIGIBILITY_TYPE_NONE;
-        } else {
-            $eligibilityType = $push->postData['brq_service_paypal_protectioneligibilitytype'];
+        $eligibilityTypes = static::ELIGIBILITY_INELIGIBLE !== $push->postData['brq_service_paypal_protectioneligibility']
+            ? $push->postData['brq_service_paypal_protectioneligibilitytype']
+            : static::ELIGIBILITY_TYPE_NONE;
+
+        // Handle the given eligibility types separately,
+        // since we know Buckaroo can provide us with
+        // multiple types in a single response.
+        $this->handleEligibilityTypes(
+            explode(',', $eligibilityTypes), $push->order
+        );
+
+        return $result;
+    }
+
+    /**
+     * Proxy the handling of eligibility types.
+     *
+     * @param  string|string[] $eligibilityTypes
+     * @param  \Magento\Sales\Model\Order $order
+     * @return void
+     */
+    protected function handleEligibilityTypes($eligibilityTypes, $order)
+    {
+        if ( ! \is_array($eligibilityTypes)) {
+            $eligibilityTypes = [$eligibilityTypes];
         }
 
-        $order = $push->order;
+        // Append multiple status updates to the order,
+        // this way the merchant has a more detailed
+        // log of what is happening with payments.
+        array_walk($eligibilityTypes, function ($eligibilityType) use ($order) {
+            $this->handleEligibilityType($eligibilityType, $order);
+        });
+    }
+    /**
+     * Handle the specified eligibility type.
+     *
+     * @param  string $eligibilityType
+     * @param  \Magento\Sales\Model\Order $order
+     * @return void
+     * @throws \InvalidArgumentException
+     */
+    protected function handleEligibilityType($eligibilityType, $order)
+    {
         switch ($eligibilityType) {
-            case self::ELIGIBILITY_TYPE_ELIGIBLE:
+            case static::ELIGIBILITY_TYPE_ELIGIBLE:
                 $comment = __(
-                    "Merchant is protected by PayPal Seller Protection Policy for both Unauthorized Payment and Item" .
-                    " Not Received."
+                    'Merchant is protected by PayPal Seller Protection Policy for both Unauthorized Payment and Item' .
+                    ' Not Received.'
                 );
 
                 $status = $this->configProviderPaypal->getSellersProtectionEligible();
                 break;
-            case self::ELIGIBILITY_TYPE_ITEM_NOT_RECEIVED:
-                $comment = __("Merchant is protected by Paypal Seller Protection Policy for Item Not Received.");
+            case static::ELIGIBILITY_TYPE_ITEM_NOT_RECEIVED:
+                $comment = __('Merchant is protected by Paypal Seller Protection Policy for Item Not Received.');
 
                 $status = $this->configProviderPaypal->getSellersProtectionItemnotreceivedEligible();
                 break;
-            case self::ELIGIBILITY_TYPE_UNAUTHORIZED_PAYMENT:
-                $comment = __("Merchant is protected by Paypal Seller Protection Policy for Unauthorized Payment.");
+            case static::ELIGIBILITY_TYPE_UNAUTHORIZED_PAYMENT:
+                $comment = __('Merchant is protected by Paypal Seller Protection Policy for Unauthorized Payment.');
 
                 $status = $this->configProviderPaypal->getSellersProtectionUnauthorizedpaymentEligible();
                 break;
-            case self::ELIGIBILITY_TYPE_NONE:
-                $comment = __("Merchant is not protected under the Seller Protection Policy.");
+            case static::ELIGIBILITY_TYPE_NONE:
+                $comment = __('Merchant is not protected under the Seller Protection Policy.');
 
                 $status = $this->configProviderPaypal->getSellersProtectionIneligible();
                 break;
             default:
-                throw new \InvalidArgumentException("Invalid eligibility type.");
+                throw new \InvalidArgumentException('Invalid eligibility type(s): ' . $eligibilityType);
+                break;
         }
-        $order->addStatusHistoryComment($comment, $status ? $status : false);
-
-        return $result;
+        $order->addStatusHistoryComment($comment, $status ?: false);
     }
 }
