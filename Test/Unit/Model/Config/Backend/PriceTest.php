@@ -38,61 +38,44 @@
  */
 namespace TIG\Buckaroo\Test\Unit\Model\Config\Backend;
 
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Model\ResourceModel\AbstractResource;
+use TIG\Buckaroo\Model\Config\Backend\Price;
+
 class PriceTest extends \TIG\Buckaroo\Test\BaseTest
 {
-    /**
-     * @var \TIG\Buckaroo\Model\Config\Backend\Price
-     */
-    protected $object;
-
-    /**
-     * @var \Mockery\MockInterface
-     */
-    protected $resource;
-
-    /**
-     * Setup the base mocks.
-     */
-    public function setUp()
-    {
-        parent::setUp();
-
-        $this->resource = \Mockery::mock(\Magento\Framework\Model\ResourceModel\AbstractResource::class);
-        $this->resource->shouldReceive('save');
-
-        $this->object = $this->objectManagerHelper->getObject(
-            \TIG\Buckaroo\Model\Config\Backend\Price::class,
-            [
-            'resource' => $this->resource,
-            ]
-        );
-    }
+    protected $instanceClass = Price::class;
 
     /**
      * Test what happens when a empty value is provided.
-     *
-     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function testEmptyValue()
     {
-        $this->assertInstanceOf(\TIG\Buckaroo\Model\Config\Backend\Price::class, $this->object->save());
+        $resourceMock = $this->getFakeMock(AbstractResource::class)->setMethods(['save'])->getMockForAbstractClass();
+        $resourceMock->expects($this->once())->method('save');
+
+        $instance = $this->getInstance(['resource' => $resourceMock]);
+        $instance->setValue("10");
+
+        $result = $instance->save();
+        $this->assertInstanceOf(Price::class, $result);
     }
 
     /**
      * Test what happens when there is a valid value is provided.
      *
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws LocalizedException
      */
     public function testValidValue()
     {
-        $this->object->setData('value', '10');
-        $this->assertInstanceOf(\TIG\Buckaroo\Model\Config\Backend\Price::class, $this->object->save());
+        $resourceMock = $this->getFakeMock(AbstractResource::class)->setMethods(['save'])->getMockForAbstractClass();
+        $resourceMock->expects($this->once())->method('save');
 
-        $this->object->setData('value', '10.1');
-        $this->assertInstanceOf(\TIG\Buckaroo\Model\Config\Backend\Price::class, $this->object->save());
+        $instance = $this->getInstance(['resource' => $resourceMock]);
+        $instance->setValue(10.42);
 
-        $this->object->setData('value', '-2');
-        $this->assertInstanceOf(\TIG\Buckaroo\Model\Config\Backend\Price::class, $this->object->save());
+        $result = $instance->save();
+        $this->assertInstanceOf(Price::class, $result);
     }
 
     /**
@@ -100,12 +83,13 @@ class PriceTest extends \TIG\Buckaroo\Test\BaseTest
      */
     public function testInvalidValue()
     {
+        $instance = $this->getInstance();
+        $instance->setValue("invalid value");
+
         try {
-            $this->object->setData('value', 'wrong');
-            $this->object->save();
-            $this->fail();
-        } catch (\Exception $e) {
-            $this->assertInstanceOf(\Magento\Framework\Exception\LocalizedException::class, $e);
+            $instance->save();
+        } catch (LocalizedException $e) {
+            $this->assertEquals("Please enter a valid number: 'invalid value'.", $e->getMessage());
         }
     }
 }

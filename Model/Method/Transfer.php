@@ -186,21 +186,25 @@ class Transfer extends AbstractMethod
             ['Name' => 'Gender', 'Group' => 'Person']
         ];
 
+        /**
+         * Buckaroo Push is send before Response, for correct flow we skip the first push
+         * @todo when buckaroo changes the push / response order this can be removed
+         */
+        $payment->setAdditionalInformation('skip_push', 1);
+
         $cmService = $this->serviceParameters->getCreateCombinedInvoice($payment, 'transfer', $filterParameter);
         if (count($cmService) > 0) {
             $services[] = $cmService;
+
+            $payment->setAdditionalInformation(
+                'skip_push', 2
+            );
         }
 
         /** @var \TIG\Buckaroo\Model\ConfigProvider\Method\Transfer $transferConfig */
         $transactionBuilder->setOrder($payment->getOrder())
             ->setServices($services)
             ->setMethod('TransactionRequest');
-
-        /**
-         * Buckaroo Push is send before Response, for correct flow we skip the first push
-         * @todo when buckaroo changes the push / response order this can be removed
-         */
-        $payment->setAdditionalInformation('skip_push', 1);
 
         return $transactionBuilder;
     }
@@ -256,6 +260,19 @@ class Transfer extends AbstractMethod
         ];
 
         return $services;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function canProcessPostData($payment, $postData)
+    {
+        $orderState = $payment->getOrder()->getState();
+        if ($orderState == \Magento\Sales\Model\Order::STATE_PROCESSING && $postData['brq_statuscode'] == "792") {
+            return false;
+        }
+
+        return true;
     }
 
     /**

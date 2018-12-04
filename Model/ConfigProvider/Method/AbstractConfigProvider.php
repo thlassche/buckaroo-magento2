@@ -161,7 +161,7 @@ abstract class AbstractConfigProvider extends BaseAbstractConfigProvider impleme
     /**
      * {@inheritdoc}
      */
-    public function getPaymentFee()
+    public function getPaymentFee($storeId = null)
     {
         return false;
     }

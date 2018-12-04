@@ -43,48 +43,31 @@ use TIG\Buckaroo\Test\BaseTest;
 
 class AllOrSpecificCountriesTest extends BaseTest
 {
-    /**
-     * @var AllOrSpecificCountries
-     */
-    protected $object;
-
-    public function setUp()
-    {
-        parent::setUp();
-
-        $this->object = new AllOrSpecificCountries();
-    }
+    protected $instanceClass = AllOrSpecificCountries::class;
 
     public function testToOptionArray()
     {
-        $this->assertTrue(count($this->object->toOptionArray()) >= 2);
-
-        $shouldHaveOptions = [
-            __('All Allowed Countries'),
-            __('Specific Countries')
+        $expectedOptions = [
+            'All Allowed Countries',
+            'Specific Countries'
         ];
 
-        $result = $this->object->toOptionArray();
-        foreach ($shouldHaveOptions as $key => $option) {
-            foreach ($result as $optionContents) {
-                /**
-                 * @noinspection PhpUndefinedMethodInspection
-                 */
-                if ($optionContents['label']->getText() == $option->getText()) {
-                    unset($shouldHaveOptions[$key]);
-                    break;
-                }
-            }
-        }
+        $instance = $this->getInstance();
+        $result = $instance->toOptionArray();
 
-        $this->assertEquals(0, count($shouldHaveOptions));
+        $this->assertCount(2, $result);
+
+        foreach ($result as $option) {
+            $this->assertContains($option['label']->getText(), $expectedOptions);
+        }
     }
 
     public function testToArray()
     {
-        $options = $this->object->toArray();
+        $instance = $this->getInstance();
+        $result = $instance->toArray();
 
-        $this->assertEquals(__('All Allowed Countries'), $options[0]);
-        $this->assertEquals(__('Specific Countries'), $options[1]);
+        $this->assertEquals(__('All Allowed Countries'), $result[0]);
+        $this->assertEquals(__('Specific Countries'), $result[1]);
     }
 }

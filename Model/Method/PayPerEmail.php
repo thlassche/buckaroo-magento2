@@ -213,6 +213,10 @@ class PayPerEmail extends AbstractMethod
         $cmService = $this->serviceParameters->getCreateCombinedInvoice($payment, 'payperemail');
         if (count($cmService) > 0) {
             $services[] = $cmService;
+
+            $payment->setAdditionalInformation(
+                'skip_push', 2
+            );
         }
 
         $transactionBuilder = $this->transactionBuilderFactory->get('order');
@@ -255,6 +259,11 @@ class PayPerEmail extends AbstractMethod
     {
         $transactionKey = $payment->getAdditionalInformation(AbstractMethod::BUCKAROO_ORIGINAL_TRANSACTION_KEY_KEY);
         if ($transactionKey != $postData['brq_transactions']) {
+            return false;
+        }
+
+        $orderState = $payment->getOrder()->getState();
+        if ($orderState == \Magento\Sales\Model\Order::STATE_PROCESSING && $postData['brq_statuscode'] == "792") {
             return false;
         }
 

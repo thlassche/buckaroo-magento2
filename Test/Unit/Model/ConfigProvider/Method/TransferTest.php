@@ -47,49 +47,23 @@ class TransferTest extends \TIG\Buckaroo\Test\BaseTest
     protected $instanceClass = Transfer::class;
 
     /**
-     * @var Transfer
-     */
-    protected $object;
-
-    /**
-     * @var \Mockery\MockInterface
-     */
-    protected $scopeConfig;
-
-    /**
-     * Setup our dependencies
-     */
-    public function setUp()
-    {
-        parent::setUp();
-
-        $this->scopeConfig = \Mockery::mock(ScopeConfigInterface::class);
-        $this->object = $this->objectManagerHelper->getObject(
-            Transfer::class,
-            [
-                'scopeConfig' => $this->scopeConfig,
-            ]
-        );
-    }
-
-    /**
      * Helper function to set the return value fromt the getValue method.
      *
      * @param $value
      *
-     * @return $this
+     * @return \PHPUnit_Framework_MockObject_MockObject
      */
     protected function paymentFeeConfig($value)
     {
-        $this->scopeConfig
-            ->shouldReceive('getValue')
-            ->with(
-                Transfer::XPATH_TRANSFER_PAYMENT_FEE,
-                ScopeInterface::SCOPE_STORE
-            )
-            ->andReturn($value);
+        $scopeConfigMock = $this->getFakeMock(ScopeConfigInterface::class)
+            ->setMethods(['getValue'])
+            ->getMockForAbstractClass();
+        $scopeConfigMock->expects($this->once())
+            ->method('getValue')
+            ->with(Transfer::XPATH_TRANSFER_PAYMENT_FEE, ScopeInterface::SCOPE_STORE)
+            ->willReturn($value);
 
-        return $this;
+        return $scopeConfigMock;
     }
 
     /**
@@ -97,9 +71,18 @@ class TransferTest extends \TIG\Buckaroo\Test\BaseTest
      */
     public function testInactive()
     {
-        $this->scopeConfig->shouldReceive('getValue')->andReturn(false);
+        $scopeConfigMock = $this->getFakeMock(ScopeConfigInterface::class)
+            ->setMethods(['getValue'])
+            ->getMockForAbstractClass();
+        $scopeConfigMock->expects($this->once())
+            ->method('getValue')
+            ->with(Transfer::XPATH_TRANSFER_ACTIVE, ScopeInterface::SCOPE_STORE)
+            ->willReturn(false);
 
-        $this->assertEquals([], $this->object->getConfig());
+        $instance = $this->getInstance(['scopeConfig' => $scopeConfigMock]);
+        $result = $instance->getConfig();
+
+        $this->assertEquals([], $result);
     }
 
     /**
@@ -108,25 +91,26 @@ class TransferTest extends \TIG\Buckaroo\Test\BaseTest
     public function testGetConfig()
     {
         $sendEmail = '1';
-        $this->scopeConfig->shouldReceive('getValue')
-            ->with('payment/tig_buckaroo_transfer/active', \Magento\Store\Model\ScopeInterface::SCOPE_STORE)
-            ->andReturn(true);
-        $this->scopeConfig->shouldReceive('getValue')
-            ->withArgs(
-                [
-                    'payment/tig_buckaroo_transfer/send_email',
-                    ScopeInterface::SCOPE_STORE,
-                ]
+
+        $scopeConfigMock = $this->getFakeMock(ScopeConfigInterface::class)
+            ->setMethods(['getValue'])
+            ->getMockForAbstractClass();
+        $scopeConfigMock->expects($this->exactly(3))
+            ->method('getValue')
+            ->withConsecutive(
+                [Transfer::XPATH_TRANSFER_ACTIVE, ScopeInterface::SCOPE_STORE],
+                [Transfer::XPATH_TRANSFER_SEND_EMAIL, ScopeInterface::SCOPE_STORE],
+                [Transfer::XPATH_ALLOWED_CURRENCIES, ScopeInterface::SCOPE_STORE, null]
             )
-            ->once()
-            ->andReturn($sendEmail);
-        $this->scopeConfig->shouldReceive('getValue')->andReturn(false);
+            ->willReturnOnConsecutiveCalls(true, $sendEmail, 'EUR,USD');
 
-        $result = $this->object->getConfig();
+        $instance = $this->getInstance(['scopeConfig' => $scopeConfigMock]);
+        $result = $instance->getConfig();
 
-        $this->assertTrue(array_key_exists('payment', $result));
-        $this->assertTrue(array_key_exists('buckaroo', $result['payment']));
-        $this->assertTrue(array_key_exists('transfer', $result['payment']['buckaroo']));
+        $this->assertArrayHasKey('payment', $result);
+        $this->assertArrayHasKey('buckaroo', $result['payment']);
+        $this->assertArrayHasKey('transfer', $result['payment']['buckaroo']);
+        $this->assertArrayHasKey('sendEmail', $result['payment']['buckaroo']['transfer']);
         $this->assertEquals($sendEmail, $result['payment']['buckaroo']['transfer']['sendEmail']);
     }
 
@@ -173,9 +157,12 @@ class TransferTest extends \TIG\Buckaroo\Test\BaseTest
     public function testGetPaymentFee()
     {
         $value = '10';
-        $this->paymentFeeConfig($value);
+        $scopeConfigMock = $this->paymentFeeConfig($value);
 
-        $this->assertEquals($value, $this->object->getPaymentFee());
+        $instance = $this->getInstance(['scopeConfig' => $scopeConfigMock]);
+        $result = $instance->getPaymentFee();
+
+        $this->assertEquals($value, $result);
     }
 
     /**
@@ -184,9 +171,12 @@ class TransferTest extends \TIG\Buckaroo\Test\BaseTest
     public function testGetPaymentFeeNull()
     {
         $value = null;
-        $this->paymentFeeConfig($value);
+        $scopeConfigMock = $this->paymentFeeConfig($value);
 
-        $this->assertFalse((bool) $this->object->getPaymentFee());
+        $instance = $this->getInstance(['scopeConfig' => $scopeConfigMock]);
+        $result = $instance->getPaymentFee();
+
+        $this->assertFalse($result);
     }
 
     /**
@@ -195,9 +185,12 @@ class TransferTest extends \TIG\Buckaroo\Test\BaseTest
     public function testGetPaymentFeeNegative()
     {
         $value = '-10';
-        $this->paymentFeeConfig($value);
+        $scopeConfigMock = $this->paymentFeeConfig($value);
 
-        $this->assertEquals($value, $this->object->getPaymentFee());
+        $instance = $this->getInstance(['scopeConfig' => $scopeConfigMock]);
+        $result = $instance->getPaymentFee();
+
+        $this->assertEquals($value, $result);
     }
 
     /**
@@ -206,9 +199,12 @@ class TransferTest extends \TIG\Buckaroo\Test\BaseTest
     public function testGetPaymentFeeEmpty()
     {
         $value = '';
-        $this->paymentFeeConfig($value);
+        $scopeConfigMock = $this->paymentFeeConfig($value);
 
-        $this->assertFalse((bool) $this->object->getPaymentFee());
+        $instance = $this->getInstance(['scopeConfig' => $scopeConfigMock]);
+        $result = $instance->getPaymentFee();
+
+        $this->assertFalse($result);
     }
 
     /**
@@ -216,17 +212,15 @@ class TransferTest extends \TIG\Buckaroo\Test\BaseTest
      */
     public function testGetActive()
     {
-        $this->scopeConfig->shouldReceive('getValue')
-            ->once()
-            ->withArgs(
-                [
-                                  Transfer::XPATH_TRANSFER_ACTIVE,
-                                  ScopeInterface::SCOPE_STORE,
-                                  null
-                              ]
-            )
-            ->andReturn('1');
+        $scopeConfigMock = $this->getMockBuilder(ScopeConfigInterface::class)->getMock();
+        $scopeConfigMock->expects($this->once())
+            ->method('getValue')
+            ->with(Transfer::XPATH_TRANSFER_ACTIVE, ScopeInterface::SCOPE_STORE, null)
+            ->willReturn('1');
 
-        $this->assertEquals(1, $this->object->getActive());
+        $instance = $this->getInstance(['scopeConfig' => $scopeConfigMock]);
+        $result = $instance->getActive();
+
+        $this->assertEquals(1, $result);
     }
 }

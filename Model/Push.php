@@ -243,6 +243,20 @@ class Push implements PushInterface
             );
         }
 
+        $payment = $this->order->getPayment();
+        $skipFirstPush = $payment->getAdditionalInformation('skip_push');
+
+        /**
+         * Buckaroo Push is send before Response, for correct flow we skip the first push
+         * for some payment methods
+         * @todo when buckaroo changes the push / response order this can be removed
+         */
+        if ($skipFirstPush > 0) {
+            $payment->setAdditionalInformation('skip_push', $skipFirstPush - 1);
+            $payment->save();
+            throw new \TIG\Buckaroo\Exception(__('Skipped handling this push, first handle response, action will be taken on the next push.'));
+        }
+
         $this->setTransactionKey();
 
         switch ($transactionType) {
@@ -414,19 +428,6 @@ class Push implements PushInterface
             return;
         }
 
-        $skipFirstPush = $payment->getAdditionalInformation('skip_push');
-
-        /**
-         * Buckaroo Push is send before Response, for correct flow we skip the first push
-         * for some payment methods
-         * @todo when buckaroo changes the push / response order this can be removed
-         */
-        if ($skipFirstPush > 0) {
-            $payment->unsAdditionalInformation('skip_push');
-            $payment->save();
-            throw new \TIG\Buckaroo\Exception(__('Skipped handling this push, first handle response, action will be taken on the next push.'));
-        }
-
         $newStatus = $this->orderStatusFactory->get($this->postData['brq_statuscode'], $this->order);
 
         switch ($response['status']) {
@@ -447,7 +448,7 @@ class Push implements PushInterface
                      * @var \TIG\Buckaroo\Model\ConfigProvider\Method\Paypal $paypalConfig
                      */
                     $newSellersProtectionStatus = $paypalConfig->getSellersProtectionIneligible();
-                    if (!empty($newSellersProtectionStatus)) {
+                    if ($paypalConfig->getSellersProtection() && !empty($newSellersProtectionStatus)) {
                         $newStatus = $newSellersProtectionStatus;
                     }
                 }

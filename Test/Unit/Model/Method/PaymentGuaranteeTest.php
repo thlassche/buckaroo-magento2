@@ -40,6 +40,8 @@ use Magento\Sales\Model\Order\Address;
 use Magento\Sales\Model\Order\Creditmemo;
 use Magento\Sales\Model\Order\Invoice as MagentoInvoice;
 use Magento\Sales\Model\Order\Payment;
+use Magento\Sales\Model\ResourceModel\Order\Creditmemo\Collection as CreditmemoCollection;
+use Magento\Sales\Model\ResourceModel\Order\Invoice\Collection as InvoiceCollection;
 use TIG\Buckaroo\Gateway\Http\TransactionBuilder\Order as TransactionBuilderOrder;
 use TIG\Buckaroo\Gateway\Http\TransactionBuilderFactory;
 use TIG\Buckaroo\Model\ConfigProvider\Method\Factory;
@@ -144,8 +146,6 @@ class PaymentGuaranteeTest extends BaseTest
 
     public function testGetOrderTransactionBuilder()
     {
-        $this->markTestSkipped('Skipped due to count not supported'); 
-
         $orderMock = $this->getOrderMock();
 
         $paymentMock = $this->getFakeMock(Payment::class)->setMethods(['getOrder'])->getMock();
@@ -166,8 +166,6 @@ class PaymentGuaranteeTest extends BaseTest
 
     public function testGetCaptureTransactionBuilder()
     {
-	$this->markTestSkipped('Skipped due to count not supported');
-
         $orderMock = $this->getOrderMock();
 
         $paymentMock = $this->getFakeMock(Payment::class)->setMethods(['getOrder'])->getMock();
@@ -189,8 +187,6 @@ class PaymentGuaranteeTest extends BaseTest
 
     public function testGetAuthorizeTransactionBuilder()
     {
-	$this->markTestSkipped('Skipped due to count not supported');
-
         $orderMock = $this->getOrderMock();
 
         $paymentMock = $this->getFakeMock(Payment::class)->setMethods(['getOrder'])->getMock();
@@ -242,7 +238,6 @@ class PaymentGuaranteeTest extends BaseTest
 
     public function testGetPaymentGuaranteeRequestParameters()
     {
-        $this->markTestSkipped('Skipped due to count not supported');
         $orderMock = $this->getOrderMock();
 
         $paymentMock = $this->getFakeMock(Payment::class)->setMethods(['getOrder'])->getMock();
@@ -436,8 +431,6 @@ class PaymentGuaranteeTest extends BaseTest
      */
     public function testCalculateInvoiceAmount($invoiceAmounts, $expected)
     {
-        $this->markTestSkipped('Skipped due to count not supported');
-
         $invoices = [];
 
         foreach ($invoiceAmounts as $amount) {
@@ -447,9 +440,11 @@ class PaymentGuaranteeTest extends BaseTest
             $invoices[] = $invoiceMock;
         }
 
-        $orderMock = $this->getFakeMock(Order::class)->setMethods(['hasInvoices', 'getInvoiceCollection'])->getMock();
-        $orderMock->expects($this->atLeastOnce())->method('hasInvoices')->willReturn(count($invoiceAmounts));
-        $orderMock->expects($this->any())->method('getInvoiceCollection')->willReturn($invoices);
+        $invoiceCollection = $this->objectManagerHelper->getCollectionMock(InvoiceCollection::class, $invoices);
+        $invoiceCollection->expects($this->atLeastOnce())->method('count')->willReturn(count($invoices));
+
+        $orderMock = $this->getFakeMock(Order::class)->setMethods(['getInvoiceCollection'])->getMock();
+        $orderMock->expects($this->any())->method('getInvoiceCollection')->willReturn($invoiceCollection);
 
         $instance = $this->getInstance();
         $result = $this->invokeArgs('calculateInvoiceAmount', [$orderMock], $instance);
@@ -500,8 +495,6 @@ class PaymentGuaranteeTest extends BaseTest
      */
     public function testCalculateTaxAmount($orderTax, $invoiceTaxes, $creditmemoTax, $expected)
     {
-        $this->markTestSkipped('Skipped due to count not supported');
-
         $invoices = [];
 
         foreach ($invoiceTaxes as $amount) {
@@ -511,11 +504,13 @@ class PaymentGuaranteeTest extends BaseTest
             $invoices[] = $invoiceMock;
         }
 
+        $invoiceCollection = $this->objectManagerHelper->getCollectionMock(InvoiceCollection::class, $invoices);
+        $invoiceCollection->expects($this->once())->method('count')->willReturn(count($invoices));
+
         $orderMock = $this->getFakeMock(Order::class)
-            ->setMethods(['hasInvoices', 'getInvoiceCollection', 'getBaseTaxAmount'])
+            ->setMethods(['getInvoiceCollection', 'getBaseTaxAmount'])
             ->getMock();
-        $orderMock->expects($this->atLeastOnce())->method('hasInvoices')->willReturn(count($invoiceTaxes));
-        $orderMock->expects($this->any())->method('getInvoiceCollection')->willReturn($invoices);
+        $orderMock->expects($this->any())->method('getInvoiceCollection')->willReturn($invoiceCollection);
         $orderMock->expects($this->once())->method('getBaseTaxAmount')->willReturn($orderTax);
 
         $creditmemoMock = $this->getFakeMock(Creditmemo::class)->setMethods(['getBaseTaxAmount'])->getMock();
@@ -572,17 +567,19 @@ class PaymentGuaranteeTest extends BaseTest
     /**
      * @param $orderAmount
      * @param $invoiceAmount
-     * @param $hasInvoices
+     * @param $invoicesCount
      * @param $expected
      *
      * @dataProvider setCaptureTypeProvider
      */
-    public function testSetCaptureType($orderAmount, $invoiceAmount, $hasInvoices, $expected)
+    public function testSetCaptureType($orderAmount, $invoiceAmount, $invoicesCount, $expected)
     {
-        $this->markTestSkipped('Skipped due to count not supported');
-        $orderMock = $this->getFakeMock(Order::class)->setMethods(['getBaseGrandTotal', 'hasInvoices'])->getMock();
+        $invoiceCollection = $this->objectManagerHelper->getCollectionMock(InvoiceCollection::class, []);
+        $invoiceCollection->expects($this->once())->method('count')->willReturn($invoicesCount);
+
+        $orderMock = $this->getFakeMock(Order::class)->setMethods(['getBaseGrandTotal', 'getInvoiceCollection'])->getMock();
         $orderMock->expects($this->once())->method('getBaseGrandTotal')->willReturn($orderAmount);
-        $orderMock->expects($this->any())->method('hasInvoices')->willReturn($hasInvoices);
+        $orderMock->expects($this->once())->method('getInvoiceCollection')->willReturn($invoiceCollection);
 
         $instance = $this->getInstance();
         $this->invokeArgs('setCaptureType', [$orderMock, $invoiceAmount], $instance);
@@ -647,10 +644,14 @@ class PaymentGuaranteeTest extends BaseTest
             ->getMock();
         $orderAddressMock->expects($this->any())->method('getData')->willReturn([]);
 
+        $invoiceCollectionMock = $this->objectManagerHelper->getCollectionMock(InvoiceCollection::class, []);
+        $creditmemoCollectionMock = $this->objectManagerHelper->getCollectionMock(CreditmemoCollection::class, []);
+
         $orderMock = $this->getFakeMock(Order::class)->getMock();
+        $orderMock->method('getInvoiceCollection')->willReturn($invoiceCollectionMock);
+        $orderMock->method('getCreditmemosCollection')->willReturn($creditmemoCollectionMock);
         $orderMock->expects($this->once())->method('getBillingAddress')->willReturn($orderAddressMock);
         $orderMock->expects($this->once())->method('getShippingAddress')->willReturn($orderAddressMock);
-        $orderMock->expects($this->atLeastOnce())->method('hasInvoices')->willReturn(false);
 
         return $orderMock;
     }
@@ -747,22 +748,27 @@ class PaymentGuaranteeTest extends BaseTest
     }
 
     /**
-     * @param $hasInvoices
-     * @param $hasCreditmemos
+     * @param $invoicesCount
+     * @param $creditmemoCount
      * @param $creditMemo
      * @param $id
      * @param $expected
      *
      * @dataProvider getPartialIdProvider
      */
-    public function testGetPartialId($hasInvoices, $hasCreditmemos, $creditMemo, $id, $expected)
+    public function testGetPartialId($invoicesCount, $creditmemoCount, $creditMemo, $id, $expected)
     {
-        $this->markTestSkipped('Skipped due to count not supported');
+        $invoiceCollection = $this->objectManagerHelper->getCollectionMock(InvoiceCollection::class, []);
+        $invoiceCollection->expects($this->once())->method('count')->willReturn($invoicesCount);
+
+        $creditmemoCollection = $this->objectManagerHelper->getCollectionMock(CreditmemoCollection::class, []);
+        $creditmemoCollection->expects($this->once())->method('count')->willReturn($creditmemoCount);
+
         $orderMock = $this->getFakeMock(Order::class)
-            ->setMethods(['hasInvoices', 'hasCreditmemos', 'getIncrementId'])
+            ->setMethods(['getInvoiceCollection', 'getCreditmemosCollection', 'getIncrementId'])
             ->getMock();
-        $orderMock->expects($this->once())->method('hasInvoices')->willReturn($hasInvoices);
-        $orderMock->expects($this->once())->method('hasCreditmemos')->willReturn($hasCreditmemos);
+        $orderMock->expects($this->once())->method('getInvoiceCollection')->willReturn($invoiceCollection);
+        $orderMock->expects($this->once())->method('getCreditmemosCollection')->willReturn($creditmemoCollection);
         $orderMock->expects($this->once())->method('getIncrementId')->willReturn($id);
 
         $paymentMock = $this->getFakeMock(Payment::class)->setMethods(['getOrder', 'getCreditmemo'])->getMock();

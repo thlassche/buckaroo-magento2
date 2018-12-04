@@ -312,7 +312,7 @@ define(
 
                     var runValidation = function () {
                         $('.' + this.getCode() + ' [data-validate]').filter(':not([name*="agreement"])').valid();
-                        additionalValidators.validate();
+                        this.selectPaymentMethod();
                     };
 
                     this.telephoneNumber.subscribe(runValidation,this);
@@ -378,7 +378,6 @@ define(
                             this.CompanyName();
                             this.genderValidate();
                             this.dummy();
-                            additionalValidators.validate();
 
                             /**
                              * Run If Else function to select the right fields to validate.
@@ -476,10 +475,7 @@ define(
                  */
 
                 validate: function () {
-                    return (
-                    $('.' + this.getCode() + ' [data-validate]:not([name*="agreement"])').valid() &&
-                    additionalValidators.validate()
-                    );
+                    return $('.' + this.getCode() + ' [data-validate]:not([name*="agreement"])').valid();
                 },
 
                 getData: function () {

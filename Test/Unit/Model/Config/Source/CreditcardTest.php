@@ -38,13 +38,16 @@
  */
 namespace TIG\Buckaroo\Test\Unit\Model\Config\Source;
 
+use TIG\Buckaroo\Model\Config\Source\Creditcard;
+use TIG\Buckaroo\Model\ConfigProvider\Method\Creditcard as CreditcardProvider;
+
 class CreditcardTest extends \TIG\Buckaroo\Test\BaseTest
 {
+    protected $instanceClass = Creditcard::class;
+
     public function testToOptionArray()
     {
-        $configProvider = \Mockery::mock(\TIG\Buckaroo\Model\ConfigProvider\Method\Creditcard::class)->makePartial();
-        $configProvider->shouldReceive('getIssuers')->andReturn(
-            [
+        $issuers = [
             [
                 'name' => 'Test 1',
                 'code' => 'code1',
@@ -57,15 +60,13 @@ class CreditcardTest extends \TIG\Buckaroo\Test\BaseTest
                 'name' => 'Test 3',
                 'code' => 'code3',
             ],
-            ]
-        );
+        ];
 
-        $object = $this->objectManagerHelper->getObject(
-            \TIG\Buckaroo\Model\Config\Source\Creditcard::class,
-            [
-            'configProvider' => $configProvider,
-            ]
-        );
+        $configProviderMock = $this->getFakeMock(CreditcardProvider::class)->setMethods(['getIssuers'])->getMock();
+        $configProviderMock->expects($this->once())->method('getIssuers')->willReturn($issuers);
+
+        $instance = $this->getInstance(['configProvider' => $configProviderMock]);
+        $result = $instance->toOptionArray();
 
         $expected = [
             [
@@ -81,6 +82,7 @@ class CreditcardTest extends \TIG\Buckaroo\Test\BaseTest
                 'label' => 'Test 3',
             ],
         ];
-        $this->assertEquals($expected, $object->toOptionArray());
+
+        $this->assertEquals($expected, $result);
     }
 }

@@ -36,36 +36,38 @@
  * @copyright Copyright (c) Total Internet Group B.V. https://tig.nl/copyright
  * @license   http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US
  */
+namespace TIG\Buckaroo\Test\Helper;
 
-namespace TIG\Buckaroo\Block\Order;
+use TIG\Buckaroo\Test\BaseTest;
+use TIG\Buckaroo\Helper\Data;
 
-use \Magento\Sales\Model\Order;
-
-class Totals extends \Magento\Sales\Block\Order\Totals
+class DataTest extends BaseTest
 {
-     /**
-     * get totals array for visualization
-     *
-     * @param  array|null $area
-     * @return array
-     */
-    public function getTotals($area = null)
+    protected $instanceClass = Data::class;
+
+    public function testGetStatusCode()
     {
-        $totals = [];
-        if ($area === null) {
-            $totals = $this->initTotals();
-        } else {
-            $area = (string) $area;
-            foreach ($this->_totals as $total) {
-                /**
-                 * @noinspection PhpUndefinedMethodInspection
-                 */
-                $totalArea = (string) $total->getArea();
-                if ($totalArea == $area) {
-                    $totals[] = $total;
-                }
-            }
+        $instance = $this->getInstance();
+        $this->assertNull($instance->getStatusCode(''));
+
+        foreach ($instance->getStatusCodes() as $name => $code) {
+            $this->assertEquals($code, $instance->getStatusCode($name));
         }
-        return $totals;
+    }
+
+    public function testGetStatusByValue()
+    {
+        $instance = $this->getInstance();
+        $this->assertNull($instance->getStatusByValue(''));
+
+        foreach ($instance->getStatusCodes() as $name => $code) {
+            $this->assertEquals($name, $instance->getStatusByValue($code));
+        }
+    }
+
+    public function testGetStatusCodes()
+    {
+        $instance = $this->getInstance();
+        $this->assertNotEquals(0, count($instance->getStatusCodes()));
     }
 }

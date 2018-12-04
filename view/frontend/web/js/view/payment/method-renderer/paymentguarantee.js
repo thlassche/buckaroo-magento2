@@ -198,7 +198,7 @@ define(
                  */
                 var runValidation = function () {
                     $('.' + this.getCode() + ' [data-validate]').filter(':not([name*="agreement"])').valid();
-                    additionalValidators.validate();
+                    this.selectPaymentMethod();
                 };
 
                 this.dateValidate.subscribe(runValidation,this);
@@ -227,7 +227,6 @@ define(
                     this.termsValidate();
                     this.genderValidate();
                     this.dummy();
-                    additionalValidators.validate();
                     return check.bind(this)();
                 }, this);
 
@@ -349,10 +348,7 @@ define(
              */
 
             validate: function () {
-                return (
-                $('.' + this.getCode() + ' [data-validate]:not([name*="agreement"])').valid() &&
-                additionalValidators.validate()
-                );
+                return $('.' + this.getCode() + ' [data-validate]:not([name*="agreement"])').valid();
             },
 
             getData : function() {

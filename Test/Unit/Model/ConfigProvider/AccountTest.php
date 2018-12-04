@@ -38,60 +38,31 @@
  */
 namespace TIG\Buckaroo\Test\Unit\Model\ConfigProvider;
 
-use Magento\Store\Model\ScopeInterface;
-use Mockery as m;
-use Magento\Framework\App\Config\ScopeConfigInterface;
 use TIG\Buckaroo\Test\BaseTest;
 use TIG\Buckaroo\Model\ConfigProvider\Account;
 
 class AccountTest extends BaseTest
 {
-    /**
-     * @var Account
-     */
-    protected $object;
-
-    /**
-     * @var ScopeConfigInterface|m\MockInterface
-     */
-    protected $scopeConfig;
-
-    /**
-     * Setup the mock objects.
-     */
-    public function setUp()
-    {
-        parent::setUp();
-
-        $this->scopeConfig = m::mock(ScopeConfigInterface::class);
-        $this->object = $this->objectManagerHelper->getObject(
-            Account::class,
-            [
-            'scopeConfig' => $this->scopeConfig,
-            ]
-        );
-    }
+    protected $instanceClass = Account::class;
 
     /**
      * Test the getConfig function.
      */
     public function testGetConfig()
     {
-        $account = new \ReflectionClass(Account::class);
-        $classConstants = $account->getConstants();
+        $expectedKeys = [
+            'active', 'secret_key', 'merchant_key', 'transaction_label', 'certificate_file', 'order_confirmation_email',
+            'invoice_email', 'success_redirect', 'failure_redirect', 'cancel_on_failed', 'digital_signature',
+            'debug_types', 'debug_email', 'limit_by_ip', 'fee_percentage_mode', 'payment_fee_label', 'order_status_new',
+            'order_status_pending', 'order_status_success', 'order_status_failed', 'create_order_before_transaction'
+        ];
 
-        foreach ($classConstants as $constant => $value) {
-            $this->scopeConfig
-                ->shouldReceive('getValue')
-                ->once()
-                ->with($value, ScopeInterface::SCOPE_STORE, null)
-                ->andReturn($constant);
-        }
+        $instance = $this->getInstance();
+        $result = $instance->getConfig();
 
-        $results = $this->object->getConfig();
+        $this->assertInternalType('array', $result);
 
-        foreach ($results as $name => $value) {
-            $this->assertEquals('XPATH_ACCOUNT_' . strtoupper($name), $value);
-        }
+        $resultKeys = array_keys($result);
+        $this->assertEmpty(array_merge(array_diff($expectedKeys, $resultKeys), array_diff($resultKeys, $expectedKeys)));
     }
 }

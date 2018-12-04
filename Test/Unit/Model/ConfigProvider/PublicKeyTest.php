@@ -38,16 +38,12 @@
  */
 namespace TIG\Buckaroo\Test\Unit\Model\ConfigProvider;
 
-use Mockery as m;
 use TIG\Buckaroo\Test\BaseTest;
 use TIG\Buckaroo\Model\ConfigProvider\PublicKey;
 
 class PublicKeyTest extends BaseTest
 {
-    /**
-     * @var PublicKey
-     */
-    protected $object;
+    protected $instanceClass = PublicKey::class;
 
     /**
      * @var string
@@ -73,13 +69,19 @@ KEY;
 
     public function testGetConfigWithNoDefault()
     {
-        $this->assertEquals(['public_key' => $this->publicKey], (new PublicKey)->getConfig());
+        $instance = $this->getInstance();
+        $result = $instance->getConfig();
+
+        $this->assertEquals(['public_key' => $this->publicKey], $result);
     }
 
     public function testGetConfigWithDefault()
     {
         $publicKey = 'test';
 
-        $this->assertEquals(['public_key' => $publicKey], (new PublicKey($publicKey))->getConfig());
+        $instance = $this->getInstance(['publicKey' => $publicKey]);
+        $result = $instance->getConfig();
+
+        $this->assertEquals(['public_key' => $publicKey], $result);
     }
 }

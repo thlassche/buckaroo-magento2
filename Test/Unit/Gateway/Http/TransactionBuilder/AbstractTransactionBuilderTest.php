@@ -40,113 +40,101 @@ namespace TIG\Buckaroo\Test\Unit\Gateway\Http\TransactionBuilder;
 
 use Magento\Sales\Model\Order;
 use TIG\Buckaroo\Gateway\Http\Transaction;
+use TIG\Buckaroo\Model\ConfigProvider\Account;
 use TIG\Buckaroo\Test\BaseTest;
 
 class AbstractTransactionBuilderTest extends BaseTest
 {
     protected $instanceClass = AbstractTransactionBuilderMock::class;
 
-    /**
-     * @var \TIG\Buckaroo\Gateway\Http\TransactionBuilder\AbstractTransactionBuilderMock
-     */
-    protected $object;
-
-    /**
-     * @var \TIG\Buckaroo\Model\ConfigProvider\Account|\Mockery\MockInterface
-     */
-    protected $configProviderAccount;
-
-    public function setUp()
-    {
-        parent::setUp();
-
-        $this->configProviderAccount = \Mockery::mock(\TIG\Buckaroo\Model\ConfigProvider\Account::class);
-
-        $this->object = $this->objectManagerHelper
-            ->getObject(
-                AbstractTransactionBuilderMock::class,
-                ['configProviderAccount' => $this->configProviderAccount]
-            );
-    }
-
     public function testOriginalTransactionKey()
     {
         $value = 'testString';
-        $this->object->setOriginalTransactionKey($value);
+        $instance = $this->getInstance();
+        $instance->setOriginalTransactionKey($value);
 
-        $this->assertEquals($value, $this->object->getOriginalTransactionKey());
+        $this->assertEquals($value, $instance->getOriginalTransactionKey());
     }
 
     public function testChannel()
     {
         $value = 'testString';
-        $this->object->setChannel($value);
+        $instance = $this->getInstance();
+        $instance->setChannel($value);
 
-        $this->assertEquals($value, $this->object->getChannel());
+        $this->assertEquals($value, $instance->getChannel());
     }
 
     public function testAmount()
     {
         $value = 'testString';
-        $this->object->setAmount($value);
+        $instance = $this->getInstance();
+        $instance->setAmount($value);
 
-        $this->assertEquals($value, $this->object->getAmount());
+        $this->assertEquals($value, $instance->getAmount());
     }
 
     public function testInvoiceId()
     {
         $value = 'testString';
-        $this->object->setInvoiceId($value);
+        $instance = $this->getInstance();
+        $instance->setInvoiceId($value);
 
-        $this->assertEquals($value, $this->object->getInvoiceId());
+        $this->assertEquals($value, $instance->getInvoiceId());
     }
 
     public function testCurrency()
     {
         $value = 'testString';
-        $this->object->setCurrency($value);
+        $instance = $this->getInstance();
+        $instance->setCurrency($value);
 
-        $this->assertEquals($value, $this->object->getCurrency());
+        $this->assertEquals($value, $instance->getCurrency());
     }
 
     public function testOrder()
     {
         $value = 'testString';
-        $this->object->setOrder($value);
+        $instance = $this->getInstance();
+        $instance->setOrder($value);
 
-        $this->assertEquals($value, $this->object->getOrder());
+        $this->assertEquals($value, $instance->getOrder());
     }
 
     public function testServices()
     {
         $value = 'testString';
-        $this->object->setServices($value);
+        $instance = $this->getInstance();
+        $instance->setServices($value);
 
-        $this->assertEquals($value, $this->object->getServices());
+        $this->assertEquals($value, $instance->getServices());
     }
 
     public function testCustomVars()
     {
         $value = 'testString';
-        $this->object->setCustomVars($value);
+        $instance = $this->getInstance();
+        $instance->setCustomVars($value);
 
-        $this->assertEquals($value, $this->object->getCustomVars());
+        $this->assertEquals($value, $instance->getCustomVars());
     }
 
     public function testMethod()
     {
         $value = 'testString';
-        $this->object->setMethod($value);
+        $instance = $this->getInstance();
+        $instance->setMethod($value);
 
-        $this->assertEquals($value, $this->object->getMethod());
+        $this->assertEquals($value, $instance->getMethod());
     }
 
     public function testType()
     {
         $value = 'testString';
-        $this->object->setType($value);
+        $instance = $this->getInstance();
+        $instance->setType($value);
 
-        $this->assertEquals($value, $this->object->getType());
+        $this->assertEquals($value, $instance->getType());
     }
 
     public function testReturnUrl()
@@ -180,14 +168,17 @@ class AbstractTransactionBuilderTest extends BaseTest
     public function testGetHeaders()
     {
         $merchantKey = uniqid();
-        $this->configProviderAccount->shouldReceive('getMerchantKey')->once()->andReturn($merchantKey);
 
-        $order = \Mockery::mock(Order::class);
-        $order->shouldReceive('getStore')->once();
+        $configProviderAccountMock = $this->getFakeMock(Account::class)->setMethods(['getMerchantKey'])->getMock();
+        $configProviderAccountMock->expects($this->once())->method('getMerchantKey')->willReturn($merchantKey);
 
-        $this->object->setOrder($order);
+        $order = $this->getFakeMock(Order::class)->setMethods(['getStore'])->getMock();
+        $order->expects($this->once())->method('getStore');
 
-        $result = $this->object->GetHeaders();
+        $instance = $this->getInstance(['configProviderAccount' => $configProviderAccountMock]);
+        $instance->setOrder($order);
+
+        $result = $instance->GetHeaders();
 
         $this->assertCount(2, $result);
         $this->assertEquals('https://checkout.buckaroo.nl/PaymentEngine/', $result[0]->namespace);

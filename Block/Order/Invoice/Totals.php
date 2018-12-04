@@ -39,35 +39,55 @@
 
 namespace TIG\Buckaroo\Block\Order\Invoice;
 
-class Totals extends \TIG\Buckaroo\Block\Order\TotalsFee
+use Magento\Framework\DataObject;
+use Magento\Framework\Registry;
+use Magento\Framework\View\Element\Template\Context;
+use Magento\Sales\Block\Order\Invoice\Totals as InvoiceTotals;
+use TIG\Buckaroo\Helper\PaymentFee;
+
+class Totals extends InvoiceTotals
 {
     /**
-     * @param \Magento\Framework\View\Element\Template\Context $context
-     * @param \Magento\Framework\Registry                      $registry
-     * @param \TIG\Buckaroo\Helper\PaymentFee                  $helper
-     * @param array                                            $data
+     * @var PaymentFee
+     */
+    protected $helper = null;
+
+    /**
+     * @param Context    $context
+     * @param Registry   $registry
+     * @param PaymentFee $helper
+     * @param array      $data
      */
     public function __construct(
-        \Magento\Framework\View\Element\Template\Context $context,
-        \Magento\Framework\Registry $registry,
-        \TIG\Buckaroo\Helper\PaymentFee $helper,
+        Context $context,
+        Registry $registry,
+        PaymentFee $helper,
         array $data = []
     ) {
-        parent::__construct($context, $registry, $helper);
-        $this->_isScopePrivate = true;
+        $this->helper = $helper;
+        parent::__construct($context, $registry, $data);
     }
 
-    // @codingStandardsIgnoreStart
     /**
-     * Initialize order totals array
-     *
-     * @return $this
+     * {@inheritdoc}
      */
-    protected function _initTotals()
+    public function getTotals($area = null)
     {
-        parent::_initTotals();
-        $this->removeTotal('base_grandtotal');
-        return $this;
+        $this->addBuckarooFeeTotals();
+
+        return parent::getTotals($area);
     }
-    // @codingStandardsIgnoreEnd
+
+    /**
+     * Initialize buckaroo fee totals for order/invoice/creditmemo
+     */
+    private function addBuckarooFeeTotals()
+    {
+        $source = $this->getSource();
+        $totals = $this->helper->getTotals($source);
+
+        foreach ($totals as $total) {
+            $this->addTotalBefore(new DataObject($total), 'grand_total');
+        }
+    }
 }

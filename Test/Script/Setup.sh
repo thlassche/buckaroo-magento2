@@ -35,7 +35,7 @@ sed -i -e "s/MAGENTO_DB_NAME/${MAGENTO_DB_NAME}/g" "${BUILD_DIR}/app/etc/env.php
 
 zip --exclude=node_modules/* --exclude=vendor/* --exclude=.git/* -r build.zip .
 
-REPOSITORY_CONFIG="{\"type\": \"package\",\"package\": { \"name\": \"tig/buckaroo-travis\", \"version\": \"master\", \"dist\": {\"type\": \"zip\",\"url\": \"${TRAVIS_BUILD_DIR}/build.zip\",\"reference\": \"master\" }, \"autoload\": {\"files\": [\"registration.php\"],\"psr-4\": {\"TIG\\\\Buckaroo\\\\\": \"\"}},\"require\": {\"mockery/mockery\": \"^0.9.4\"}}}"
+REPOSITORY_CONFIG="{\"type\": \"package\",\"package\": { \"name\": \"tig/buckaroo-travis\", \"version\": \"master\", \"dist\": {\"type\": \"zip\",\"url\": \"${TRAVIS_BUILD_DIR}/build.zip\",\"reference\": \"master\" }, \"autoload\": {\"files\": [\"registration.php\"],\"psr-4\": {\"TIG\\\\Buckaroo\\\\\": \"\"}}}}"
 
 if [ -d "$HOME/.cache/composer/files/tig/" ]; then
     rm -rf $HOME/.cache/composer/files/tig/;

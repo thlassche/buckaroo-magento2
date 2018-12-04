@@ -38,64 +38,34 @@
  */
 namespace TIG\Buckaroo\Test\Unit\Model\ConfigProvider\Method;
 
-use Mockery as m;
+use Magento\Framework\ObjectManagerInterface;
+use TIG\Buckaroo\Exception;
+use TIG\Buckaroo\Model\ConfigProvider\Method\ConfigProviderInterface;
 use TIG\Buckaroo\Test\BaseTest;
 use TIG\Buckaroo\Model\ConfigProvider\Method\Factory;
 
 class FactoryTest extends BaseTest
 {
-    /**
-     * @var Factory
-     */
-    protected $object;
-
-    /**
-     * @var m\MockInterface
-     */
-    protected $objectManagerInterface;
-
-    /**
-     * @var array
-     */
-    protected $configProviders = [];
-
-    /**
-     * Setup the default mock object.
-     */
-    public function setUp()
-    {
-        parent::setUp();
-
-        $this->configProviders = [
-            ['type' => 'model1', 'model' => 'model1'],
-            ['type' => 'model2', 'model' => 'model2'],
-        ];
-
-        $this->objectManagerInterface = m::mock('\Magento\Framework\ObjectManagerInterface');
-        $this->object = $this->objectManagerHelper->getObject(
-            Factory::class,
-            [
-            'objectManager' => $this->objectManagerInterface,
-            'configProviders' => $this->configProviders,
-            ]
-        );
-    }
+    protected $instanceClass = Factory::class;
 
     /**
      * Test the happy path.
-     *
-     * @throws \TIG\Buckaroo\Exception
      */
     public function testGetHappyPath()
     {
         $model = 'model1';
-        $mockObject = m::mock('\TIG\Buckaroo\Model\ConfigProvider\Method\ConfigProviderInterface');
-        $this->objectManagerInterface->shouldReceive('get')->with($model)->andReturn($mockObject);
+        $providers = [['type' => 'model1', 'model' => 'model1']];
 
-        $result = $this->object->get($model);
+        $configProviderMock = $this->getFakeMock(ConfigProviderInterface::class)->getMockForAbstractClass();
 
-        $this->assertEquals($mockObject, $result);
-        $this->assertInstanceOf(get_class($mockObject), $result);
+        $objectManagerMock = $this->getFakeMock(ObjectManagerInterface::class)->setMethods(['get'])->getMockForAbstractClass();
+        $objectManagerMock->expects($this->once())->method('get')->with($model)->willReturn($configProviderMock);
+
+        $instance = $this->getInstance(['configProviders' => $providers, 'objectManager' => $objectManagerMock]);
+        $result = $instance->get($model);
+
+        $this->assertInstanceOf(ConfigProviderInterface::class, $result);
+        $this->assertEquals($configProviderMock, $result);
     }
 
     /**
@@ -103,11 +73,12 @@ class FactoryTest extends BaseTest
      */
     public function testGetInvalidClass()
     {
+        $instance = $this->getInstance(['configProviders' => [['type' => 'some_model', 'model' => 'some_model']]]);
+
         try {
-            $this->object->get('');
-            $this->fail('An exception should be thrown');
-        } catch (\Exception $e) {
-            $this->assertInstanceOf(\TIG\Buckaroo\Exception::class, $e);
+            $instance->get('invalid_type');
+        } catch (Exception $e) {
+            $this->assertEquals('Unknown ConfigProvider type requested: invalid_type.', $e->getMessage());
         }
     }
 
@@ -117,17 +88,16 @@ class FactoryTest extends BaseTest
     public function testLogicException()
     {
         $model = 'model1';
-        /**
-         * The classname is fine, as long as its not an instance of ConfigProviderInterface
-         */
-        $mockObject = m::mock(static::class);
-        $this->objectManagerInterface->shouldReceive('get')->with($model)->andReturn($mockObject);
+        $providers = [['type' => 'model1', 'model' => 'model1']];
+
+        $instance = $this->getInstance(['configProviders' => $providers]);
 
         try {
-            $this->object->get($model);
-            $this->fail('An exception should be thrown');
-        } catch (\Exception $e) {
-            $this->assertInstanceOf(\LogicException::class, $e);
+            $instance->get($model);
+        } catch (\LogicException $e) {
+            $exceptionMessage = 'The ConfigProvider must implement '
+                . '"TIG\Buckaroo\Model\ConfigProvider\Method\ConfigProviderInterface".';
+            $this->assertEquals($exceptionMessage, $e->getMessage());
         }
     }
 
@@ -136,13 +106,12 @@ class FactoryTest extends BaseTest
      */
     public function testGetNoConfigProviders()
     {
-        $this->object = $this->objectManagerHelper->getObject(Factory::class);
+        $instance = $this->getInstance();
 
         try {
-            $this->object->get('');
-            $this->fail('An exception should be thrown');
-        } catch (\Exception $e) {
-            $this->assertInstanceOf(\LogicException::class, $e);
+            $instance->get('');
+        } catch (\LogicException $e) {
+            $this->assertEquals('ConfigProvider adapter is not set.', $e->getMessage());
         }
     }
 
@@ -151,7 +120,12 @@ class FactoryTest extends BaseTest
      */
     public function testHasHappyPath()
     {
-        $this->assertTrue($this->object->has('model1'));
+        $providers = [['type' => 'model1', 'model' => 'model1']];
+
+        $instance = $this->getInstance(['configProviders' => $providers]);
+        $result = $instance->has('model1');
+
+        $this->assertTrue($result);
     }
 
     /**
@@ -159,7 +133,12 @@ class FactoryTest extends BaseTest
      */
     public function testHasValidProvider()
     {
-        $this->assertFalse($this->object->has('non-existing'));
+        $providers = [['type' => 'model1', 'model' => 'model1']];
+
+        $instance = $this->getInstance(['configProviders' => $providers]);
+        $result = $instance->has('invalid_model');
+
+        $this->assertFalse($result);
     }
 
     /**
@@ -167,13 +146,12 @@ class FactoryTest extends BaseTest
      */
     public function testHasNoProviders()
     {
-        $this->object = $this->objectManagerHelper->getObject(Factory::class);
+        $instance = $this->getInstance();
 
         try {
-            $this->object->has('');
-            $this->fail('An exception should be thrown');
-        } catch (\Exception $e) {
-            $this->assertInstanceOf(\LogicException::class, $e);
+            $instance->has('');
+        } catch (\LogicException $e) {
+            $this->assertEquals('ConfigProvider adapter is not set.', $e->getMessage());
         }
     }
 }

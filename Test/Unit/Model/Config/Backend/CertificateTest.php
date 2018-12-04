@@ -38,6 +38,7 @@
  */
 namespace TIG\Buckaroo\Test\Unit\Model\Config\Backend;
 
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Filesystem\DriverPool;
 use Magento\Framework\Filesystem\File\ReadFactory;
 use TIG\Buckaroo\Model\Certificate as CertificateModel;
@@ -48,26 +49,6 @@ class CertificateTest extends \TIG\Buckaroo\Test\BaseTest
 {
     protected $instanceClass = Certificate::class;
 
-    /**
-     * @var \Mockery\MockInterface|\Magento\Framework\ObjectManagerInterface
-     */
-    protected $objectManager;
-
-    /**
-     * @var \Mockery\MockInterface|ReadFactory
-     */
-    protected $scopeConfig;
-
-    /**
-     * @var \Mockery\MockInterface|\Magento\Framework\App\Config\ScopeConfigInterface
-     */
-    protected $readFactory;
-
-    /**
-     * @var Certificate
-     */
-    protected $object;
-
     protected $uploadFixture = [
         'name' => 'validfilename.pem',
         'tmp_name' => 'asdfkljasdljasfjldi',
@@ -76,34 +57,15 @@ class CertificateTest extends \TIG\Buckaroo\Test\BaseTest
     ];
 
     /**
-     * Setup the base mocks.
-     */
-    public function setUp()
-    {
-        parent::setUp();
-
-        $this->objectManager = \Mockery::mock(\Magento\Framework\ObjectManagerInterface::class);
-        $this->readFactory = \Mockery::mock(ReadFactory::class);
-        $this->scopeConfig = \Mockery::mock(\Magento\Framework\App\Config\ScopeConfigInterface::class);
-
-        $this->object = $this->objectManagerHelper->getObject(
-            Certificate::class,
-            [
-            'objectManager' => $this->objectManager,
-            'readFactory' => $this->readFactory,
-            'scopeConfig' => $this->scopeConfig,
-            ]
-        );
-    }
-
-    /**
      * Test with no value.
-     *
-     * @throws \Exception
      */
     public function testNoValue()
     {
-        $this->assertInstanceOf(Certificate::class, $this->object->save());
+        $certificateFactoryMock = $this->getFakeMock(CertificateFactory::class)->getMock();
+        $instance = $this->getInstance(['certificateFactory' => $certificateFactoryMock]);
+
+        $result = $instance->save();
+        $this->assertInstanceOf(Certificate::class, $result);
     }
 
     /**
@@ -111,14 +73,15 @@ class CertificateTest extends \TIG\Buckaroo\Test\BaseTest
      */
     public function testWrongFileType()
     {
-        $this->object->setData('fieldset_data', ['certificate_upload'=>['name'=>'wrongfilename.abc']]);
+        $certificateFactoryMock = $this->getFakeMock(CertificateFactory::class)->getMock();
+
+        $instance = $this->getInstance(['certificateFactory' => $certificateFactoryMock]);
+        $instance->setData('fieldset_data', ['certificate_upload' => ['name' => 'wrongfilename.abc']]);
 
         try {
-            $this->object->save();
-            $this->fail();
-        } catch (\Exception $e) {
-            $this->assertNotFalse('Disallowed file type.', $e->getMessage());
-            $this->assertInstanceOf(\Magento\Framework\Exception\LocalizedException::class, $e);
+            $instance->save();
+        } catch (LocalizedException $e) {
+            $this->assertEquals('Disallowed file type.', $e->getMessage());
         }
     }
 
@@ -127,14 +90,15 @@ class CertificateTest extends \TIG\Buckaroo\Test\BaseTest
      */
     public function testMissingName()
     {
-        $this->object->setData('fieldset_data', ['certificate_upload'=>['name'=>'validfilename.pem']]);
+        $certificateFactoryMock = $this->getFakeMock(CertificateFactory::class)->getMock();
+
+        $instance = $this->getInstance(['certificateFactory' => $certificateFactoryMock]);
+        $instance->setData('fieldset_data', ['certificate_upload' => ['name' => 'validfilename.pem']]);
 
         try {
-            $this->object->save();
-            $this->fail();
-        } catch (\Exception $e) {
+            $instance->save();
+        } catch (LocalizedException $e) {
             $this->assertEquals('Enter a name for the certificate.', $e->getMessage());
-            $this->assertInstanceOf(\Magento\Framework\Exception\LocalizedException::class, $e);
         }
     }
 

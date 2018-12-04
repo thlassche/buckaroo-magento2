@@ -273,13 +273,14 @@ abstract class AbstractMethod extends \Magento\Payment\Model\Method\AbstractMeth
     public function assignData(\Magento\Framework\DataObject $data)
     {
         if ($data instanceof \Magento\Framework\DataObject) {
-            /**
-             * @noinspection PhpUndefinedMethodInspection
-             */
-            $this->getInfoInstance()->setAdditionalInformation(
-                'buckaroo_skip_validation',
-                $data->getBuckarooSkipValidation()
-            );
+            $additionalSkip = $data->getAdditionalData();
+            $skipValidation = $data->getBuckarooSkipValidation();
+
+            if ($skipValidation === null && isset($additionalSkip['buckaroo_skip_validation'])) {
+                $skipValidation = $additionalSkip['buckaroo_skip_validation'];
+            }
+
+            $this->getInfoInstance()->setAdditionalInformation('buckaroo_skip_validation', $skipValidation);
         }
         return $this;
     }
@@ -948,7 +949,7 @@ abstract class AbstractMethod extends \Magento\Payment\Model\Method\AbstractMeth
         $payment->setAdditionalInformation('voided_by_buckaroo', true);
 
         // SET REGISTRY BUCKAROO REDIRECT
-        $this->_registry->register('buckaroo_response', $response);
+        $this->addToRegistry('buckaroo_response', $response);
 
         $this->afterVoid($payment, $response);
 
@@ -982,6 +983,25 @@ abstract class AbstractMethod extends \Magento\Payment\Model\Method\AbstractMeth
         }
 
         return $response;
+    }
+
+    /**
+     * @param string $key
+     * @param        $value
+     */
+    private function addToRegistry($key, $value)
+    {
+        // if the key doesn't exist or is empty, the data can be directly added and registered
+        if (!$this->_registry->registry($key)) {
+            $this->_registry->register($key, [$value]);
+            return;
+        }
+
+        $registryValue = $this->_registry->registry($key);
+        $registryValue[] = $value;
+
+        $this->_registry->unregister($key);
+        $this->_registry->register($key, $registryValue);
     }
 
     /**
@@ -1128,7 +1148,7 @@ abstract class AbstractMethod extends \Magento\Payment\Model\Method\AbstractMeth
              * @todo when buckaroo changes the push / response order this can be removed
              */
             if ($skipFirstPush > 0) {
-                $payment->unsAdditionalInformation('skip_push');
+                $payment->setAdditionalInformation('skip_push', $skipFirstPush - 1);
                 $payment->save();
             }
         }
@@ -1154,23 +1174,28 @@ abstract class AbstractMethod extends \Magento\Payment\Model\Method\AbstractMeth
     public function addExtraFields($paymentMethodCode)
     {
         $requestParams = $this->request->getParams();
-        $creditMemoParams = $requestParams['creditmemo'];
+        $services = [];
 
+        if (empty($requestParams['creditmemo'])) {
+            return $services;
+        }
+
+        $creditMemoParams = $requestParams['creditmemo'];
         $extraFields = $this->refundFieldsFactory->get($paymentMethodCode);
 
-        $services = [];
+        if (empty($extraFields)) {
+            return $services;
+        }
 
         /**
          * If extra fields are found, attach these as 'RequestParameter' to the services.
          */
-        if (!empty($extraFields)) {
-            foreach ($extraFields as $extraField) {
-                $code = $extraField['code'];
-                $services['RequestParameter'][] = [
-                    '_' => "$creditMemoParams[$code]",
-                    'Name' => $code,
-                ];
-            }
+        foreach ($extraFields as $extraField) {
+            $code = $extraField['code'];
+            $services['RequestParameter'][] = [
+                '_' => "$creditMemoParams[$code]",
+                'Name' => $code,
+            ];
         }
 
         return $services;

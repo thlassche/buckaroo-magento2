@@ -101,6 +101,7 @@ define(
                     this.bicnumber.subscribe(
                         function () {
                             $('.' + this.getCode() + ' [data-validate]').valid();
+                            this.selectPaymentMethod();
                         },
                         this
                     );
@@ -112,6 +113,7 @@ define(
                     this.bicnumber.subscribe(
                         function () {
                             $('.' + this.getCode() + ' [data-validate]').valid();
+                            this.selectPaymentMethod();
                         },
                         this
                     );

@@ -41,45 +41,11 @@ namespace TIG\Buckaroo\Test\Unit\Block\Adminhtml\Giftcard;
 use Magento\Framework\Phrase;
 use Magento\Framework\Registry;
 use TIG\Buckaroo\Block\Adminhtml\Giftcard\Edit;
+use TIG\Buckaroo\Model\Giftcard;
 
 class EditTest extends \TIG\Buckaroo\Test\BaseTest
 {
-    /**
-     * @var  Registry
-     */
-    protected $registry;
-
-    /**
-     * @var  Edit
-     */
-    protected $object;
-
-    public function setUp()
-    {
-        parent::setUp();
-
-        $escaper = \Mockery::mock(\Magento\Framework\Escaper::class)->makePartial();
-        $escaper->shouldReceive('escapeHtml')->withArgs(array('data'))->andReturn('data');
-
-        $context = $this->objectManagerHelper->getObject(
-            \Magento\Backend\Block\Widget\Context::class,
-            [
-                'escaper' => $escaper
-            ]
-        );
-
-        $giftcardModel = \Mockery::mock(\TIG\Buckaroo\Model\Giftcard::class)->makePartial();
-        $this->registry = \Mockery::mock(Registry::class);
-        $this->registry->shouldReceive('registry')->with('buckaroo_giftcard')->andReturn($giftcardModel);
-
-        $this->object = $this->objectManagerHelper->getObject(
-            Edit::class,
-            [
-                'context' => $context,
-                'registry' => $this->registry
-            ]
-        );
-    }
+    protected $instanceClass = Edit::class;
 
     public function headerTextProvider()
     {
@@ -115,10 +81,15 @@ class EditTest extends \TIG\Buckaroo\Test\BaseTest
      */
     public function testGetHeaderText($id, $label, $expectedArgument, $expectedText)
     {
-        $this->registry->registry('buckaroo_giftcard')->setId($id);
-        $this->registry->registry('buckaroo_giftcard')->setLabel($label);
+        $giftcardModel = $this->getFakeMock(Giftcard::class)->setMethods(['getId', 'getLabel'])->getMock();
+        $giftcardModel->method('getId')->willReturn($id);
+        $giftcardModel->method('getLabel')->willReturn($label);
 
-        $result = $this->object->getHeaderText();
+        $registry = $this->getFakeMock(Registry::class)->setMethods(['registry'])->getMock();
+        $registry->method('registry')->with('buckaroo_giftcard')->willReturn($giftcardModel);
+
+        $instance = $this->getInstance(['registry' => $registry]);
+        $result = $instance->getHeaderText();
         $resultArgs = $result->getArguments();
 
         $this->assertInstanceOf(Phrase::class, $result);

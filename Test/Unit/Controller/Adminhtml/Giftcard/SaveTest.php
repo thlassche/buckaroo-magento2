@@ -38,65 +38,26 @@
  */
 namespace TIG\Buckaroo\Test\Unit\Controller\Adminhtml\Giftcard;
 
-use Magento\Framework\App\Response\RedirectInterface;
+use Magento\Backend\App\Action\Context;
+use Magento\Framework\App\Request\Http as RequestHttp;
 use TIG\Buckaroo\Controller\Adminhtml\Giftcard\Save;
+use TIG\Buckaroo\Model\GiftcardFactory;
 use TIG\Buckaroo\Test\BaseTest;
 
 class SaveTest extends BaseTest
 {
-    /**
-     * @var Save
-     */
-    protected $controller;
-
-    /**
-     * @var \Mockery\MockInterface
-     */
-    protected $redirect;
-
-    public function setUp()
-    {
-        parent::setUp();
-
-        $httpRequest = \Mockery::mock(\Magento\Framework\App\Request\Http::class)->makePartial();
-        $httpResponse = \Mockery::mock(\Magento\Framework\App\Response\Http::class)->makePartial();
-        $this->redirect = \Mockery::mock(RedirectInterface::class)->makePartial();
-
-        $context = $this->objectManagerHelper->getObject(
-            \Magento\Backend\App\Action\Context::class,
-            [
-            'request' => $httpRequest,
-            'response' => $httpResponse,
-            'redirect' => $this->redirect
-            ]
-        );
-
-        $registry = \Mockery::mock(\Magento\Framework\Registry::class);
-
-        $resultPageFactory = \Mockery::mock(\Magento\Framework\View\Result\PageFactory::class);
-
-        $giftcardModel = \Mockery::mock(\TIG\Buckaroo\Model\Giftcard::class)->makePartial();
-
-        $giftcardFactory = \Mockery::mock(\TIG\Buckaroo\Model\GiftcardFactory::class);
-        $giftcardFactory->shouldReceive('create')->andReturn($giftcardModel);
-
-        $this->controller = $this->objectManagerHelper->getObject(
-            Save::class,
-            [
-                'context' => $context,
-                'coreRegistry' => $registry,
-                'resultPageFactory' => $resultPageFactory,
-                'giftcardFactory' => $giftcardFactory
-            ]
-        );
-    }
+    protected $instanceClass = Save::class;
 
     public function testExecute()
     {
-        $this->controller->execute();
+        $requestMock = $this->getFakeMock(RequestHttp::class)->getMock();
 
-        if ($container = \Mockery::getContainer()) {
-            $this->addToAssertionCount($container->mockery_getExpectationCount());
-        }
+        $contextMock = $this->getFakeMock(Context::class)->setMethods(['getRequest'])->getMock();
+        $contextMock->expects($this->once())->method('getRequest')->willReturn($requestMock);
+
+        $giftcardFactoryMock = $this->getFakeMock(GiftcardFactory::class, true);
+
+        $instance = $this->getInstance(['context' => $contextMock, 'giftcardFactory' => $giftcardFactoryMock]);
+        $instance->execute();
     }
 }
