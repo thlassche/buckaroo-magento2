@@ -448,7 +448,7 @@ class Push implements PushInterface
                      * @var \TIG\Buckaroo\Model\ConfigProvider\Method\Paypal $paypalConfig
                      */
                     $newSellersProtectionStatus = $paypalConfig->getSellersProtectionIneligible();
-                    if (!empty($newSellersProtectionStatus)) {
+                    if ($paypalConfig->getSellersProtection() && !empty($newSellersProtectionStatus)) {
                         $newStatus = $newSellersProtectionStatus;
                     }
                 }

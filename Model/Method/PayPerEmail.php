@@ -262,6 +262,11 @@ class PayPerEmail extends AbstractMethod
             return false;
         }
 
+        $orderState = $payment->getOrder()->getState();
+        if ($orderState == \Magento\Sales\Model\Order::STATE_PROCESSING && $postData['brq_statuscode'] == "792") {
+            return false;
+        }
+
         return true;
     }
 

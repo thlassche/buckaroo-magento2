@@ -212,20 +212,45 @@ class OrderTest extends BaseTest
                     'Invoice' => '#3571',
                 ]
             ],
+            'cancel transaction method' => [
+                [],
+                [
+                    'OriginalTransactionKey' => 'stu2345',
+                ],
+                [
+                    'Transaction' => ['Key' => 'stu2345'],
+                ],
+                'CancelTransaction'
+            ],
+            'not cancel transaction method' => [
+                [],
+                [
+                    'OriginalTransactionKey' => 'stu2345',
+                ],
+                [
+                    'OriginalTransactionKey' => 'stu2345',
+                ],
+                'DataRequest'
+            ],
         ];
     }
 
     /**
-     * @param $service
-     * @param $body
-     * @param $expected
+     * @param        $service
+     * @param        $body
+     * @param        $expected
+     * @param string $method
      *
      * @dataProvider filterBodyProvider
      */
-    public function testFilterBody($service, $body, $expected)
+    public function testFilterBody($service, $body, $expected, $method = '')
     {
         $instance = $this->getInstance();
         $instance->setServices($service);
+
+        if (strlen($method) > 0) {
+            $instance->setMethod($method);
+        }
 
         $result = $this->invokeArgs('filterBody', [$body], $instance);
         $this->assertEquals($expected, $result);

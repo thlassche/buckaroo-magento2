@@ -103,6 +103,10 @@ class Ideal extends AbstractConfigProvider
             'name' => 'Van Lanschot',
             'code' => 'FVLBNL22',
         ],
+        [
+            'name' => 'Handelsbanken',
+            'code' => 'HANDNL2A',
+        ],
     ];
 
     /**
@@ -141,13 +145,16 @@ class Ideal extends AbstractConfigProvider
     }
 
     /**
+     * @param null|int $storeId
+     *
      * @return float
      */
-    public function getPaymentFee()
+    public function getPaymentFee($storeId = null)
     {
         $paymentFee = $this->scopeConfig->getValue(
             self::XPATH_IDEAL_PAYMENT_FEE,
-            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
+            $storeId
         );
 
         return $paymentFee ? $paymentFee : false;

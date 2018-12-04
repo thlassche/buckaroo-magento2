@@ -103,7 +103,7 @@ class BuckarooFee extends \TIG\Buckaroo\Model\Total\Quote\BuckarooFee
             return $this;
         }
 
-        $basePaymentFee = $this->getBaseFee($methodInstance, $quote);
+        $basePaymentFee = $this->getBaseFee($methodInstance, $quote, true);
 
         if ($basePaymentFee < 0.01) {
             return $this;
@@ -129,7 +129,7 @@ class BuckarooFee extends \TIG\Buckaroo\Model\Total\Quote\BuckarooFee
             CommonTaxCollector::KEY_ASSOCIATED_TAXABLE_BASE_UNIT_PRICE => $basePaymentFee,
             CommonTaxCollector::KEY_ASSOCIATED_TAXABLE_QUANTITY => 1,
             CommonTaxCollector::KEY_ASSOCIATED_TAXABLE_TAX_CLASS_ID => $productTaxClassId,
-            CommonTaxCollector::KEY_ASSOCIATED_TAXABLE_PRICE_INCLUDES_TAX => false,
+            CommonTaxCollector::KEY_ASSOCIATED_TAXABLE_PRICE_INCLUDES_TAX => true,
             CommonTaxCollector::KEY_ASSOCIATED_TAXABLE_ASSOCIATION_ITEM_CODE
             => CommonTaxCollector::ASSOCIATION_ITEM_CODE_FOR_QUOTE,
         ];

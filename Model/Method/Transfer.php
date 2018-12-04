@@ -265,6 +265,19 @@ class Transfer extends AbstractMethod
     /**
      * {@inheritdoc}
      */
+    public function canProcessPostData($payment, $postData)
+    {
+        $orderState = $payment->getOrder()->getState();
+        if ($orderState == \Magento\Sales\Model\Order::STATE_PROCESSING && $postData['brq_statuscode'] == "792") {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     protected function afterOrder($payment, $response)
     {
         if (empty($response[0]->Services->Service)) {

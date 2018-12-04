@@ -129,7 +129,8 @@ class BuckarooFee extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
             return $this;
         }
 
-        $basePaymentFee = $this->getBaseFee($methodInstance, $quote);
+        $basePaymentFeeOLD = $this->getBaseFee($methodInstance, $quote);
+        $basePaymentFee = $total->getBaseBuckarooFeeInclTax() - $total->getBuckarooFeeBaseTaxAmount();
 
         if ($basePaymentFee < 0.01) {
             return $this;
@@ -196,13 +197,15 @@ class BuckarooFee extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
     /**
      * @param \TIG\Buckaroo\Model\Method\AbstractMethod $methodInstance
      * @param \Magento\Quote\Model\Quote                $quote
+     * @param bool                                      $inclTax
      *
      * @return bool|false|float
      * @throws \TIG\Buckaroo\Exception
      */
     public function getBaseFee(
         \TIG\Buckaroo\Model\Method\AbstractMethod $methodInstance,
-        \Magento\Quote\Model\Quote $quote
+        \Magento\Quote\Model\Quote $quote,
+        $inclTax = false
     ) {
         $buckarooPaymentMethodCode = $methodInstance->buckarooPaymentMethodCode;
         if (!$this->configProviderMethodFactory->has($buckarooPaymentMethodCode)) {
@@ -210,9 +213,12 @@ class BuckarooFee extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
         }
 
         $configProvider = $this->configProviderMethodFactory->get($buckarooPaymentMethodCode);
-        $basePaymentFee = trim($configProvider->getPaymentFee());
+        $basePaymentFee = trim($configProvider->getPaymentFee($quote->getStore()));
 
         if (is_numeric($basePaymentFee)) {
+            if ($inclTax) {
+                return $basePaymentFee;
+            }
             /**
              * Payment fee is a number
              */

@@ -39,46 +39,55 @@
 
 namespace TIG\Buckaroo\Block\Order;
 
-class TotalsFee extends \TIG\Buckaroo\Block\Order\Totals
+use Magento\Framework\DataObject;
+use Magento\Framework\Registry;
+use Magento\Framework\View\Element\Template\Context;
+use Magento\Sales\Block\Order\Totals;
+use TIG\Buckaroo\Helper\PaymentFee;
+
+class TotalsFee extends Totals
 {
     /**
-     * @var \TIG\Buckaroo\Helper\PaymentFee
+     * @var PaymentFee
      */
     protected $helper = null;
 
     /**
-     * @param \Magento\Framework\View\Element\Template\Context $context
-     * @param \Magento\Framework\Registry                      $registry
-     * @param \TIG\Buckaroo\Helper\PaymentFee                  $helper
-     * @param array                                            $data
+     * @param Context    $context
+     * @param Registry   $registry
+     * @param PaymentFee $helper
+     * @param array      $data
      */
     public function __construct(
-        \Magento\Framework\View\Element\Template\Context $context,
-        \Magento\Framework\Registry $registry,
-        \TIG\Buckaroo\Helper\PaymentFee $helper,
+        Context $context,
+        Registry $registry,
+        PaymentFee $helper,
         array $data = []
     ) {
         $this->helper = $helper;
-        parent::__construct($context, $registry);
-        $this->initTotals();
+        parent::__construct($context, $registry, $data);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getTotals($area = null)
+    {
+        $this->addBuckarooFeeTotals();
+
+        return parent::getTotals($area);
     }
 
     /**
      * Initialize buckaroo fee totals for order/invoice/creditmemo
-     *
-     * @return $this
      */
-    public function initTotals()
+    private function addBuckarooFeeTotals()
     {
-        $this->_initTotals();
-        /**
-         * @noinspection PhpUndefinedMethodInspection
-         */
         $source = $this->getSource();
-        $totals = $this->helper->getBuckarooPaymentFeeTotal($source);
-        if (!empty($totals)) {
-            $this->addTotalBefore(new \Magento\Framework\DataObject($totals[0]), 'grand_total');
+        $totals = $this->helper->getTotals($source);
+
+        foreach ($totals as $total) {
+            $this->addTotalBefore(new DataObject($total), 'grand_total');
         }
-        return $this->_totals;
     }
 }

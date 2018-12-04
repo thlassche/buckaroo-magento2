@@ -59,6 +59,7 @@
                 <item name="buckaroo_config_provider_eps" xsi:type="object">TIG\Buckaroo\Model\ConfigProvider\Method\Eps</item>
                 <item name="buckaroo_config_provider_giftcards" xsi:type="object">TIG\Buckaroo\Model\ConfigProvider\Method\Giftcards</item>
                 <item name="buckaroo_config_provider_paymentguarantee" xsi:type="object">TIG\Buckaroo\Model\ConfigProvider\Method\PaymentGuarantee</item>
+                <item name="buckaroo_config_provider_payconiq" xsi:type="object">TIG\Buckaroo\Model\ConfigProvider\Method\Payconiq</item>
             </argument>
         </arguments>
     </type>

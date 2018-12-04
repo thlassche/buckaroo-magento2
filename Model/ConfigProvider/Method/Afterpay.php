@@ -144,13 +144,16 @@ class Afterpay extends AbstractConfigProvider
     /**
      * Get the config values for the high tax classes.
      *
+     * @param null|int $storeId
+     *
      * @return bool|mixed
      */
-    public function getHighTaxClasses()
+    public function getHighTaxClasses($storeId = null)
     {
         $taxClasses = $this->scopeConfig->getValue(
             self::XPATH_AFTERPAY_HIGH_TAX,
-            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
+            $storeId
         );
 
         return $taxClasses ? $taxClasses : false;
@@ -159,13 +162,16 @@ class Afterpay extends AbstractConfigProvider
     /**
      * Get the config values for the middle tax classes
      *
+     * @param null|int $storeId
+     *
      * @return bool|mixed
      */
-    public function getMiddleTaxClasses()
+    public function getMiddleTaxClasses($storeId = null)
     {
         $taxClasses = $this->scopeConfig->getValue(
             self::XPATH_AFTERPAY_MIDDLE_TAX,
-            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
+            $storeId
         );
 
         return $taxClasses ? $taxClasses : false;
@@ -174,13 +180,16 @@ class Afterpay extends AbstractConfigProvider
     /**
      * Get the config values for the low tax classes
      *
+     * @param null|int $storeId
+     *
      * @return bool|mixed
      */
-    public function getLowTaxClasses()
+    public function getLowTaxClasses($storeId = null)
     {
         $taxClasses = $this->scopeConfig->getValue(
             self::XPATH_AFTERPAY_LOW_TAX,
-            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
+            $storeId
         );
 
         return $taxClasses ? $taxClasses : false;
@@ -189,13 +198,16 @@ class Afterpay extends AbstractConfigProvider
     /**
      * Get the config values for the zero tax classes
      *
+     * @param null|int $storeId
+     *
      * @return bool|mixed
      */
-    public function getZeroTaxClasses()
+    public function getZeroTaxClasses($storeId = null)
     {
         $taxClasses = $this->scopeConfig->getValue(
             self::XPATH_AFTERPAY_ZERO_TAX,
-            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
+            $storeId
         );
 
         return $taxClasses ? $taxClasses : false;
@@ -245,13 +257,16 @@ class Afterpay extends AbstractConfigProvider
     }
 
     /**
+     * @param null|int $storeId
+     *
      * @return float
      */
-    public function getPaymentFee()
+    public function getPaymentFee($storeId = null)
     {
         $paymentFee = $this->scopeConfig->getValue(
             self::XPATH_AFTERPAY_PAYMENT_FEE,
-            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
+            $storeId
         );
 
         return $paymentFee ? $paymentFee : false;

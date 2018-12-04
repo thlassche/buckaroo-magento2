@@ -105,4 +105,12 @@ class DataTest extends BaseTest
 
         $this->assertEquals($expected, $result);
     }
+
+    public function testGetProductMetaData()
+    {
+        $instance = $this->getInstance();
+        $result = $instance->getProductMetaData();
+
+        $this->assertInstanceOf(ProductMetadataInterface::class, $result);
+    }
 }

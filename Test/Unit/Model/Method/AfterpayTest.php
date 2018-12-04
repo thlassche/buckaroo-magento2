@@ -38,6 +38,7 @@ use Magento\Sales\Model\Order\Creditmemo;
 use Magento\Sales\Model\Order\Creditmemo\Item;
 use Magento\Sales\Model\Order\Payment;
 use TIG\Buckaroo\Model\Method\Afterpay;
+use TIG\Buckaroo\Service\Software\Data as SoftwareData;
 use TIG\Buckaroo\Test\BaseTest;
 
 class AfterpayTest extends BaseTest
@@ -338,6 +339,65 @@ class AfterpayTest extends BaseTest
         $instance = $this->getInstance(['scopeConfig' => $scopeConfigMock]);
         $result = $this->invokeArgs('getShippingCostsLine', [$orderMock], $instance);
 
+        $this->assertEquals($expected, $result);
+    }
+
+    /**
+     * @return array
+     */
+    public function getDiscountAmountProvider()
+    {
+        return [
+            'No discount' => [
+                0,
+                0,
+                0
+            ],
+            'Normal Discount' => [
+                -5,
+                0,
+                -5
+            ],
+            'Store Credit discount' => [
+                3,
+                10,
+                -10
+            ],
+            'Both Normal and Store Credit Discounts' => [
+                -15,
+                20,
+                -35
+            ],
+        ];
+    }
+
+    /**
+     * @param $normalDiscount
+     * @param $storeCredit
+     * @param $expected
+     *
+     * @dataProvider getDiscountAmountProvider
+     */
+    public function testGetDiscountAmount($normalDiscount, $storeCredit, $expected)
+    {
+        $orderMock = $this->getFakeMock(Order::class)
+            ->setMethods(['getDiscountAmount', 'getCustomerBalanceAmount'])
+            ->getMock();
+        $orderMock->expects($this->atLeastOnce())->method('getDiscountAmount')->willReturn($normalDiscount);
+        $orderMock->expects($this->atLeastOnce())->method('getCustomerBalanceAmount')->willReturn($storeCredit);
+
+        $paymentMock = $this->getFakeMock(Payment::class)->setMethods(['getOrder'])->getMock();
+        $paymentMock->expects($this->once())->method('getOrder')->willReturn($orderMock);
+
+        $softwareDataMock = $this->getFakeMock(SoftwareData::class)
+            ->setMethods(['getProductMetaData', 'getEdition'])
+            ->getMock();
+        $softwareDataMock->expects($this->once())->method('getProductMetaData')->willReturnSelf();
+        $softwareDataMock->expects($this->once())->method('getEdition')->willReturn('Enterprise');
+
+        $instance = $this->getInstance(['softwareData' => $softwareDataMock]);
+
+        $result = $this->invokeArgs('getDiscountAmount', [$paymentMock], $instance);
         $this->assertEquals($expected, $result);
     }
 }
