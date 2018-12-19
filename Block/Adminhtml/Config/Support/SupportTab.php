@@ -41,19 +41,16 @@ namespace TIG\Buckaroo\Block\Adminhtml\Config\Support;
 
 use Magento\Framework\Data\Form\Element\AbstractElement;
 use Magento\Framework\Data\Form\Element\Renderer\RendererInterface;
-use Magento\Framework\App\ProductMetadataInterface;
+use TIG\Buckaroo\Service\Software\Data as SoftwareData;
 
 class SupportTab extends \Magento\Framework\View\Element\Template implements RendererInterface
 {
-
-    const BUCKAROO_VERSION = '1.8.1';
-
     // @codingStandardsIgnoreStart
     protected $_template = 'supportTab.phtml';
     // @codingStandardsIgnoreEnd
 
     /** @var array  */
-    protected $phpVersionSupport = ['2.0' => ['5.5' => ['22','+'],'5.6' => ['+'],'7.0' => ['2', '6', '+']],
+    private $phpVersionSupport = ['2.0' => ['5.5' => ['22','+'],'5.6' => ['+'],'7.0' => ['2', '6', '+']],
                                     '2.1' => ['5.6' => ['5', '+'],'7.0' => ['2', '4', '6', '+']],
                                     '2.2' => ['7.0' => ['2', '4', '6', '+'],'7.1' => ['+']],
                                     '2.3' => ['7.0' => ['2', '4', '6', '+'],'7.1' => ['3','+'], '7.2' => ['+']]
@@ -62,31 +59,31 @@ class SupportTab extends \Magento\Framework\View\Element\Template implements Ren
     /**
      * @var \Magento\Framework\Setup\ModuleContextInterface
      */
-    protected $moduleContext;
+    private $moduleContext;
 
     /**
-     * @var \Magento\Framework\App\ProductMetadataInterface
+     * @var SoftwareData
      */
-    protected $productMetadata;
+    private $softwareData;
 
     /**
      * Override the parent constructor to require our own dependencies.
      *
      * @param \Magento\Framework\View\Element\Template\Context $context
      * @param \Magento\Framework\Module\ModuleResource         $moduleContext
-     * @param ProductMetadataInterface                         $productMetadata
+     * @param SoftwareData                                     $softwareData
      * @param array                                            $data
      */
     public function __construct(
         \Magento\Framework\View\Element\Template\Context $context,
         \Magento\Framework\Module\ModuleResource $moduleContext,
-        ProductMetadataInterface $productMetadata,
+        SoftwareData $softwareData,
         array $data = []
     ) {
         parent::__construct($context, $data);
 
         $this->moduleContext = $moduleContext;
-        $this->productMetadata = $productMetadata;
+        $this->softwareData = $softwareData;
     }
 
     /**
@@ -111,7 +108,7 @@ class SupportTab extends \Magento\Framework\View\Element\Template implements Ren
      */
     public function getVersionNumber()
     {
-        $version = self::BUCKAROO_VERSION;
+        $version = $this->softwareData->getModuleVersion();
 
         return $version;
     }
@@ -173,7 +170,7 @@ class SupportTab extends \Magento\Framework\View\Element\Template implements Ren
     public function getMagentoVersionArray()
     {
         $version = false;
-        $currentVersion = $this->productMetadata->getVersion();
+        $currentVersion = $this->softwareData->getProductMetaData()->getVersion();
 
         if (isset($currentVersion)) {
             $version = explode('.', $currentVersion);

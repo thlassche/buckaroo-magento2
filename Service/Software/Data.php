@@ -81,6 +81,14 @@ class Data
     }
 
     /**
+     * @return string
+     */
+    public function getModuleVersion()
+    {
+        return self::BUCKAROO_VERSION;
+    }
+
+    /**
      * @return array
      */
     private function getPlatformData()
@@ -105,7 +113,7 @@ class Data
         $moduleData = [
             'ModuleSupplier'    => self::MODULE_SUPPLIER,
             'ModuleName'        => $module['name'],
-            'ModuleVersion'     => self::BUCKAROO_VERSION
+            'ModuleVersion'     => $this->getModuleVersion()
         ];
 
         return $moduleData;
