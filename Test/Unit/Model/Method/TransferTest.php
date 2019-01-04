@@ -228,6 +228,88 @@ class TransferTest extends \TIG\Buckaroo\Test\BaseTest
         $this->assertEquals($expected, $infoInstanceMock->getAdditionalInformation('buckaroo_cm3_invoice_key'));
     }
 
+    public function getCM3InvoiceKeyProvider()
+    {
+        return [
+            'object, has invoiceKey' => [
+                (Object)[
+                    'Name' => 'InvoiceKey',
+                    '_' => 'key123'
+                ],
+                'key123'
+            ],
+            'object, no invoiceKey' => [
+                (Object)[
+                    'Name' => 'Debtor',
+                    '_' => 'TIG'
+                ],
+                ''
+            ],
+            'array with one item, has invoiceKey' => [
+                [
+                    (Object)[
+                        'Name' => 'InvoiceKey',
+                        '_' => 'invoice456'
+                    ]
+                ],
+                'invoice456'
+            ],
+            'array with one item, no invoiceKey' => [
+                [
+                    (Object)[
+                        'Name' => 'Debtor',
+                        '_' => 'TIG'
+                    ]
+                ],
+                ''
+            ],
+            'array with multiple items, has invoiceKey' => [
+                [
+                    (Object)[
+                        'Name' => 'Status',
+                        '_' => 'Paid'
+                    ],
+                    (Object)[
+                        'Name' => 'InvoiceKey',
+                        '_' => 'order789'
+                    ],
+                    (Object)[
+                        'Name' => 'Debtor',
+                        '_' => 'TIG'
+                    ],
+                ],
+                'order789'
+            ],
+            'array with multiple items, no invoiceKey' => [
+                [
+                    (Object)[
+                        'Name' => 'Status',
+                        '_' => 'Paid'
+                    ],
+                    (Object)[
+                        'Name' => 'Debtor',
+                        '_' => 'TIG'
+                    ],
+                ],
+                ''
+            ],
+        ];
+    }
+
+    /**
+     * @param $responeParameterData
+     * @param $expected
+     *
+     * @dataProvider getCM3InvoiceKeyProvider
+     */
+    public function testGetCM3InvoiceKey($responeParameterData, $expected)
+    {
+        $instance = $this->getInstance();
+        $result = $this->invokeArgs('getCM3InvoiceKey', [$responeParameterData], $instance);
+
+        $this->assertEquals($expected, $result);
+    }
+
     /**
      * Test the getCaptureTransactionBuilder method.
      */
