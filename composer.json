@@ -23,7 +23,7 @@
     },
     "homepage": "https://store.tig.nl/buckaroo.html",
     "version" : "v2.0.0-RC1",
-    "minimum-stability": "RC1",
+    "minimum-stability": "RC",
     "autoload": {
         "files": [
             "registration.php"
