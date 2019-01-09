@@ -17,21 +17,15 @@ env:
     - CODE_COVERAGE=false
 
   matrix:
-    - MAGENTO_VERSION=2.2.5
-    - MAGENTO_VERSION=2.2.6
-    - MAGENTO_VERSION=2.2.7
     - MAGENTO_VERSION=2.3.0
 
 matrix:
   include:
-  # PHP 7.2 is supported in Magento since Magento 2.3, and not in earlier versions
-  # PHP 7.0 is supported in Magento till Magento 2.2, but not in later versions
-    - php: 7.1
-      env: MAGENTO_VERSION=2.3.0 CODE_COVERAGE=true
-    - php: 7.0
-      env: MAGENTO_VERSION=2.2.7
+  # Magento 2.3 supports only PHP 7.1 and 7.2
     - php: 7.2
       env: MAGENTO_VERSION=2.3.0
+    - php: 7.1
+      env: MAGENTO_VERSION=2.3.0 CODE_COVERAGE=true
 
 before_script:
   - composer config -a -g http-basic.repo.magento.com $MAGENTO_USERNAME $MAGENTO_PASSWORD
