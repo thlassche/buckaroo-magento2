@@ -101,8 +101,11 @@ class PayPerEmailTest extends BaseTest
         $factoryMock = $this->getFakeMock(Factory::class)->setMethods(['get'])->getMock();
         $factoryMock->expects($this->once())->method('get')->with('payperemail')->willReturn($payPerMailConfigMock);
 
-        $infoInstanceMock = $this->getFakeMock(Payment::class)->setMethods(['getOrder'])->getMock();
+        $infoInstanceMock = $this->getFakeMock(Payment::class)
+            ->setMethods(['getOrder', 'setAdditionalInformation'])
+            ->getMock();
         $infoInstanceMock->expects($this->once())->method('getOrder');
+        $infoInstanceMock->expects($this->once())->method('setAdditionalInformation')->with('skip_push', 2);
 
         $orderTransactionMock = $this->getFakeMock(Order::class)->setMethods(['setMethod'])->getMock();
         $orderTransactionMock->expects($this->once())->method('setMethod')->with('TransactionRequest');
@@ -113,9 +116,18 @@ class PayPerEmailTest extends BaseTest
             ->with('order')
             ->willReturn($orderTransactionMock);
 
+        $serviceParametersMock = $this->getFakeMock(ServiceParameters::class)
+            ->setMethods(['getCreateCombinedInvoice'])
+            ->getMock();
+        $serviceParametersMock->expects($this->once())
+            ->method('getCreateCombinedInvoice')
+            ->with($infoInstanceMock, 'payperemail')
+            ->willReturn(['invoiceData']);
+
         $instance = $this->getInstance([
             'configProviderMethodFactory' => $factoryMock,
-            'transactionBuilderFactory' => $transactionBuilderMock
+            'transactionBuilderFactory' => $transactionBuilderMock,
+            'serviceParameters' => $serviceParametersMock
         ]);
 
         $result = $instance->getOrderTransactionBuilder($infoInstanceMock);
