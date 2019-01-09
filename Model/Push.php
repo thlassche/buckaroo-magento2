@@ -563,7 +563,7 @@ class Push implements PushInterface
         $transactionData = $payment->getAdditionalInformation(AbstractMethod::BUCKAROO_ALL_TRANSACTIONS);
 
         $transactionArray = [];
-        if (count($transactionData) > 0) {
+        if (is_array($transactionData) && count($transactionData) > 0) {
             $transactionArray = $transactionData;
         }
 
