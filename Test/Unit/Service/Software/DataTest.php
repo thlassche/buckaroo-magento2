@@ -50,32 +50,26 @@ class DataTest extends BaseTest
                 'Magento',
                 'Community',
                 '2.0',
-                [
-                    'name' => 'Buckaroo',
-                    'setup_version' => '1.0.0'
-                ],
+                ['name' => 'Buckaroo'],
                 [
                     'PlatformName' => 'Magento - Community',
                     'PlatformVersion' => '2.0',
                     'ModuleSupplier' => 'TIG',
                     'ModuleName' => 'Buckaroo',
-                    'ModuleVersion' => '1.0.0'
+                    'ModuleVersion' => Data::BUCKAROO_VERSION
                 ]
             ],
             [
                 'Magento',
                 'Enterprise',
                 '2.1',
-                [
-                    'name' => 'Buckaroo',
-                    'setup_version' => '2.1.3'
-                ],
+                ['name' => 'Buckaroo'],
                 [
                     'PlatformName' => 'Magento - Enterprise',
                     'PlatformVersion' => '2.1',
                     'ModuleSupplier' => 'TIG',
                     'ModuleName' => 'Buckaroo',
-                    'ModuleVersion' => '2.1.3'
+                    'ModuleVersion' => Data::BUCKAROO_VERSION
                 ]
             ]
         ];
