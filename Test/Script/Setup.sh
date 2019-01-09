@@ -56,4 +56,10 @@ chmod 777 "${BUILD_DIR}/vendor/phpunit/phpunit/phpunit"
 
 cd ${BUILD_DIR}
 
+if [ "$CODE_COVERAGE" = "false" ]; then
+    cd ${BUILD_DIR} && bin/magento setup:di:compile;
+fi
+
+cd ${BUILD_DIR} && bin/magento i18n:collect-phrases vendor/tig/buckaroo-travis
+
 "${BUILD_DIR}/vendor/phpunit/phpunit/phpunit" -c "${BUILD_DIR}/vendor/tig/buckaroo-travis/phpunit.xml.dist" --testsuite unit
