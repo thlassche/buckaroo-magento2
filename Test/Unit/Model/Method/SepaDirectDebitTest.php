@@ -125,7 +125,9 @@ class SepaDirectDebitTest extends \TIG\Buckaroo\Test\BaseTest
 
         $payment = $this->getFakeMock(Payment::class)->setMethods(['getOrder', 'setAdditionalInformation'])->getMock();
         $payment->expects($this->once())->method('getOrder')->willReturn($fixture['order']);
-        $payment->expects($this->once())->method('setAdditionalInformation')->with('skip_push', 1);
+        $payment->expects($this->exactly(2))
+            ->method('setAdditionalInformation')
+            ->withConsecutive(['skip_push', 1], ['skip_push', 2]);
 
         $orderMock = $this->getFakeMock(TransactionOrder::class)
             ->setMethods(['setOrder', 'setMethod', 'setServices'])
@@ -159,7 +161,18 @@ class SepaDirectDebitTest extends \TIG\Buckaroo\Test\BaseTest
                 $fixture['customer_bic']
             );
 
-        $instance = $this->getInstance(['transactionBuilderFactory' => $trxFactoryMock]);
+        $serviceParametersMock = $this->getFakeMock(ServiceParameters::class)
+            ->setMethods(['getCreateCombinedInvoice'])
+            ->getMock();
+        $serviceParametersMock->expects($this->once())
+            ->method('getCreateCombinedInvoice')
+            ->with($payment, 'sepadirectdebit')
+            ->willReturn(['invoiceData']);
+
+        $instance = $this->getInstance([
+            'transactionBuilderFactory' => $trxFactoryMock,
+            'serviceParameters' => $serviceParametersMock
+        ]);
         $instance->setData('info_instance', $infoInterface);
 
         $this->assertEquals($orderMock, $instance->getOrderTransactionBuilder($payment));
