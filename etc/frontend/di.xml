@@ -60,6 +60,7 @@
                 <item name="buckaroo_config_provider_giftcards" xsi:type="object">TIG\Buckaroo\Model\ConfigProvider\Method\Giftcards</item>
                 <item name="buckaroo_config_provider_paymentguarantee" xsi:type="object">TIG\Buckaroo\Model\ConfigProvider\Method\PaymentGuarantee</item>
                 <item name="buckaroo_config_provider_payconiq" xsi:type="object">TIG\Buckaroo\Model\ConfigProvider\Method\Payconiq</item>
+                <item name="buckaroo_config_provider_kbc" xsi:type="object">TIG\Buckaroo\Model\ConfigProvider\Method\Kbc</item>
             </argument>
         </arguments>
     </type>

@@ -232,6 +232,10 @@
                     <item name="type" xsi:type="string">paymentguarantee</item>
                     <item name="model" xsi:type="string">TIG\Buckaroo\Model\ConfigProvider\Method\PaymentGuarantee</item>
                 </item>
+                <item name="kbc" xsi:type="array">
+                    <item name="type" xsi:type="string">kbc</item>
+                    <item name="model" xsi:type="string">TIG\Buckaroo\Model\ConfigProvider\Method\Kbc</item>
+                </item>
             </argument>
         </arguments>
     </type>
