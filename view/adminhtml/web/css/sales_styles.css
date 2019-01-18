@@ -61,7 +61,8 @@
 .tig_buckaroo_payment_card_vpay,
 .tig_buckaroo_payment_card_cartebleuevisa,
 .tig_buckaroo_payment_card_cartebancaire,
-.tig_buckaroo_payment_card_dankort
+.tig_buckaroo_payment_card_dankort,
+.tig_buckaroo_payment_card_cartasi
 {
     float:left;
     width: 100%;
@@ -306,6 +307,17 @@
 
 .tig_buckaroo_payment_card_dankort:before {
     background: url(../images/creditcard/ico-da.png) no-repeat;
+    margin-top: -2px;
+    float: left;
+    margin-right: 7px;
+    background-size: auto 23px;
+    width: 40px;
+    height: 23px;
+    content: ' ';
+}
+
+.tig_buckaroo_payment_card_cartasi:before {
+    background: url(../images/creditcard/ico-nx.png) no-repeat;
     margin-top: -2px;
     float: left;
     margin-right: 7px;
