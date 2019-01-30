@@ -62,7 +62,7 @@
 .tig_buckaroo_payment_card_cartebleuevisa,
 .tig_buckaroo_payment_card_cartebancaire,
 .tig_buckaroo_payment_card_dankort,
-.tig_buckaroo_payment_card_cartasi
+.tig_buckaroo_payment_card_nexi
 {
     float:left;
     width: 100%;
@@ -316,7 +316,7 @@
     content: ' ';
 }
 
-.tig_buckaroo_payment_card_cartasi:before {
+.tig_buckaroo_payment_card_nexi:before {
     background: url(../images/creditcard/ico-nx.png) no-repeat;
     margin-top: -2px;
     float: left;
