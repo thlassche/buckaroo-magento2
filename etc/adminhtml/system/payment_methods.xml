@@ -76,5 +76,7 @@
 
         <include path="TIG_Buckaroo::system/payment_methods/payconiq.xml"/>
 
+        <include path="TIG_Buckaroo::system/payment_methods/klarna.xml"/>
+
     </group>
 </include>
