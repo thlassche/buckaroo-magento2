@@ -123,7 +123,12 @@ define(
             {
                 type: 'tig_buckaroo_paymentguarantee',
                 component: 'TIG_Buckaroo/js/view/payment/method-renderer/paymentguarantee'
+            },
+            {
+                type: 'tig_buckaroo_klarna',
+                component: 'TIG_Buckaroo/js/view/payment/method-renderer/klarna'
             }
+
         );
         /**
          * Add view logic here if needed

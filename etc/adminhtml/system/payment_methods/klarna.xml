@@ -73,7 +73,7 @@
             <label>Send order confirmation email</label>
             <comment><![CDATA[Activate to send an order confirmation e-mail when the order has been successfully placed. Specific for this payment method. This does not automatically mean that the payment has been made (yet).]]></comment>
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-            <config_path>payment/tig_buckaroo_afterpay/order_email</config_path>
+            <config_path>payment/tig_buckaroo_klarna/order_email</config_path>
         </field>
 
         <group id="tig_buckaroo_advanced" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
@@ -142,7 +142,7 @@
                 <comment><![CDATA[Select payment method specific currencies.]]></comment>
                 <tooltip>Your contract with Buckaroo must allow for the selected currencies to be used with this payment method.</tooltip>
                 <config_path>payment/tig_buckaroo_klarna/allowed_currencies</config_path>
-                <source_model>TIG\Buckaroo\Model\Config\Source\AllowedCurrencies::afterpay2</source_model>
+                <source_model>TIG\Buckaroo\Model\Config\Source\AllowedCurrencies::ideal</source_model>
                 <backend_model>TIG\Buckaroo\Model\Config\Backend\AllowedCurrencies</backend_model>
             </field>
 

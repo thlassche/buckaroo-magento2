@@ -61,7 +61,8 @@
 .tig_buckaroo_payment_card_vpay,
 .tig_buckaroo_payment_card_cartebleuevisa,
 .tig_buckaroo_payment_card_cartebancaire,
-.tig_buckaroo_payment_card_dankort
+.tig_buckaroo_payment_card_dankort,
+.tig_buckaroo_payment_klarna
 {
     float:left;
     width: 100%;
@@ -212,6 +213,19 @@
     height            : 26px;
     background-size   : auto 20px;
     content            : ' ';
+}
+
+/* Klarna */
+.tig_buckaroo_payment_klarna:before {
+    background: url(../images/tig_buckaroo_klarna_title.png) no-repeat;
+    float: left;
+    margin-right: 10px;
+    margin-top: -3px;
+    background-size: auto 25px;
+    width: 30px;
+    height: 30px;
+    content: ' ';
+    display :block;
 }
 
 /* ===================== Order Overview -  Credit Card / Debit Card Method Styling ======================= */
