@@ -197,7 +197,7 @@ define(
                  * Validation on the input fields
                  */
                 var runValidation = function () {
-                    $('.' + this.getCode() + ' [data-validate]').filter(':not([name*="agreement"])').valid();
+                    $('.' + this.getCode() + ' .payment [data-validate]').filter(':not([name*="agreement"])').valid();
                     this.selectPaymentMethod();
                 };
 
@@ -348,7 +348,7 @@ define(
              */
 
             validate: function () {
-                return $('.' + this.getCode() + ' [data-validate]:not([name*="agreement"])').valid();
+                return $('.' + this.getCode() + ' .payment [data-validate]:not([name*="agreement"])').valid();
             },
 
             getData : function() {
