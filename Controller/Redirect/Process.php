@@ -123,6 +123,13 @@ class Process extends \Magento\Framework\App\Action\Action
         $this->orderStatusFactory = $orderStatusFactory;
 
         $this->accountConfig = $configProviderFactory->get('account');
+
+        if (interface_exists("\Magento\Framework\App\CsrfAwareActionInterface")
+            && $this->getRequest() instanceof \Magento\Framework\App\Request\Http
+            && $this->getRequest()->isPost()
+        ) {
+            $this->getRequest()->setParam('isAjax', true);
+        }
     }
 
     /**
