@@ -94,5 +94,8 @@
         <method name="tig_buckaroo_paymentguarantee">
             <allow_multiple_address>0</allow_multiple_address>
         </method>
+        <method name="tig_buckaroo_emandate">
+            <allow_multiple_address>0</allow_multiple_address>
+        </method>
     </methods>
 </payment>
