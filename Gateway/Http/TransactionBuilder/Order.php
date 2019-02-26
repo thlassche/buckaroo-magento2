@@ -41,6 +41,7 @@
 namespace TIG\Buckaroo\Gateway\Http\TransactionBuilder;
 
 use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\Data\Form\FormKey;
 use Magento\Framework\HTTP\PhpEnvironment\RemoteAddress;
 use Magento\Framework\UrlInterface;
 use TIG\Buckaroo\Gateway\Http\Transaction;
@@ -58,14 +59,15 @@ class Order extends AbstractTransactionBuilder
 
     /**
      * @param ScopeConfigInterface $scopeConfig
-     * @param SoftwareData  $softwareData
-     * @param Account       $configProviderAccount
-     * @param Transaction   $transaction
-     * @param UrlInterface  $urlBuilder
-     * @param RemoteAddress $remoteAddress
-     * @param Factory       $configProviderMethodFactory
-     * @param null          $amount
-     * @param null          $currency
+     * @param SoftwareData         $softwareData
+     * @param Account              $configProviderAccount
+     * @param Transaction          $transaction
+     * @param UrlInterface         $urlBuilder
+     * @param RemoteAddress        $remoteAddress
+     * @param Factory              $configProviderMethodFactory
+     * @param FormKey              $formKey
+     * @param null                 $amount
+     * @param null                 $currency
      */
     public function __construct(
         ScopeConfigInterface $scopeConfig,
@@ -73,12 +75,13 @@ class Order extends AbstractTransactionBuilder
         Account $configProviderAccount,
         Transaction $transaction,
         UrlInterface $urlBuilder,
+        FormKey $formKey,
         RemoteAddress $remoteAddress,
         Factory $configProviderMethodFactory,
         $amount = null,
         $currency = null
     ) {
-        parent::__construct($scopeConfig, $softwareData, $configProviderAccount, $transaction, $urlBuilder, $amount, $currency);
+        parent::__construct($scopeConfig, $softwareData, $configProviderAccount, $transaction, $urlBuilder, $formKey, $amount, $currency);
 
         $this->remoteAddress = $remoteAddress;
         $this->configProviderMethodFactory = $configProviderMethodFactory;
