@@ -158,7 +158,7 @@ class Order extends AbstractTransactionBuilder
         $body = $this->filterBody($body);
 
         $customVars = $this->getCustomVars();
-        if (count($customVars) > 0) {
+        if (is_array($customVars) && count($customVars) > 0) {
             foreach ($customVars as $key => $val) {
                 $body[$key] = $val;
             }
