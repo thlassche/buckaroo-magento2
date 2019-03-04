@@ -38,6 +38,7 @@
  */
 namespace TIG\Buckaroo\Test\Unit\Gateway\Http\TransactionBuilder;
 
+use Magento\Framework\Data\Form\FormKey;
 use Magento\Framework\Url;
 use Magento\Framework\UrlInterface;
 use Magento\Sales\Model\Order as MagentoOrder;
@@ -92,7 +93,7 @@ class OrderTest extends BaseTest
             ->setMethods(['setScope', 'getRouteUrl', 'getDirectUrl'])
             ->getMock();
         $urlBuilderMock->method('setScope')->willReturnSelf();
-        $urlBuilderMock->method('getRouteUrl')->willReturnSelf();
+        $urlBuilderMock->method('getRouteUrl')->willReturn('');
         $urlBuilderMock->method('getDirectUrl')->willReturnSelf();
 
         $instance = $this->getInstance([
@@ -265,11 +266,13 @@ class OrderTest extends BaseTest
             'instance has no return url' => [
                 null,
                 'tig.nl',
-                'tig.nl'
+                '123abc',
+                'tig.nl?form_key=123abc'
             ],
             'instance has return url' => [
                 'magento.com',
                 'google.com',
+                'def456',
                 'magento.com'
             ]
         ];
@@ -278,11 +281,12 @@ class OrderTest extends BaseTest
     /**
      * @param $existingUrl
      * @param $generatedUrl
+     * @param $formKey
      * @param $expected
      *
      * @dataProvider getReturnUrlProvider
      */
-    public function testGetReturnUrl($existingUrl, $generatedUrl, $expected)
+    public function testGetReturnUrl($existingUrl, $generatedUrl, $formKey, $expected)
     {
         $methodIsCalled = (int)!((bool)$existingUrl);
 
@@ -295,10 +299,13 @@ class OrderTest extends BaseTest
         $urlBuilderMock->expects($this->exactly($methodIsCalled))->method('setScope')->with(1)->willReturnSelf();
         $urlBuilderMock->expects($this->exactly($methodIsCalled*2))
             ->method('getRouteUrl')
-            ->withConsecutive(['buckaroo/redirect/process'], [$generatedUrl])
-            ->willReturn($generatedUrl);
+            ->withConsecutive(['buckaroo/redirect/process'], [$generatedUrl . '?form_key=' . $formKey])
+            ->willReturnOnConsecutiveCalls($generatedUrl, $generatedUrl . '?form_key=' . $formKey);
 
-        $instance = $this->getInstance(['urlBuilder' => $urlBuilderMock]);
+        $formKeyMock = $this->getFakeMock(FormKey::class)->setMethods(['getFormKey'])->getMock();
+        $formKeyMock->expects($this->exactly($methodIsCalled))->method('getFormKey')->willReturn($formKey);
+
+        $instance = $this->getInstance(['urlBuilder' => $urlBuilderMock, 'formKey' => $formKeyMock]);
         $this->setProperty('order', $orderMock, $instance);
         $this->setProperty('returnUrl', $existingUrl, $instance);
 

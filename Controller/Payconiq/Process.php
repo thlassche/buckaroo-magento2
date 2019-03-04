@@ -124,6 +124,7 @@ class Process extends Action
     private function getTransactionKey()
     {
         $transactionKey = $this->getRequest()->getParam('transaction_key');
+        $transactionKey = preg_replace('/[^\w]/', '', $transactionKey);
 
         if (empty($transactionKey) || strlen($transactionKey) <= 0) {
             return false;

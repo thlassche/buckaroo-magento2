@@ -71,8 +71,10 @@ define(
                 var data = {};
                 data['transaction_key'] = this.transactionKey;
 
+                var formKey = $.mage.cookies.get('form_key');
+
                 utils.submit({
-                    url: url.build('/buckaroo/payconiq/process'),
+                    url: url.build('/buckaroo/payconiq/process/?form_key=' + formKey),
                     data: data
                 });
             }
