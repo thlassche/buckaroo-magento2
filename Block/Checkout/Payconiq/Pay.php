@@ -59,6 +59,7 @@ class Pay extends \Magento\Framework\View\Element\Template
      */
     public function getTransactionKey()
     {
-        return $this->response['Key'];
+        $key = preg_replace('/[^\w]/', '', $this->response['Key']);
+        return $key;
     }
 }
