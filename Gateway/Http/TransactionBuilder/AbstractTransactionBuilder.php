@@ -41,6 +41,7 @@
 namespace TIG\Buckaroo\Gateway\Http\TransactionBuilder;
 
 use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\Data\Form\FormKey;
 use Magento\Framework\UrlInterface;
 use Magento\Store\Model\ScopeInterface;
 use TIG\Buckaroo\Gateway\Http\Transaction;
@@ -117,6 +118,9 @@ abstract class AbstractTransactionBuilder implements \TIG\Buckaroo\Gateway\Http\
      */
     protected $channel = 'Web';
 
+    /** @var FormKey */
+    private $formKey;
+
     /**
      * @var int
      */
@@ -178,6 +182,14 @@ abstract class AbstractTransactionBuilder implements \TIG\Buckaroo\Gateway\Http\
         $this->startRecurrent = $startRecurrent;
 
         return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getFormKey()
+    {
+        return $this->formKey->getFormKey();
     }
 
     /**
@@ -248,11 +260,12 @@ abstract class AbstractTransactionBuilder implements \TIG\Buckaroo\Gateway\Http\
     /**
      * TransactionBuilder constructor.
      *
-     * @param ScopeConfigInterface $scopeConfig
+     * @param ScopeConfigInterface  $scopeConfig
      * @param SoftwareData          $softwareData
      * @param Account               $configProviderAccount
      * @param Transaction           $transaction
      * @param UrlInterface          $urlBuilder
+     * @param FormKey               $formKey
      * @param null|int|float|double $amount
      * @param null|string           $currency
      */
@@ -262,6 +275,7 @@ abstract class AbstractTransactionBuilder implements \TIG\Buckaroo\Gateway\Http\
         Account $configProviderAccount,
         Transaction $transaction,
         UrlInterface $urlBuilder,
+        FormKey $formKey,
         $amount = null,
         $currency = null
     ) {
@@ -270,6 +284,7 @@ abstract class AbstractTransactionBuilder implements \TIG\Buckaroo\Gateway\Http\
         $this->configProviderAccount = $configProviderAccount;
         $this->transaction           = $transaction;
         $this->urlBuilder            = $urlBuilder;
+        $this->formKey               = $formKey;
 
         if ($amount !== null) {
             $this->amount = $amount;
@@ -389,7 +404,7 @@ abstract class AbstractTransactionBuilder implements \TIG\Buckaroo\Gateway\Http\
     {
         if ($this->returnUrl === null) {
             $url = $this->urlBuilder->setScope($this->order->getStoreId());
-            $url = $url->getRouteUrl('buckaroo/redirect/process');
+            $url = $url->getRouteUrl('buckaroo/redirect/process') . '?form_key=' . $this->getFormKey();
 
             $this->setReturnUrl($url);
         }

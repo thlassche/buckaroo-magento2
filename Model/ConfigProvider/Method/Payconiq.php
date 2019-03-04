@@ -39,6 +39,12 @@
 
 namespace TIG\Buckaroo\Model\ConfigProvider\Method;
 
+use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\Data\Form\FormKey;
+use Magento\Framework\View\Asset\Repository;
+use TIG\Buckaroo\Helper\PaymentFee;
+use TIG\Buckaroo\Model\ConfigProvider\AllowedCurrencies;
+
 /**
  * @method getPaymentFeeLabel()
  * @method getSellersProtection()
@@ -69,6 +75,33 @@ class Payconiq extends AbstractConfigProvider
 
     const PAYCONIC_REDIRECT_URL = '/buckaroo/payconiq/pay';
 
+    /** @var FormKey */
+    private $formKey;
+
+    /**
+     * @param Repository           $assetRepo
+     * @param ScopeConfigInterface $scopeConfig
+     * @param AllowedCurrencies    $allowedCurrencies
+     * @param PaymentFee           $paymentFeeHelper
+     * @param FormKey              $formKey
+     */
+    public function __construct(
+        Repository $assetRepo,
+        ScopeConfigInterface $scopeConfig,
+        AllowedCurrencies $allowedCurrencies,
+        PaymentFee $paymentFeeHelper,
+        FormKey $formKey
+    ) {
+        parent::__construct($assetRepo, $scopeConfig, $allowedCurrencies, $paymentFeeHelper);
+
+        $this->formKey = $formKey;
+    }
+
+    private function getFormKey()
+    {
+        return $this->formKey->getFormKey();
+    }
+
     /**
      * @return array
      */
@@ -82,7 +115,7 @@ class Payconiq extends AbstractConfigProvider
                     'payconiq' => [
                         'paymentFeeLabel' => $paymentFeeLabel,
                         'allowedCurrencies' => $this->getAllowedCurrencies(),
-                        'redirecturl' => self::PAYCONIC_REDIRECT_URL
+                        'redirecturl' => self::PAYCONIC_REDIRECT_URL . '?form_key=' . $this->getFormKey()
                     ],
                 ],
             ],
