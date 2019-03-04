@@ -197,6 +197,7 @@ class Push implements ValidatorInterface
             case 'brq_SERVICE_payconiq_QrUrl':
             case 'brq_SERVICE_masterpass_CustomerPhoneNumber':
             case 'brq_SERVICE_masterpass_ShippingRecipientPhoneNumber':
+            case 'brq_SERVICE_transfer_CustomerAccountName':
             case 'brq_InvoiceDate':
             case 'brq_DueDate':
             case 'brq_PreviousStepDateTime':
