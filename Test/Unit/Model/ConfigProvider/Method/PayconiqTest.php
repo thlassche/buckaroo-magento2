@@ -32,6 +32,7 @@
 namespace TIG\Buckaroo\Test\Unit\Model\ConfigProvider\Method;
 
 use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\Data\Form\FormKey;
 use Magento\Store\Model\ScopeInterface;
 use TIG\Buckaroo\Model\ConfigProvider\Method\Payconiq;
 use TIG\Buckaroo\Test\BaseTest;
@@ -48,7 +49,10 @@ class PayconiqTest extends BaseTest
             ->withConsecutive($this->onConsecutiveCalls([[Payconiq::XPATH_PAYCONIQ_ACTIVE]]))
             ->willReturn(1);
 
-        $instance = $this->getInstance(['scopeConfig' => $scopeConfigMock]);
+        $formKeyMock = $this->getFakeMock(FormKey::class)->setMethods(['getFormKey'])->getMock();
+        $formKeyMock->expects($this->once())->method('getFormKey')->willReturn('123abc');
+
+        $instance = $this->getInstance(['scopeConfig' => $scopeConfigMock, 'formKey' => $formKeyMock]);
         $result = $instance->getConfig();
 
         $this->assertInternalType('array', $result);
@@ -60,7 +64,10 @@ class PayconiqTest extends BaseTest
         $this->assertCount(3, $resultPaymentBuckaroo['payconiq']);
         $this->assertArrayHasKey('paymentFeeLabel', $resultPaymentBuckaroo['payconiq']);
         $this->assertArrayHasKey('allowedCurrencies', $resultPaymentBuckaroo['payconiq']);
-        $this->assertEquals(Payconiq::PAYCONIC_REDIRECT_URL, $resultPaymentBuckaroo['payconiq']['redirecturl']);
+        $this->assertEquals(
+            Payconiq::PAYCONIC_REDIRECT_URL . '?form_key=123abc',
+            $resultPaymentBuckaroo['payconiq']['redirecturl']
+        );
     }
 
     /**

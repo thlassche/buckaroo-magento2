@@ -245,10 +245,16 @@ class PushTest extends \TIG\Buckaroo\Test\BaseTest
         ];
 
         $paymentMock = $this->getFakeMock(Payment::class)
-            ->setMethods(['getMethod', 'setAdditionalInformation'])
+            ->setMethods(['getMethod', 'setAdditionalInformation', 'getAdditionalInformation'])
             ->getMock();
         $paymentMock->expects($this->once())->method('getMethod')->willReturn($methodCode);
-        $paymentMock->method('setAdditionalInformation');
+        $paymentMock->method('getAdditionalInformation')
+            ->with(AbstractMethod::BUCKAROO_ALL_TRANSACTIONS)->willReturn([]);
+        $paymentMock->method('setAdditionalInformation')
+            ->withConsecutive(
+                [AbstractMethod::BUCKAROO_ORIGINAL_TRANSACTION_KEY_KEY],
+                [AbstractMethod::BUCKAROO_ALL_TRANSACTIONS]
+            );
 
         $orderMock = $this->getFakeMock(Order::class)->setMethods(['getPayment', 'getGrandTotal'])->getMock();
         $orderMock->expects($this->atLeastOnce())->method('getPayment')->willReturn($paymentMock);

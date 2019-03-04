@@ -242,14 +242,11 @@ class Afterpay2Test extends BaseTest
      */
     public function testGetTaxLine($taxAmount, $shippingTaxAmount, $catalogIncludesTax, $shippingIncludesTax, $expected)
     {
-        $orderTaxinvokedAtMost = new \PHPUnit_Framework_MockObject_Matcher_InvokedAtMostCount(1);
-        $shippingTaxinvokedAtMost = new \PHPUnit_Framework_MockObject_Matcher_InvokedAtMostCount(2);
-
         $orderMock = $this->getFakeMock(Order::class)
             ->setMethods(['getTaxAmount', 'getShippingTaxAmount'])
             ->getMock();
-        $orderMock->expects($orderTaxinvokedAtMost)->method('getTaxAmount')->willReturn($taxAmount);
-        $orderMock->expects($shippingTaxinvokedAtMost)->method('getShippingTaxAmount')->willReturn($shippingTaxAmount);
+        $orderMock->method('getTaxAmount')->willReturn($taxAmount);
+        $orderMock->method('getShippingTaxAmount')->willReturn($shippingTaxAmount);
 
         $scopeConfigMock = $this->getFakeMock(ScopeConfigInterface::class)->getMock();
         $scopeConfigMock->expects($this->exactly(2))
@@ -322,13 +319,11 @@ class Afterpay2Test extends BaseTest
      */
     public function testGetShippingCostsLine($shippingAmount, $taxAmount, $includesTax, $expected)
     {
-        $invokedAtMost = new \PHPUnit_Framework_MockObject_Matcher_InvokedAtMostCount(1);
-
         $orderMock = $this->getFakeMock(Order::class)
             ->setMethods(['getShippingAmount', 'getShippingTaxAmount'])
             ->getMock();
         $orderMock->expects($this->atLeastOnce())->method('getShippingAmount')->willReturn($shippingAmount);
-        $orderMock->expects($invokedAtMost)->method('getShippingTaxAmount')->willReturn($taxAmount);
+        $orderMock->method('getShippingTaxAmount')->willReturn($taxAmount);
 
         $scopeConfigMock = $this->getFakeMock(ScopeConfigInterface::class)->getMock();
         $scopeConfigMock->expects($this->exactly(($shippingAmount ? 1 : 0)))
