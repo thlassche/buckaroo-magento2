@@ -54,6 +54,7 @@
 
             <div class="field required">
                 <label class="label" for="tig_buckaroo_klarna_BillingName"> <span data-bind="i18n: 'Billing Name:'"> </span> </label>
+                <span title="waarom niet aanpasbaar">&#8505;</span>
                 <div class="control">
                     <input id="tig_buckaroo_klarna_BillingName"
                            class="input-text field"
@@ -83,14 +84,16 @@
                         </div>
                         <!-- /ko -->
 
-            <div class="field required">
-                <label class="label" for="tig_buckaroo_klarna_DoB"> <span data-bind="i18n: 'Date of Birth:'"> </span> </label>
-                <span><sup data-bind="i18n: '(DD/MM/YYYY)' "></sup></span>
-                <div class="control">
-                    <input id="tig_buckaroo_klarna_DoB"
-                           class="field"
-                           type="text"
-                           data-bind="
+                        <div class="field required">
+                            <label class="label" for="tig_buckaroo_klarna_DoB"> <span
+                                    data-bind="i18n: 'Date of Birth:'"> </span> </label>
+                            <span><sup data-bind="i18n: '(DD/MM/YYYY)' "></sup></span>
+                            <span title="waarom geboortedatum nodig">&#8505;</span>
+                            <div class="control">
+                                <input id="tig_buckaroo_klarna_DoB"
+                                       class="field"
+                                       type="text"
+                                       data-bind="
                                    datepicker: {
                                         storage: dateValidate,
                                         options: {
@@ -103,20 +106,21 @@
                                    valueUpdate: 'blur',
                                    value: dateValidate,
                                    attr: { 'data-validate': JSON.stringify({ 'required': true, 'validate-date-au': true })}"
-                           name="payment[tig_buckaroo_klarna][customer_DoB]">
-                </div>
-            </div>
-                        <div class="field required">
+                                       name="payment[tig_buckaroo_klarna][customer_DoB]">
+                            </div>
+
                             <div class="control">
                                 <span>
                                     <a target="_blank"
                                        data-bind="
-                                                  i18n: 'Invoice payment terms',
+                                                  text: invoiceText,
                                                   attr: { 'href': termsUrl }
                                                  ">
                                     </a>
                                 </span>
-                                <div for="tig_buckaroo_klarna_TermsCondition" generated="true" class="mage-error" id="tig_buckaroo_klarna_TermsCondition-error" style="display: none;"><span data-bind="i18n: 'This is a required field.' "></span></div>
+                                <div for="tig_buckaroo_klarna_TermsCondition" generated="true" class="mage-error"
+                                     id="tig_buckaroo_klarna_TermsCondition-error" style="display: none;"><span
+                                        data-bind="i18n: 'This is a required field.' "></span></div>
                             </div>
                         </div>
                     </fieldset>
@@ -126,14 +130,14 @@
         <div class="actions-toolbar">
             <div class="primary">
                 <button class="action primary checkout"
-                        type="submit"
                         data-bind="
                         click: placeOrder,
                         attr: {title: $t('Place Order')},
                         enable: (getCode() == isChecked()),
                         css: {disabled: !isPlaceOrderActionAllowed() }
                         "
-                        disabled>
+                        disabled
+                        type="submit">
                     <span data-bind="i18n: 'Place Order'"></span>
                 </button>
             </div>

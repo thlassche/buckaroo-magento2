@@ -105,12 +105,14 @@ define(
                     bankaccountnumber: '',
                     termsUrl: 'https://www.klarna.nl/nl/klantenservice/betalingsvoorwaarden/',
                     termsValidate: false,
-                    genderValidate: null
+                    genderValidate: null,
+                    invoiceText: ''
                 },
                 redirectAfterPlaceOrder : true,
                 paymentFeeLabel : window.checkoutConfig.payment.buckaroo.klarna.paymentFeeLabel,
                 currencyCode : window.checkoutConfig.quoteData.quote_currency_code,
                 baseCurrencyCode : window.checkoutConfig.quoteData.base_currency_code,
+                paymentFee : window.checkoutConfig.payment.buckaroo.klarna.paymentFee,
 
                 /**
                  * @override
@@ -143,7 +145,8 @@ define(
                             'termsUrl',
                             'termsValidate',
                             'genderValidate',
-                            'dummy'
+                            'dummy',
+                            'invoiceText'
                         ]
                     );
 
@@ -171,23 +174,30 @@ define(
                     this.updateTermsUrl = function(country) {
                         this.billingAddress = country;
                         var newUrl = '';
+                        var newInvoice = '';
+                        var fee = this.paymentFee.toString().replace(".",",");
 
                         switch (this.billingAddress) {
                             case COUNTRY_FORMAT_DE:
-                                newUrl = 'https://cdn.klarna.com/1.0/shared/content/legal/terms/0/de_de/privacy';
+                                newUrl = 'https://cdn.klarna.com/1.0/shared/content/legal/terms/0/de_de/invoice?fee='+fee;
+                                newInvoice = 'Rechnungsbedingungen';
                                 break;
                             case COUNTRY_FORMAT_AT:
-                                newUrl = 'https://cdn.klarna.com/1.0/shared/content/legal/terms/0/de_at/privacy';
+                                newUrl = 'https://cdn.klarna.com/1.0/shared/content/legal/terms/0/de_at/invoice?fee='+fee;
+                                newInvoice = 'Rechnungsbedingungen';
                                 break;
                             case COUNTRY_FORMAT_NL:
-                                newUrl = 'https://cdn.klarna.com/1.0/shared/content/legal/terms/0/nl_nl/privacy';
+                                newUrl = 'https://cdn.klarna.com/1.0/shared/content/legal/terms/0/nl_nl/invoice?fee='+fee;
+                                newInvoice = 'Factuurvoorwaarden';
                                 break;
                             default:
-                                newUrl = '';
+                                newUrl = 'https://cdn.klarna.com/1.0/shared/content/legal/terms/0/en_us/invoice?';
+                                newInvoice = 'Invoice payment terms';
                                 break;
                         }
 
                         this.termsUrl(newUrl);
+                        this.invoiceText(newInvoice);
                     };
 
                     if (quote.billingAddress()) {
