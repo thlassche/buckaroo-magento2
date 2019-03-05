@@ -46,7 +46,7 @@ use Magento\Framework\App\ProductMetadataInterface;
 class SupportTab extends \Magento\Framework\View\Element\Template implements RendererInterface
 {
 
-    const BUCKAROO_VERSION = '1.9.0';
+    const BUCKAROO_VERSION = '1.9.1';
 
     // @codingStandardsIgnoreStart
     protected $_template = 'supportTab.phtml';
