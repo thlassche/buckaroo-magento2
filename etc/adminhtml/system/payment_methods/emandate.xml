@@ -53,7 +53,26 @@
             <config_path>payment/tig_buckaroo_emandate/sort_order</config_path>
         </field>
 
-        <group id="tig_buckaroo_advanced" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+        <field id="sequence_type" translate="label comment" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Type mandaat</label>
+            <comment><![CDATA[One-Off means that the authorization can be used for an one-off direct debit. Recurring means that the authorization will be used for multiple direct debits.]]></comment>
+            <source_model>TIG\Buckaroo\Model\Config\Source\SequenceType</source_model>
+            <config_path>payment/tig_buckaroo_emandate/sequence_type</config_path>
+        </field>
+
+        <field id="reason" translate="label comment" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>E-mandate description</label>
+            <comment><![CDATA[Enter a desciption that the customer will recognize as the authorization here, e.g. your webshop or company name.]]></comment>
+            <config_path>payment/tig_buckaroo_emandate/reason</config_path>
+        </field>
+
+        <field id="language" translate="label" type="select" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Language</label>
+            <source_model>TIG\Buckaroo\Model\Config\Source\EmandateLanguage</source_model>
+            <config_path>payment/tig_buckaroo_emandate/language</config_path>
+        </field>
+
+        <group id="tig_buckaroo_advanced" translate="label" type="text" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Advanced Configuration</label>
 
             <field id="order_email" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">

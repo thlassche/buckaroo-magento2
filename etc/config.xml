@@ -309,6 +309,8 @@
                 <model>TIG\Buckaroo\Model\Method\Emandate</model>
                 <order_status>pending</order_status>
                 <title>TIG Buckaroo Emandate</title>
+                <sequence_type>1</sequence_type>
+                <language>nl_NL</language>
                 <allowspecific>0</allowspecific>
                 <sort_order>210</sort_order>
                 <order_email>1</order_email>

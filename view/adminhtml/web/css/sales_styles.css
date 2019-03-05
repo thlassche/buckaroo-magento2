@@ -215,6 +215,19 @@
     content            : ' ';
 }
 
+/* Emandate */
+.tig_buckaroo_payment_emandate:before {
+    background: url(../images/tig_buckaroo_emandate_title.png) no-repeat;
+    float: left;
+    margin-right: 10px;
+    margin-top: -3px;
+    background-size: auto 25px;
+    width: 30px;
+    height: 30px;
+    content: ' ';
+    display :block;
+}
+
 /* ===================== Order Overview -  Credit Card / Debit Card Method Styling ======================= */
 
 .tig_buckaroo_payment_card_mastercard:before {

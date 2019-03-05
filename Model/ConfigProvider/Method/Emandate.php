@@ -43,10 +43,14 @@ class Emandate extends AbstractConfigProvider
     const XPATH_EMANDATE_ORDER_EMAIL           = 'payment/tig_buckaroo_emandate/order_email';
     const XPATH_EMANDATE_AVAILABLE_IN_BACKEND  = 'payment/tig_buckaroo_emandate/available_in_backend';
 
+    const XPATH_EMANDATE_SEQUENCE_TYPE         = 'payment/tig_buckaroo_emandate/sequence_type';
+    const XPATH_EMANDATE_REASON                = 'payment/tig_buckaroo_emandate/reason';
+    const XPATH_EMANDATE_LANGUAGE              = 'payment/tig_buckaroo_emandate/language';
+
     const XPATH_ALLOWED_CURRENCIES             = 'payment/tig_buckaroo_emandate/allowed_currencies';
 
-    const XPATH_ALLOW_SPECIFIC                  = 'payment/tig_buckaroo_emandate/allowspecific';
-    const XPATH_SPECIFIC_COUNTRY                = 'payment/tig_buckaroo_emandate/specificcountry';
+    const XPATH_ALLOW_SPECIFIC                 = 'payment/tig_buckaroo_emandate/allowspecific';
+    const XPATH_SPECIFIC_COUNTRY               = 'payment/tig_buckaroo_emandate/specificcountry';
 
     /**
      * @var array
@@ -61,20 +65,12 @@ class Emandate extends AbstractConfigProvider
             'code' => 'ASNBNL21',
         ],
         [
-            'name' => 'Bunq Bank',
-            'code' => 'BUNQNL2A',
-        ],
-        [
             'name' => 'ING',
             'code' => 'INGBNL2A',
         ],
         [
             'name' => 'Knab Bank',
             'code' => 'KNABNL2H',
-        ],
-        [
-            'name' => 'Moneyou',
-            'code' => 'MOYONL21',
         ],
         [
             'name' => 'Rabobank',
@@ -92,22 +88,13 @@ class Emandate extends AbstractConfigProvider
             'name' => 'Triodos Bank',
             'code' => 'TRIONL2U',
         ],
-        [
-            'name' => 'Van Lanschot',
-            'code' => 'FVLBNL22',
-        ],
-        [
-            'name' => 'Handelsbanken',
-            'code' => 'HANDNL2A',
-        ],
     ];
 
     /**
      * @var array
      */
     protected $allowedCurrencies = [
-        'EUR',
-        'USD'
+        'EUR'
     ];
 
     /**
@@ -128,7 +115,7 @@ class Emandate extends AbstractConfigProvider
         return [
             'payment' => [
                 'buckaroo' => [
-                    'ideal' => [
+                    'emandate' => [
                         'banks' => $issuers,
                         'paymentFeeLabel' => $paymentFeeLabel,
                         'allowedCurrencies' => $this->getAllowedCurrencies(),
