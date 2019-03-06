@@ -432,7 +432,8 @@ class Klarna extends AbstractMethod
          */
         $transactionBuilder->setOrder($payment->getOrder())
             ->setServices($services)
-            ->setMethod('TransactionRequest');
+            ->setMethod('TransactionRequest')
+            ->setOriginalTransactionKey($payment->getParentTransactionId());
 
         return $transactionBuilder;
     }
