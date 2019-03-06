@@ -280,7 +280,7 @@ class Klarna extends AbstractMethod
             'Name' => 'klarna',
             'Action' => 'CancelReservation',
             'Version' => 1,
-            'RequestParameter' => $this->getKlarnaRequestParameters($payment),
+            'RequestParameter' => $this->getCancelReservationData($payment),
         ];
 
         /**
@@ -310,15 +310,43 @@ class Klarna extends AbstractMethod
      */
     public function getCaptureTransactionBuilder($payment)
     {
-        $result = array(
-            'capturePartial' => true,
-            'currentInvoice' => null
-        );
+
+        $group = 1;
+        $transactionBuilder = $this->transactionBuilderFactory->get('order');
+        //$invoiceData = $this->getCurrentInvoice($payment);
+
+        $capturePartial = false;
 
         $order = $payment->getOrder();
+        $order_id = $order->getId();
+
+        $totalOrder = $order->getBaseGrandTotal();
+
         $numberOfInvoices = $order->getInvoiceCollection()->count();
-        $transactionBuilder = $this->transactionBuilderFactory->get('order');
-        $invoiceData = $this->getCurrentInvoice($payment);
+        $currentInvoiceTotal = 0;
+
+        // loop through invoices to get the last one (=current invoice)
+        if ($numberOfInvoices) {
+            $oInvoiceCollection = $order->getInvoiceCollection();
+
+            $i = 0;
+            foreach ($oInvoiceCollection as $oInvoice) {
+                if (++$i !== $numberOfInvoices) {
+                    continue;
+                }
+
+                $currentInvoice = $oInvoice;
+                $currentInvoiceTotal = $oInvoice->getBaseGrandTotal();
+            }
+        }
+
+        if ($totalOrder == $currentInvoiceTotal && $numberOfInvoices == 1) {
+            //full capture
+            $capturePartial = false;
+        } else {
+            //partial capture
+            $capturePartial = true;
+        }
 
         /**
          * @noinspection PhpUndefinedMethodInspection
@@ -327,26 +355,55 @@ class Klarna extends AbstractMethod
             'Name' => 'klarna',
             'Action' => 'Pay',
             'Version' => 1,
-            'RequestParameter' =>
-                $this->getKlarnaPayRequestParameters($invoiceData['currentInvoice'], $payment),
         ];
+
+        // add additional information
+        $articles = $this->getAdditionalInformation($payment);
+
+        // always get articles from invoice
+        if (isset($currentInvoice)) {
+            $articledata = $this->getPayRequestData($currentInvoice, $payment);
+            $articles = array_merge($articles, $articledata);
+            $group++;
+        }
+
+        // For the first invoice possible add payment fee
+        if (is_array($articles) && $numberOfInvoices == 1) {
+            $includesTax = $this->_scopeConfig->getValue(static::TAX_CALCULATION_INCLUDES_TAX);
+            $serviceLine = $this->getServiceCostLine($currentInvoice, $includesTax, $group);
+            if (!empty($serviceLine)) {
+                unset($serviceLine[1]);
+                unset($serviceLine[3]);
+                unset($serviceLine[4]);
+                $articles = array_merge($articles, $serviceLine);
+                $group++;
+            }
+        }
+
+        // Add aditional shippin costs.
+        $shippingCosts = $this->getShippingCostsLine($currentInvoice, $group);
+
+        if (!empty($shippingCosts)) {
+            unset($shippingCosts[1]);
+            unset($shippingCosts[3]);
+            unset($shippingCosts[4]);
+            $articles = array_merge($articles, $shippingCosts);
+            $group++;
+        }
+
+        $services['RequestParameter'] = $articles;
 
         /**
          * @noinspection PhpUndefinedMethodInspection
          */
         $transactionBuilder->setOrder($payment->getOrder())
             ->setServices($services)
-            ->setAmount($invoiceData['currentInvoice']->getBaseGrandTotal())
+            ->setAmount($currentInvoiceTotal)
             ->setMethod('TransactionRequest')
-            ->setCurrency($this->payment->getOrder()->getOrderCurrencyCode())
-            ->setOriginalTransactionKey(
-                $payment->getAdditionalInformation(
-                    self::BUCKAROO_ORIGINAL_TRANSACTION_KEY_KEY
-                )
-            );
+            ->setCurrency($this->payment->getOrder()->getOrderCurrencyCode());
 
         // Partial Capture Settings
-        if ($result['capturePartial']) {
+        if ($capturePartial) {
             $transactionBuilder->setInvoiceId($payment->getOrder()->getIncrementId(). '-' . $numberOfInvoices)
                 ->setOriginalTransactionKey($payment->getParentTransactionId());
         }
@@ -358,10 +415,26 @@ class Klarna extends AbstractMethod
      * @param OrderPaymentInterface|InfoInterface $payment
      *
      * @return \TIG\Buckaroo\Gateway\Http\TransactionBuilderInterface|bool
+     * @throws \TIG\Buckaroo\Exception
      */
     public function getRefundTransactionBuilder($payment)
     {
-        // TODO: Implement getRefundTransactionBuilder() method.
+        $transactionBuilder = $this->transactionBuilderFactory->get('refund');
+
+        $services = [
+            'Name'    => 'klarna',
+            'Action'  => 'Refund',
+            'Version' => 1,
+        ];
+
+        /**
+         * @noinspection PhpUndefinedMethodInspection
+         */
+        $transactionBuilder->setOrder($payment->getOrder())
+            ->setServices($services)
+            ->setMethod('TransactionRequest');
+
+        return $transactionBuilder;
     }
 
     /**
@@ -448,21 +521,6 @@ class Klarna extends AbstractMethod
      * @param $payment
      * @return array
      */
-    public function getKlarnaPayRequestParameters($invoice, $payment)
-    {
-        // Merge the article data; products and fee's
-        $requestData = $this->getAdditionalInformation($payment);
-
-        $requestData = array_merge($requestData, $this->getPayRequestData($invoice, $payment));
-
-        return $requestData;
-    }
-
-    /**
-     * @param $invoice
-     * @param $payment
-     * @return array
-     */
     public function getPayRequestData($invoice, $payment)
     {
         $order = $payment->getOrder();
@@ -507,27 +565,6 @@ class Klarna extends AbstractMethod
             $group++;
         }
 
-        $serviceLine = $this->getServiceCostLine($payment->getOrder(), $includesTax, $group);
-
-        if (!empty($serviceLine)) {
-            unset($serviceLine[1]);
-            unset($serviceLine[3]);
-            unset($serviceLine[4]);
-            $articles = array_merge($articles, $serviceLine);
-            $group++;
-        }
-
-        // Add aditional shippin costs.
-        $shippingCosts = $this->getShippingCostsLine($payment->getOrder(), $group);
-
-        if (!empty($shippingCosts)) {
-            unset($shippingCosts[1]);
-            unset($shippingCosts[3]);
-            unset($shippingCosts[4]);
-            $articles = array_merge($articles, $shippingCosts);
-            $group++;
-        }
-
         return $articles;
     }
 
@@ -567,9 +604,25 @@ class Klarna extends AbstractMethod
         if ($totalOrder == $currentInvoiceTotal && $numberOfInvoices == 1) {
             //full capture
             $result['capturePartial'] = false;
+        } else {
+            $result['capturePartial'] = true;
         }
 
         return $result;
+    }
+
+    public function getCancelReservationData($payment)
+    {
+        $order = $payment->getOrder();
+
+        $reservationr = [
+            [
+                '_'    => $order->getBuckarooReservationNumber(),
+                'Name' => 'ReservationNumber',
+            ]
+        ];
+
+        return $reservationr;
     }
 
     /**
@@ -578,6 +631,10 @@ class Klarna extends AbstractMethod
     public function canProcessCustomPostData($payment)
     {
         $order = $payment->getOrder();
+        if ($order->getBuckarooReservationNumber())
+        {
+            return;
+        }
         $order->setBuckarooReservationNumber($this->response->Services->Service->ResponseParameter->_);
         $order->save();
     }
@@ -596,7 +653,7 @@ class Klarna extends AbstractMethod
                 'Name' => 'SendByEmail',
             ],
             [
-                '_' => $order->getData()['buckaroo_reservation_number'],
+                '_' => $order->getBuckarooReservationNumber(),
                 'Name' => 'ReservationNumber',
             ]
         ];
@@ -1069,7 +1126,7 @@ class Klarna extends AbstractMethod
      *
      * @return array
      */
-    private function getShippingCostsLine(OrderInterface $order, $group)
+    private function getShippingCostsLine($order, $group)
     {
         $shippingCostsArticle = [];
 
@@ -1156,7 +1213,6 @@ class Klarna extends AbstractMethod
             $article = [];
 
             if (false !== $buckarooFee && (double)$buckarooFee > 0) {
-
                 $article = [
                     [
                         '_' => 1,
@@ -1183,7 +1239,7 @@ class Klarna extends AbstractMethod
                         'Name' => 'ArticleTitle',
                     ],
                     [
-                        '_' => $data->getTaxPercent(),
+                        '_' => $this->getTaxPercent($data),
                         'Group' => 'Article',
                         'GroupID' => $group,
                         'Name' => 'ArticleVat',
@@ -1199,5 +1255,19 @@ class Klarna extends AbstractMethod
 
             return $article;
         }
+    }
+
+    /**
+     * @param $data
+     * @return string
+     */
+    private function getTaxPercent($data)
+    {
+        $taxPercent = $data->getTaxPercent();
+        if (!$taxPercent) {
+            $taxPercent = $data->getOrderItem()->getTaxPercent();
+        }
+
+        return $taxPercent;
     }
 }
