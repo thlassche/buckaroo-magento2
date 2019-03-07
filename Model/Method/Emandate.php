@@ -44,7 +44,9 @@ use Magento\Framework\ObjectManagerInterface;
 use Magento\Framework\Pricing\Helper\Data as PriceHelper;
 use Magento\Framework\Registry;
 use Magento\Payment\Helper\Data as PaymentData;
+use Magento\Payment\Model\InfoInterface;
 use Magento\Payment\Model\Method\Logger;
+use Magento\Sales\Api\Data\OrderPaymentInterface;
 use TIG\Buckaroo\Gateway\GatewayInterface;
 use TIG\Buckaroo\Gateway\Http\TransactionBuilderFactory;
 use TIG\Buckaroo\Helper\Data as HelperData;
@@ -188,19 +190,57 @@ class Emandate extends AbstractMethod
             'Name'             => 'emandate',
             'Action'           => 'CreateMandate',
             'Version'          => 1,
-            'RequestParameter' => [
-                [
-                    '_'    => $payment->getAdditionalInformation('issuer'),
-                    'Name' => 'issuer',
-                ],
-            ],
+            'RequestParameter' => $this->getCreateMandateParameters($payment),
         ];
 
         $transactionBuilder->setOrder($payment->getOrder())
             ->setServices($services)
-            ->setMethod('TransactionRequest');
+            ->setMethod('DataRequest');
 
         return $transactionBuilder;
+    }
+
+    /**
+     * @param OrderPaymentInterface|InfoInterface $payment
+     *
+     * @return array
+     */
+    private function getCreateMandateParameters($payment)
+    {
+        /** @var \Magento\Sales\Model\Order $order */
+        $order = $payment->getOrder();
+        $billingAddress = $order->getBillingAddress();
+
+        $sequenceType = $this->emandateConfig->getSequenceType();
+        $language = $this->emandateConfig->getLanguage();
+        $reason = $this->emandateConfig->getReason();
+
+        $parameters = [
+            $this->getParameterLine('debtorbankid', $payment->getAdditionalInformation('issuer')),
+            $this->getParameterLine('debtorreference', $billingAddress->getEmail()),
+            $this->getParameterLine('sequencetype', $sequenceType),
+            $this->getParameterLine('purchaseid', $order->getIncrementId()),
+            $this->getParameterLine('language', $language),
+            $this->getParameterLine('emandatereason', $reason)
+        ];
+
+        return $parameters;
+    }
+
+    /**
+     * @param $name
+     * @param $value
+     *
+     * @return array
+     */
+    private function getParameterLine($name, $value)
+    {
+        $line = [
+            '_'    => $value,
+            'Name' => $name,
+        ];
+
+        return $line;
     }
 
     /**

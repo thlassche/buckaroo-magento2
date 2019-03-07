@@ -39,6 +39,7 @@
 
 namespace TIG\Buckaroo\Controller\Redirect;
 
+use Magento\Sales\Api\Data\TransactionInterface;
 use TIG\Buckaroo\Logging\Log;
 use TIG\Buckaroo\Model\Method\AbstractMethod;
 
@@ -58,6 +59,9 @@ class Process extends \Magento\Framework\App\Action\Action
      * @var \Magento\Quote\Model\Quote $quote
      */
     protected $quote;
+
+    /** @var TransactionInterface */
+    private $transaction;
 
     /**
      * @var \TIG\Buckaroo\Helper\Data $helper
@@ -95,6 +99,7 @@ class Process extends \Magento\Framework\App\Action\Action
      * @param \Magento\Checkout\Model\Cart                        $cart
      * @param \Magento\Sales\Model\Order                          $order
      * @param \Magento\Quote\Model\Quote                          $quote
+     * @param TransactionInterface        $transaction
      * @param Log                                                 $logger
      * @param \TIG\Buckaroo\Model\ConfigProvider\Factory          $configProviderFactory
      * @param \Magento\Sales\Model\Order\Email\Sender\OrderSender $orderSender
@@ -108,6 +113,7 @@ class Process extends \Magento\Framework\App\Action\Action
         \Magento\Checkout\Model\Cart $cart,
         \Magento\Sales\Model\Order $order,
         \Magento\Quote\Model\Quote $quote,
+        TransactionInterface $transaction,
         Log $logger,
         \TIG\Buckaroo\Model\ConfigProvider\Factory $configProviderFactory,
         \Magento\Sales\Model\Order\Email\Sender\OrderSender $orderSender,
@@ -146,13 +152,8 @@ class Process extends \Magento\Framework\App\Action\Action
 
         $statusCode = (int)$this->response['brq_statuscode'];
 
-        if (isset($this->response['brq_ordernumber']) && !empty($this->response['brq_ordernumber'])) {
-            $brqOrderId = $this->response['brq_ordernumber'];
-        } else {
-            $brqOrderId = $this->response['brq_invoicenumber'];
-        }
+        $this->loadOrder();
 
-        $this->order->loadByIncrementId($brqOrderId);
         if (!$this->order->getId()) {
             $statusCode = $this->helper->getStatusCode('TIG_BUCKAROO_ORDER_FAILED');
         } else {
@@ -245,6 +246,55 @@ class Process extends \Magento\Framework\App\Action\Action
         }
 
         return $this->_response;
+    }
+
+    /**
+     * @throws \TIG\Buckaroo\Exception
+     */
+    private function loadOrder()
+    {
+        $brqOrderId = 0;
+
+        if (isset($this->response['brq_invoicenumber']) && !empty($this->response['brq_invoicenumber'])) {
+            $brqOrderId = $this->response['brq_invoicenumber'];
+        }
+
+        if (isset($this->response['brq_ordernumber']) && !empty($this->response['brq_ordernumber'])) {
+            $brqOrderId = $this->response['brq_ordernumber'];
+        }
+
+        $this->order->loadByIncrementId($brqOrderId);
+
+        if (!$this->order->getId()) {
+            $this->logger->addDebug('Order could not be loaded by brq_invoicenumber or brq_ordernumber');
+            $this->order = $this->getOrderByTransactionKey();
+        }
+    }
+
+    /**
+     * @return bool
+     * @throws \TIG\Buckaroo\Exception
+     */
+    private function getOrderByTransactionKey()
+    {
+        $trxId = '';
+
+        if (isset($this->response['brq_transactions']) && !empty($this->response['brq_transactions'])) {
+            $trxId = $this->response['brq_transactions'];
+        }
+
+        if (isset($this->response['brq_datarequest']) && !empty($this->response['brq_datarequest'])) {
+            $trxId = $this->response['brq_datarequest'];
+        }
+
+        $this->transaction->load($trxId, 'txn_id');
+        $order = $this->transaction->getOrder();
+
+        if (!$order) {
+            throw new \TIG\Buckaroo\Exception(__('There was no order found by transaction Id'));
+        }
+
+        return $order;
     }
 
     /**
