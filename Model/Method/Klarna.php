@@ -290,7 +290,6 @@ class Klarna extends AbstractMethod
             ->setServices($services)
             ->setMethod('DataRequest');
 
-
         return $transactionBuilder;
     }
 
@@ -567,49 +566,6 @@ class Klarna extends AbstractMethod
         }
 
         return $articles;
-    }
-
-    /**
-     * @param OrderPaymentInterface|InfoInterface $payment
-     * @return array
-     * @throws \TIG\Buckaroo\Exception
-     */
-    private function getCurrentInvoice($payment)
-    {
-        $result = array(
-            'capturePartial' => true,
-            'currentInvoice' => null
-        );
-
-        $order = $payment->getOrder();
-        $totalOrder = $order->getBaseGrandTotal();
-
-        $numberOfInvoices = $order->getInvoiceCollection()->count();
-        $currentInvoiceTotal = 0;
-
-        // loop through invoices to get the last one (=current invoice)
-        if ($numberOfInvoices) {
-            $oInvoiceCollection = $order->getInvoiceCollection();
-
-            $i = 0;
-            foreach ($oInvoiceCollection as $oInvoice) {
-                if (++$i !== $numberOfInvoices) {
-                    continue;
-                }
-
-                $result['currentInvoice'] = $oInvoice;
-                $currentInvoiceTotal = $oInvoice->getBaseGrandTotal();
-            }
-        }
-
-        if ($totalOrder == $currentInvoiceTotal && $numberOfInvoices == 1) {
-            //full capture
-            $result['capturePartial'] = false;
-        } else {
-            $result['capturePartial'] = true;
-        }
-
-        return $result;
     }
 
     public function getCancelReservationData($payment)
