@@ -39,7 +39,6 @@
 
 namespace TIG\Buckaroo\Model\Method;
 
-use Magento\Catalog\Model\Product\Type;
 use Magento\Payment\Model\InfoInterface;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\OrderPaymentInterface;
@@ -157,8 +156,11 @@ class Klarna extends AbstractMethod
     /** @var \TIG\Buckaroo\Model\ConfigProvider\Method\Klarna */
     protected $configProviderKlarna;
 
+    protected $session;
+
     /**
      * @param \Magento\Framework\ObjectManagerInterface $objectManager
+     * @param \Magento\Framework\Session\SessionManagerInterface $session
      * @param \Magento\Framework\Model\Context $context
      * @param \Magento\Framework\Registry $registry
      * @param \Magento\Framework\Api\ExtensionAttributesFactory $extensionFactory
@@ -188,6 +190,7 @@ class Klarna extends AbstractMethod
      */
     public function __construct(
         \Magento\Framework\ObjectManagerInterface $objectManager,
+        \Magento\Framework\Session\SessionManagerInterface $session,
         \Magento\Framework\Model\Context $context,
         \Magento\Framework\Registry $registry,
         \Magento\Framework\Api\ExtensionAttributesFactory $extensionFactory,
@@ -245,6 +248,7 @@ class Klarna extends AbstractMethod
         $this->taxConfig = $taxConfig;
         $this->taxCalculation = $taxCalculation;
         $this->cart = $cart;
+        $this->session = $session;
     }
 
     /**
@@ -274,23 +278,7 @@ class Klarna extends AbstractMethod
 
     public function cancelOrderTransactionBuilder($payment)
     {
-        $transactionBuilder = $this->transactionBuilderFactory->get('order');
 
-        $services = [
-            'Name' => 'klarna',
-            'Action' => 'CancelReservation',
-            'Version' => 1,
-            'RequestParameter' => $this->getCancelReservationData($payment),
-        ];
-
-        /**
-         * @noinspection PhpUndefinedMethodInspection
-         */
-        $transactionBuilder->setOrder($payment->getOrder())
-            ->setServices($services)
-            ->setMethod('DataRequest');
-
-        return $transactionBuilder;
     }
 
     /**
@@ -309,10 +297,8 @@ class Klarna extends AbstractMethod
      */
     public function getCaptureTransactionBuilder($payment)
     {
-
         $group = 1;
         $transactionBuilder = $this->transactionBuilderFactory->get('order');
-        //$invoiceData = $this->getCurrentInvoice($payment);
 
         $capturePartial = false;
 
@@ -441,10 +427,27 @@ class Klarna extends AbstractMethod
      * @param OrderPaymentInterface|InfoInterface $payment
      *
      * @return \TIG\Buckaroo\Gateway\Http\TransactionBuilderInterface|bool
+     * @throws \TIG\Buckaroo\Exception
      */
     public function getVoidTransactionBuilder($payment)
     {
-        // TODO: Implement getVoidTransactionBuilder() method.
+        $transactionBuilder = $this->transactionBuilderFactory->get('order');
+
+        $services = [
+            'Name' => 'klarna',
+            'Action' => 'CancelReservation',
+            'Version' => 1,
+            'RequestParameter' => $this->getCancelReservationData($payment),
+        ];
+
+        /**
+         * @noinspection PhpUndefinedMethodInspection
+         */
+        $transactionBuilder->setOrder($payment->getOrder())
+            ->setServices($services)
+            ->setMethod('DataRequest');
+
+        return $transactionBuilder;
     }
 
     /**
@@ -460,7 +463,18 @@ class Klarna extends AbstractMethod
         $shippingAddress = $payment->getOrder()->getShippingAddress();
         $streetFormat = $this->formatStreet($shippingAddress->getStreet());
         $shippingSameAsBilling = $this->isAddressDataDifferent($payment);
+        $additionalFields = $this->session->getData('additionalFields');
 
+
+        $rawPhoneNumber = $shippingAddress->getTelephone();
+        if (!is_numeric($rawPhoneNumber) || $rawPhoneNumber == '-') {
+            $rawPhoneNumber = $additionalFields['BPE_customer_phonenumber'];
+        }
+
+        $phoneNumber = $this->processPhoneNumber($rawPhoneNumber);
+        if ($shippingAddress->getCountryId() == 'BE') {
+            $phoneNumber = $this->processPhoneNumberBe($rawPhoneNumber);
+        }
 
         $shippingData = [
             [
@@ -468,7 +482,7 @@ class Klarna extends AbstractMethod
                 'Name' => 'ShippingSameAsBilling',
             ],
             [
-                '_' => $shippingAddress->getTelephone(),
+                '_' => $phoneNumber['clean'],
                 'Name' => 'ShippingCellPhoneNumber',
             ],
             [
@@ -514,6 +528,211 @@ class Klarna extends AbstractMethod
         ];
 
         return $shippingData;
+    }
+
+    /**
+     * The final output should look like 0031123456789 or 0031612345678
+     * So 13 characters max else number is not valid
+     *
+     * @param $telephoneNumber
+     *
+     * @return array
+     */
+    private function processPhoneNumber($telephoneNumber)
+    {
+        $number = $telephoneNumber;
+
+        //strip out the non-numeric characters:
+        $match = preg_replace('/[^0-9]/Uis', '', $number);
+        if ($match) {
+            $number = $match;
+        }
+
+        $return = array(
+            "orginal" => $number,
+            "clean" => false,
+            "mobile" => $this->_isMobileNumber($number),
+            "valid" => false
+        );
+        $numberLength = strlen((string)$number);
+
+        if ($numberLength == 13) {
+            $return['valid'] = true;
+            $return['clean'] = $number;
+        } elseif ($numberLength > 13 || $numberLength == 12 || $numberLength == 11) {
+            $return['clean'] = $this->_isValidNotation($number);
+
+            if (strlen((string)$return['clean']) == 13) {
+                $return['valid'] = true;
+            }
+        } elseif ($numberLength == 10) {
+            $return['clean'] = '0031' . substr($number, 1);
+
+            if (strlen((string) $return['clean']) == 13) {
+                $return['valid'] = true;
+            }
+        } else {
+            $return['valid'] = true;
+            $return['clean'] = $number;
+        }
+
+        return $return;
+    }
+
+    /**
+     * validate the phonenumber
+     *
+     * @param $number
+     * @return mixed
+     */
+    protected function _isValidNotation($number) {
+        //checks if the number is valid, if not: try to fix it
+        $invalidNotations = array("00310", "0310", "310", "31");
+        foreach($invalidNotations as $invalid) {
+            if( strpos( substr( $number, 0, strlen($invalid) ), $invalid ) !== false ) {
+                $valid = substr($invalid, 0, -1);
+                if (substr($valid, 0, 2) == '31') {
+                    $valid = "00" . $valid;
+                }
+                if (substr($valid, 0, 2) == '03') {
+                    $valid = "0" . $valid;
+                }
+                if ($valid == '3'){
+                    $valid = "0" . $valid . "1";
+                }
+                $number = substr_replace($number, $valid, 0, strlen($invalid));
+            }
+        }
+        return $number;
+    }
+
+
+    /**
+     * The final output should look like: 003212345678 or 0032461234567
+     *
+     * @param $telephoneNumber
+     *
+     * @return array
+     */
+    private function processPhoneNumberBe($telephoneNumber)
+    {
+        $number = $telephoneNumber;
+
+        //strip out the non-numeric characters:
+        $match = preg_replace('/[^0-9]/Uis', '', $number);
+        if ($match) {
+            $number = $match;
+        }
+
+        $return = array(
+            "orginal" => $number,
+            "clean" => false,
+            "mobile" => $this->_isMobileNumberBe($number),
+            "valid" => false
+        );
+        $numberLength = strlen((string)$number);
+
+        if (($return['mobile'] && $numberLength == 13) || (!$return['mobile'] && $numberLength == 12)) {
+            $return['valid'] = true;
+            $return['clean'] = $number;
+        } elseif ($numberLength > 13
+            || (!$return['mobile'] && $numberLength > 12)
+            || ($return['mobile'] && ($numberLength == 11 || $numberLength == 12))
+            || (!$return['mobile'] && ($numberLength == 10 || $numberLength == 11))
+        ) {
+            $return['clean'] = $this->_isValidNotationBe($number);
+            $cleanLength = strlen((string)$return['clean']);
+
+            if (($return['mobile'] && $cleanLength == 13) || (!$return['mobile'] && $cleanLength == 12)) {
+                $return['valid'] = true;
+            }
+        } elseif (($return['mobile'] && $numberLength == 10) || (!$return['mobile'] && $numberLength == 9)) {
+            $return['clean'] = '0032'.substr($number, 1);
+            $cleanLength = strlen((string)$return['clean']);
+
+            if (($return['mobile'] && $cleanLength == 13) || (!$return['mobile'] && $cleanLength == 12)) {
+                $return['valid'] = true;
+            }
+        } else {
+            $return['valid'] = true;
+            $return['clean'] = $number;
+        }
+
+        return $return;
+    }
+
+    /**
+     * Checks if the number is a mobile number or not.
+     *
+     * @param string $number
+     *
+     * @return boolean
+     */
+    protected function _isMobileNumber($number) {
+        //this function only checks if it is a mobile number, not checking valid notation
+        $checkMobileArray = array("3106","316","06","00316","003106");
+        foreach($checkMobileArray as $key => $value) {
+
+            if(strpos(substr($number, 0, strlen($value)), $value) !== false) {
+
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Checks if the number is a BE mobile number or not.
+     *
+     * @param string $number
+     *
+     * @return boolean
+     */
+    protected function _isMobileNumberBe($number) {
+        //this function only checks if it is a BE mobile number, not checking valid notation
+        $checkMobileArray = array(
+            "3246","32046","046","003246","0032046",
+            "3247","32407","047","003247","0032047",
+            "3248","32048","048","003248","0032048",
+            "3249","32049","049","003249","0032049"
+        );
+
+        foreach ($checkMobileArray as $key => $value) {
+            if (strpos(substr($number, 0, strlen($value)), $value) !== false) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * validate the BE phonenumber
+     *
+     * @param $number
+     * @return mixed
+     */
+    protected function _isValidNotationBe($number) {
+        //checks if the number is valid, if not: try to fix it
+        $invalidNotations = array("00320", "0320", "320", "32");
+
+        foreach ($invalidNotations as $invalid) {
+            if (strpos(substr($number, 0, strlen($invalid)), $invalid) !== false) {
+                $valid = substr($invalid, 0, -1);
+                if (substr($valid, 0, 2) == '32') {
+                    $valid = "00" . $valid;
+                }
+                if (substr($valid, 0, 2) == '03') {
+                    $valid = "0" . $valid;
+                }
+                if ($valid == '3') {
+                    $valid = "0" . $valid . "2";
+                }
+                $number = substr_replace($number, $valid, 0, strlen($invalid));
+            }
+        }
+
+        return $number;
     }
 
     /**
@@ -739,7 +958,6 @@ class Klarna extends AbstractMethod
         $telephone = (empty($telephone) ? $billingAddress->getTelephone() : $telephone);
 
         $birthDayStamp = str_replace('-', '', $payment->getAdditionalInformation('customer_DoB'));
-
         $billingData = [
             [
                 '_' => $telephone,
