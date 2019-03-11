@@ -124,6 +124,7 @@ class Process extends \Magento\Framework\App\Action\Action
         $this->cart               = $cart;
         $this->order              = $order;
         $this->quote              = $quote;
+        $this->transaction        = $transaction;
         $this->logger             = $logger;
         $this->orderSender        = $orderSender;
         $this->orderStatusFactory = $orderStatusFactory;
@@ -253,7 +254,7 @@ class Process extends \Magento\Framework\App\Action\Action
      */
     private function loadOrder()
     {
-        $brqOrderId = 0;
+        $brqOrderId = false;
 
         if (isset($this->response['brq_invoicenumber']) && !empty($this->response['brq_invoicenumber'])) {
             $brqOrderId = $this->response['brq_invoicenumber'];

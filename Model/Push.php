@@ -303,7 +303,7 @@ class Push implements PushInterface
      */
     private function loadOrder()
     {
-        $brqOrderId = 0;
+        $brqOrderId = false;
 
         if (isset($this->postData['brq_invoicenumber']) && strlen($this->postData['brq_invoicenumber']) > 0) {
             $brqOrderId = $this->postData['brq_invoicenumber'];
@@ -319,7 +319,7 @@ class Push implements PushInterface
         if (!$this->order->getId()) {
             $this->logging->addDebug('Order could not be loaded by brq_invoicenumber or brq_ordernumber');
             // try to get order by transaction id on payment.
-                $this->order = $this->getOrderByTransactionKey($this->postData);
+                $this->order = $this->getOrderByTransactionKey();
         }
     }
 
@@ -585,10 +585,10 @@ class Push implements PushInterface
     {
         $payment     = $this->order->getPayment();
         $originalKey = AbstractMethod::BUCKAROO_ORIGINAL_TRANSACTION_KEY_KEY;
+        $transactionKey = $this->getTransactionKey();
 
-        if (!$payment->getAdditionalInformation($originalKey) && !empty($this->postData['brq_transactions'])
-        ) {
-            $payment->setAdditionalInformation($originalKey, $this->postData['brq_transactions']);
+        if (!$payment->getAdditionalInformation($originalKey) && strlen($transactionKey) > 0) {
+            $payment->setAdditionalInformation($originalKey, $transactionKey);
         }
     }
 
@@ -619,24 +619,42 @@ class Push implements PushInterface
     }
 
     /**
+     * @return string
+     */
+    private function getTransactionKey()
+    {
+        $trxId = '';
+
+        if (isset($this->postData['brq_transactions']) && !empty($this->postData['brq_transactions'])) {
+            $trxId = $this->postData['brq_transactions'];
+        }
+
+        if (isset($this->postData['brq_datarequest']) && !empty($this->postData['brq_datarequest'])) {
+            $trxId = $this->postData['brq_datarequest'];
+        }
+
+        return $trxId;
+    }
+
+    /**
      * Sometimes the push does not contain the order id, when thats the case try to get the order by his payment,
      * by using its own transactionkey.
      *
-     * @param  $transactionId
      * @return Order
      * @throws \TIG\Buckaroo\Exception
      */
-    protected function getOrderByTransactionKey($transactionId)
+    protected function getOrderByTransactionKey()
     {
-        if (isset($transactionId['brq_transactions'])) {
-            $this->transaction->load($transactionId['brq_transactions'], 'txn_id');
-            $order = $this->transaction->getOrder();
+        $trxId = $this->getTransactionKey();
 
-            if ($order) {
-                return $order;
-            }
+        $this->transaction->load($trxId, 'txn_id');
+        $order = $this->transaction->getOrder();
+
+        if (!$order) {
+            throw new \TIG\Buckaroo\Exception(__('There was no order found by transaction Id'));
         }
-        throw new \TIG\Buckaroo\Exception(__('There was no order found by transaction Id'));
+
+        return $order;
     }
 
     /**
@@ -716,7 +734,11 @@ class Push implements PushInterface
      */
     public function processSucceededPush($newStatus, $message)
     {
-        $amount = floatval($this->originalPostData['brq_amount']);
+        $amount = $this->order->getTotalDue();
+
+        if (isset($this->originalPostData['brq_amount']) && !empty($this->originalPostData['brq_amount'])) {
+            $amount = floatval($this->originalPostData['brq_amount']);
+        }
 
         $store = $this->order->getStore();
 
@@ -883,14 +905,15 @@ class Push implements PushInterface
         $this->order->setIsInProcess(true);
         $this->order->save();
 
+        $transactionKey = $this->getTransactionKey();
+
+        if (strlen($transactionKey) <= 0) {
+            return true;
+        }
+
         /** @var \Magento\Sales\Model\Order\Invoice $invoice */
         foreach ($this->order->getInvoiceCollection() as $invoice) {
-            if (!isset($this->postData['brq_transactions'])) {
-                continue;
-            }
-
-            $invoice->setTransactionId($this->postData['brq_transactions'])
-                ->save();
+            $invoice->setTransactionId($transactionKey)->save();
 
             if (!$invoice->getEmailSent() && $this->configAccount->getInvoiceEmail($this->order->getStore())) {
                 $this->invoiceSender->send($invoice, true);
@@ -919,7 +942,11 @@ class Push implements PushInterface
          */
         $payment = $this->order->getPayment();
 
-        $transactionKey = $this->postData['brq_transactions'];
+        $transactionKey = $this->getTransactionKey();
+
+        if (strlen($transactionKey) <= 0) {
+            throw new \TIG\Buckaroo\Exception(__('There was no transaction ID found'));
+        }
 
         /**
          * Save the transaction's response as additional info for the transaction.
