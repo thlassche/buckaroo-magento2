@@ -39,6 +39,8 @@
 
 namespace TIG\Buckaroo\Model\Plugin\Method;
 
+use \Magento\Sales\Model\Order;
+
 /**
  * Class Klarna
  *
@@ -64,18 +66,19 @@ class Klarna
     }
 
     /**
-     * @param \Magento\Sales\Model\Order $subject
+     * @param Order $subject
      *
-     * @return \Magento\Sales\Model\Order
+     * @return Klarna|Order
+     * @throws \TIG\Buckaroo\Exception
      */
     public function afterCancel(
-        \Magento\Sales\Model\Order $subject
+        Order $subject
     ) {
         $payment = $subject->getPayment();
-        $orderIsCanceled = $payment->getOrder()->isCanceled();
+        $orderIsCanceled = $payment->getOrder()->getOrigData('state');
         $orderIsVoided = ($payment->getAdditionalInformation('voided_by_buckaroo') === true);
 
-        if ($payment->getMethod() !== self::KLARNA_METHOD_NAME || $orderIsCanceled || $orderIsVoided) {
+        if ($payment->getMethod() !== self::KLARNA_METHOD_NAME || $orderIsVoided || $orderIsCanceled == Order::STATE_CANCELED) {
             return $subject;
         }
 

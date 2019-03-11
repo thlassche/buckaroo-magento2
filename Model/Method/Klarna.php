@@ -406,6 +406,39 @@ class Klarna extends AbstractMethod
     {
         $transactionBuilder = $this->transactionBuilderFactory->get('refund');
 
+        $capturePartial = false;
+
+        $order = $payment->getOrder();
+        $order_id = $order->getId();
+
+        $totalOrder = $order->getBaseGrandTotal();
+
+        $numberOfInvoices = $order->getInvoiceCollection()->count();
+        $currentInvoiceTotal = 0;
+
+        // loop through invoices to get the last one (=current invoice)
+        if ($numberOfInvoices) {
+            $oInvoiceCollection = $order->getInvoiceCollection();
+
+            $i = 0;
+            foreach ($oInvoiceCollection as $oInvoice) {
+                if (++$i !== $numberOfInvoices) {
+                    continue;
+                }
+
+                $currentInvoice = $oInvoice;
+                $currentInvoiceTotal = $oInvoice->getBaseGrandTotal();
+            }
+        }
+
+        if ($totalOrder == $currentInvoiceTotal && $numberOfInvoices == 1) {
+            //full capture
+            $capturePartial = false;
+        } else {
+            //partial capture
+            $capturePartial = true;
+        }
+
         $services = [
             'Name'    => 'klarna',
             'Action'  => 'Refund',
@@ -419,6 +452,12 @@ class Klarna extends AbstractMethod
             ->setServices($services)
             ->setMethod('TransactionRequest')
             ->setOriginalTransactionKey($payment->getParentTransactionId());
+
+        // Partial Capture Settings
+        if ($capturePartial) {
+            $transactionBuilder->setInvoiceId($payment->getOrder()->getIncrementId(). '-' . $numberOfInvoices)
+                ->setOriginalTransactionKey($payment->getParentTransactionId());
+        }
 
         return $transactionBuilder;
     }
