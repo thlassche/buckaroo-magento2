@@ -491,7 +491,7 @@ class UpgradeData implements \Magento\Framework\Setup\UpgradeDataInterface
             $this->installPaymentFeeInclTaxColumns($setup);
         }
 
-        if (version_compare($context->getVersion(), '1.9.0', '<')) {
+        if (version_compare($context->getVersion(), '1.9.2', '<')) {
             $this->installReservationNrColumn($setup);
         }
     }
