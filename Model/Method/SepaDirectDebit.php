@@ -346,8 +346,8 @@ class SepaDirectDebit extends AbstractMethod
         }
 
         foreach ($services as $service) {
-            if ($service->Name == 'CreditManagement3' && $service->ResponseParameter->Name == 'InvoiceKey') {
-                $invoiceKey = $service->ResponseParameter->_;
+            if ($service->Name == 'CreditManagement3') {
+                $invoiceKey = $this->getCM3InvoiceKey($service->ResponseParameter);
             }
         }
 
@@ -356,6 +356,41 @@ class SepaDirectDebit extends AbstractMethod
         }
 
         return parent::afterOrder($payment, $response);
+    }
+
+    /**
+     * @param $responseParameter
+     *
+     * @return string
+     */
+    protected function getCM3InvoiceKey($responseParameter)
+    {
+        $invoiceKey = '';
+
+        if (!is_array($responseParameter)) {
+            return $this->parseCM3ResponeParameter($responseParameter, $invoiceKey);
+        }
+
+        foreach ($responseParameter as $parameter) {
+            $invoiceKey = $this->parseCM3ResponeParameter($parameter, $invoiceKey);
+        }
+
+        return $invoiceKey;
+    }
+
+    /**
+     * @param $responseParameter
+     * @param $invoiceKey
+     *
+     * @return mixed
+     */
+    protected function parseCM3ResponeParameter($responseParameter, $invoiceKey)
+    {
+        if ($responseParameter->Name == 'InvoiceKey') {
+            $invoiceKey = $responseParameter->_;
+        }
+
+        return $invoiceKey;
     }
 
     /**
