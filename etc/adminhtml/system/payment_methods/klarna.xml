@@ -63,9 +63,10 @@
             <config_path>payment/tig_buckaroo_klarna/sort_order</config_path>
         </field>
 
-        <field id="send_invoice" translate="label_comment" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+        <field id="send_invoice_by" translate="label_comment" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Send invoice by</label>
             <comment><![CDATA[Select how Klarna should send the invoice. Please note that Klarna charges a fee when the invoice is send by email.]]></comment>
+            <source_model>TIG\Buckaroo\Model\Config\Source\SendInvoiceBy</source_model>
             <config_path>payment/tig_buckaroo_klarna/send_invoice</config_path>
         </field>
 

@@ -138,9 +138,8 @@ class Process extends \Magento\Framework\App\Action\Action implements \Magento\F
     /**
      * Process action
      *
-     * @throws \TIG\Buckaroo\Exception
-     *
      * @return \Magento\Framework\App\ResponseInterface
+     * @throws \Exception
      */
     public function execute()
     {

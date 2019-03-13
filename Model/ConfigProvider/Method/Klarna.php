@@ -46,11 +46,9 @@ namespace TIG\Buckaroo\Model\ConfigProvider\Method;
  */
 class Klarna extends AbstractConfigProvider
 {
-    const XPATH_ALLOWED_CURRENCIES              = 'buckaroo/tig_buckaroo_klarna/allowed_currencies';
-
-    const XPATH_ALLOW_SPECIFIC                  = 'payment/tig_buckaroo_klarna/allowspecific';
-    const XPATH_SPECIFIC_COUNTRY                = 'payment/tig_buckaroo_klarna/specificcountry';
-
+    const XPATH_ALLOWED_CURRENCIES            = 'buckaroo/tig_buckaroo_klarna/allowed_currencies';
+    const XPATH_ALLOW_SPECIFIC                = 'payment/tig_buckaroo_klarna/allowspecific';
+    const XPATH_SPECIFIC_COUNTRY              = 'payment/tig_buckaroo_klarna/specificcountry';
     const XPATH_KLARNA_ACTIVE                 = 'payment/tig_buckaroo_klarna/active';
     const XPATH_KLARNA_PAYMENT_FEE            = 'payment/tig_buckaroo_klarna/payment_fee';
     const XPATH_KLARNA_PAYMENT_FEE_LABEL      = 'payment/tig_buckaroo_klarna/payment_fee_label';
@@ -68,6 +66,7 @@ class Klarna extends AbstractConfigProvider
     const XPATH_KLARNA_LOW_TAX                = 'payment/tig_buckaroo_klarna/low_tax';
     const XPATH_KLARNA_ZERO_TAX               = 'payment/tig_buckaroo_klarna/zero_tax';
     const XPATH_KLARNA_NO_TAX                 = 'payment/tig_buckaroo_klarna/no_tax';
+    const XPATH_KLARNA_GET_INVOICE            = 'payment/tig_buckaroo_klarna/send_invoice';
 
     public function getConfig()
     {
@@ -89,10 +88,32 @@ class Klarna extends AbstractConfigProvider
                         'allowedCurrencies' => $this->getAllowedCurrencies(),
                         'businessMethod'    => $this->getBusiness(),
                         'paymentMethod'     => $this->getPaymentMethod(),
+                        'paymentFee'        => $this->getPaymentFee(),
                     ],
                     'response' => [],
                 ],
             ],
         ];
+    }
+
+    /**
+     * @param null|int $storeId
+     *
+     * @return float
+     */
+    public function getPaymentFee($storeId = null)
+    {
+        $paymentFee = $this->scopeConfig->getValue(
+            self::XPATH_KLARNA_PAYMENT_FEE,
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
+            $storeId
+        );
+
+        return $paymentFee ? $paymentFee : 0;
+    }
+
+    public function getInvoiceSendMethod($storeId = null)
+    {
+        return $this->getConfigFromXpath(static::XPATH_KLARNA_GET_INVOICE, $storeId);
     }
 }

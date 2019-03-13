@@ -62,7 +62,8 @@ class Toolbar
         'tig_buckaroo_paymentguarantee',
         'tig_buckaroo_eps',
         'tig_buckaroo_giropay',
-        'tig_buckaroo_kbc'
+        'tig_buckaroo_kbc',
+        'tig_buckaroo_klarna'
     ];
 
     /**
