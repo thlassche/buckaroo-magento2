@@ -383,6 +383,18 @@
     content: ' ';
 }
 
+/* ======================= KBC ======================== */
+.tig_buckaroo_kbc .tig_buckaroo_image_title:after {
+    background: url(../images/tig_buckaroo_kbc_title.png) no-repeat;
+    float: right;
+    margin-right: 11px;
+    margin-top: -3px;
+    background-size: auto 26px;
+    width: 39px;
+    height: 26px;
+    content: ' ';
+}
+
 /* =============================================================== */
 /* ========== Responsive replacement -> payment logo's =========== */
 /* =============================================================== */
@@ -557,6 +569,18 @@
         float: left;
         margin-right: 10px;
         background-size: auto 19px;
+        width: 40px;
+        height: 30px;
+        content: ' ';
+    }
+
+    /* KBC */
+    .tig_buckaroo_kbc .tig_buckaroo_image_title:before {
+        background: url(../images/tig_buckaroo_kbc_title.png) no-repeat;
+        float: left;
+        margin-right: 10px;
+        margin-top: -1px;
+        background-size: auto 25px;
         width: 40px;
         height: 30px;
         content: ' ';

@@ -53,6 +53,7 @@
 .tig_buckaroo_payment_paymentguarantee,
 .tig_buckaroo_payment_giftcards,
 .tig_buckaroo_payment_eps,
+.tig_buckaroo_payment_kbc,
 .tig_buckaroo_payment_card_mastercard,
 .tig_buckaroo_payment_card_maestro,
 .tig_buckaroo_payment_card_amex,
@@ -213,6 +214,19 @@
     height            : 26px;
     background-size   : auto 20px;
     content            : ' ';
+}
+
+/* KBC */
+.tig_buckaroo_payment_kbc:before {
+    background: url(../images/tig_buckaroo_kbc_title.png) no-repeat;
+    float: left;
+    margin-right: 10px;
+    margin-top: -4px;
+    background-size: auto 26px;
+    width: 39px;
+    height: 31px;
+    content: ' ';
+    display :block;
 }
 
 /* ===================== Order Overview -  Credit Card / Debit Card Method Styling ======================= */
