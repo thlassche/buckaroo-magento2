@@ -127,7 +127,12 @@ define(
             {
                 type: 'tig_buckaroo_kbc',
                 component: 'TIG_Buckaroo/js/view/payment/method-renderer/kbc'
+            },
+            {
+                type: 'tig_buckaroo_klarna',
+                component: 'TIG_Buckaroo/js/view/payment/method-renderer/klarna'
             }
+
         );
         /**
          * Add view logic here if needed

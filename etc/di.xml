@@ -236,6 +236,10 @@
                     <item name="type" xsi:type="string">kbc</item>
                     <item name="model" xsi:type="string">TIG\Buckaroo\Model\ConfigProvider\Method\Kbc</item>
                 </item>
+                <item name="klarna" xsi:type="array">
+                    <item name="type" xsi:type="string">klarna</item>
+                    <item name="model" xsi:type="string">TIG\Buckaroo\Model\ConfigProvider\Method\Klarna</item>
+                </item>
             </argument>
         </arguments>
     </type>
