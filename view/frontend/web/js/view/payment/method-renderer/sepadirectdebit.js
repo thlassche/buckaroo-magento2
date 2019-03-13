@@ -181,7 +181,7 @@ define(
                      */
 
                     var runValidation = function () {
-                        $('.' + this.getCode() + ' [data-validate]').valid();
+                        $('.' + this.getCode() + ' .payment [data-validate]').valid();
                         this.selectPaymentMethod();
                     };
                     this.bankaccountholder.subscribe(runValidation,this);
@@ -213,7 +213,7 @@ define(
                  */
 
                 validate: function () {
-                    return $('.' + this.getCode() + ' [data-validate]').valid();
+                    return $('.' + this.getCode() + ' .payment [data-validate]').valid();
                 },
 
                 selectPaymentMethod: function () {
