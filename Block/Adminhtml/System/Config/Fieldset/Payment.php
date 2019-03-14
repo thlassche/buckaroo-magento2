@@ -6,7 +6,7 @@
 namespace TIG\Buckaroo\Block\Adminhtml\System\Config\Fieldset;
 
 /**
- * Fieldset renderer for PayPal solution
+ * Fieldset renderer for Buckaroo solution
  */
 class Payment extends \Magento\Config\Block\System\Config\Form\Fieldset
 {
@@ -88,7 +88,6 @@ class Payment extends \Magento\Config\Block\System\Config\Form\Fieldset
         $html .= '<div class="button-container"><button type="button"' .
             $disabledAttributeString .
             ' class="button action-configure' .
-            (empty($groupConfig['paypal_ec_separate']) ? '' : ' paypal-ec-separate') .
             $disabledClassString .
             '" id="' .
             $htmlId .
