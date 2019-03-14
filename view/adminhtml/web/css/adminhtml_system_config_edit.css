@@ -319,9 +319,8 @@
 #payment_us_tig_buckaroo_payment_section {
     float:left;
     width: 100%;
+    clear: both;
 }
-
-
 
 .block-legend h3 {
     cursor: auto !important;
@@ -335,6 +334,7 @@
     margin-top: 30px;
     width: 100%;
     padding: 10px 0;
+    clear: both;
 }
 
 .block-legend #legend {
@@ -345,13 +345,6 @@
 
 .block-legend #legend li {
     margin-bottom: 10px;
-}
-
-@media screen and (min-width: 1200px){
-    .block-legend {
-        float:left;
-        width: 50%;
-    }
 }
 
 .disabled span.text,
