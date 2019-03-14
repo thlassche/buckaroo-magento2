@@ -40,9 +40,32 @@
  -->
 <include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
     <!-- Payment section -->
-    <group id="tig_buckaroo_payment_section" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
-        <label>Buckaroo payment methods</label>
+    <group id="tig_buckaroo_payment_section" translate="label" type="text" sortOrder="0" showInDefault="1" showInWebsite="1" showInStore="1">
+        <label><![CDATA[<div class="buckaroo-payment-logo"></div><div class="buckaroo-payment-byline">This is the official Buckaroo extension - developed by TIG</div>
+        <div class="block-legend">
+            <h3>Legend</h3>
+            <div>
+                <ul id="legend">
+                    <li class="disabled">
+                        <span class="img"></span>
+                        <span class="text">Payment method: </span>
+                        <span class="status">Disabled</span>
+                    </li>
+                    <li class="test">
+                        <span class="img"></span>
+                        <span class="text">Payment method: </span>
+                        <span class="status">Test Mode</span>
+                    </li>
+                    <li class="live">
+                        <span class="img"></span>
+                        <span class="text">Payment method: </span>
+                        <span class="status">Live Mode</span>
+                    </li>
+                </ul>
+            </div>
+        </div>]]></label>
         <fieldset_css>tig_buckaroo-section</fieldset_css>
+        <frontend_model>TIG\Buckaroo\Block\Adminhtml\System\Config\Fieldset\Payment</frontend_model>
 
         <include path="TIG_Buckaroo::system/payment_methods/ideal.xml"/>
 

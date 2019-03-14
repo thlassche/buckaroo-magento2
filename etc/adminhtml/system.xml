@@ -49,14 +49,13 @@
             <tab>sales</tab>
             <resource>Sales_Buckaroo::configuration</resource>
             <class>buckaroo-section</class>
-
             <include path="TIG_Buckaroo::system/support.xml"/>
-
             <include path="TIG_Buckaroo::system/account.xml"/>
-
-            <include path="TIG_Buckaroo::system/payment_methods.xml"/>
-
             <include path="TIG_Buckaroo::system/refund.xml"/>
+        </section>
+
+        <section id="payment">
+            <include path="TIG_Buckaroo::system/payment_methods.xml" />
         </section>
     </system>
 </config>

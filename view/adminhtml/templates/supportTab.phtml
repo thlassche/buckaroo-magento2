@@ -3,31 +3,16 @@
 ?>
 <div id="supporttab" class="tig-buckaroo-supporttab" data-mage-init='{"buckarooConfig": true}'>
 
-
-    <div id="block">
-        <div class="block-legend">
-            <h3 ><?php echo $block->escapeHtml(__('Legend'));?></h3>
-            <div>
-                <ul id="legend">
-                    <li class="disabled">
-                        <span class="img"></span>
-                        <span class="text"><?php echo $block->escapeHtml(__('Payment method'));?>: </span>
-                        <span class="status"><?php echo $block->escapeHtml(__('Disabled'));?></span>
-                    </li>
-                    <li class="test">
-                        <span class="img"></span>
-                        <span class="text"><?php echo $block->escapeHtml(__('Payment method'));?>: </span>
-                        <span class="status"><?php echo $block->escapeHtml(__('Test Mode'));?></span>
-                    </li>
-                    <li class="live">
-                        <span class="img"></span>
-                        <span class="text"><?php echo $block->escapeHtml(__('Payment method'));?>: </span>
-                        <span class="status"><?php echo $block->escapeHtml(__('Live Mode'));?></span>
-                    </li>
-                </ul>
+    <div class="message-system-inner">
+        <div class="message-system-short-wrapper">
+            <div class="message message-warning">
+                <?php echo $block->escapeHtml(__("The payment methods of the Buckaroo Extension have been moved to"))?> <br/>
+                <span class='italic'><?php echo $block->escapeHtml(__("System > Configuration > Payment Methods > Buckaroo"))?></span>
             </div>
         </div>
+    </div>
 
+    <div id="block">
         <div class="block-version">
             <h3 ><?php echo $block->escapeHtml(__('Magento version compatibility'));?></h3>
             <div>
