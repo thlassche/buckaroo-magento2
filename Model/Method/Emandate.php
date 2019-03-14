@@ -47,6 +47,7 @@ use Magento\Payment\Helper\Data as PaymentData;
 use Magento\Payment\Model\InfoInterface;
 use Magento\Payment\Model\Method\Logger;
 use Magento\Sales\Api\Data\OrderPaymentInterface;
+use Magento\Sales\Model\Order;
 use TIG\Buckaroo\Gateway\GatewayInterface;
 use TIG\Buckaroo\Gateway\Http\TransactionBuilderFactory;
 use TIG\Buckaroo\Helper\Data as HelperData;
@@ -207,7 +208,7 @@ class Emandate extends AbstractMethod
      */
     private function getCreateMandateParameters($payment)
     {
-        /** @var \Magento\Sales\Model\Order $order */
+        /** @var Order $order */
         $order = $payment->getOrder();
         $billingAddress = $order->getBillingAddress();
 
@@ -308,5 +309,40 @@ class Emandate extends AbstractMethod
         }
 
         return $this;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function processCustomPostData($payment, $postData)
+    {
+        parent::processCustomPostData($payment, $postData);
+
+        $fieldsToSave = [
+            'MandateId', 'IsError', 'EmandateStatus', 'SignerName', 'AccountName', 'BankId',
+            'Iban', 'Reference', 'ValidationReference', 'OriginalMandateId', 'MaxAmount'
+        ];
+
+        $filteredData = [];
+
+        array_walk(
+            $fieldsToSave,
+            function ($field) use (&$filteredData, $postData) {
+                $postFieldName = 'brq_service_emandate_' . strtolower($field);
+
+                if (isset($postData[$postFieldName]) && !empty($postData[$postFieldName])) {
+                    $filteredData[$field] = $postData[$postFieldName];
+                }
+            }
+        );
+
+        if (count($filteredData) == count($fieldsToSave)) {
+            $jsonData = json_encode($filteredData);
+
+            /** @var Order $order */
+            $order = $payment->getOrder();
+            $order->setBuckarooPushData($jsonData);
+            $order->save();
+        }
     }
 }

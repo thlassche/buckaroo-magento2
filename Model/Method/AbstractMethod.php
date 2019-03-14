@@ -422,6 +422,15 @@ abstract class AbstractMethod extends \Magento\Payment\Model\Method\AbstractMeth
     }
 
     /**
+     * @param OrderPaymentInterface|InfoInterface $payment
+     * @param array                               $postData
+     */
+    public function processCustomPostData($payment, $postData)
+    {
+        return;
+    }
+
+    /**
      * Retrieve information from payment configuration
      *
      * @param string                                     $field

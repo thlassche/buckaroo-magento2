@@ -71,6 +71,10 @@
         <plugin name="tig_buckaroo_sepadirectdebit" type="TIG\Buckaroo\Model\Plugin\Method\SepaDirectDebit" />
     </type>
 
+    <type name="Magento\Sales\Api\OrderRepositoryInterface">
+        <plugin name="tig_buckaroo_add_order_extension_attributes" type="TIG\Buckaroo\Model\Plugin\OrderExtensionAttribute" />
+    </type>
+
     <type name="Magento\Sales\Model\Order">
         <plugin name="tig_buckaroo_plugin_afterpay" type="TIG\Buckaroo\Model\Plugin\Method\Afterpay"/>
         <plugin name="tig_buckaroo_plugin_afterpay2" type="TIG\Buckaroo\Model\Plugin\Method\Afterpay2"/>

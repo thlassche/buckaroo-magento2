@@ -489,6 +489,10 @@ class UpgradeData implements \Magento\Framework\Setup\UpgradeDataInterface
         if (version_compare($context->getVersion(), '1.5.3', '<')) {
             $this->installPaymentFeeInclTaxColumns($setup);
         }
+
+        if (version_compare($context->getVersion(), '1.9.2', '<')) {
+            $this->installPushDataColumn($setup);
+        }
     }
 
     /**
@@ -1055,6 +1059,19 @@ class UpgradeData implements \Magento\Framework\Setup\UpgradeDataInterface
             'creditmemo',
             'base_buckaroo_fee_incl_tax',
             ['type' => \Magento\Framework\DB\Ddl\Table::TYPE_DECIMAL]
+        );
+
+        return $this;
+    }
+
+    protected function installPushDataColumn(ModuleDataSetupInterface $setup)
+    {
+        $salesInstaller = $this->salesSetupFactory->create(['resourceName' => 'sales_setup', 'setup' => $setup]);
+
+        $salesInstaller->addAttribute(
+            'order',
+            'buckaroo_push_data',
+            ['type' => \Magento\Framework\DB\Ddl\Table::TYPE_TEXT]
         );
 
         return $this;

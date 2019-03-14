@@ -182,6 +182,8 @@ class Process extends \Magento\Framework\App\Action\Action
                     }
                 }
 
+                $payment->getMethodInstance()->processCustomPostData($payment, $this->response);
+
                 /** @var \Magento\Payment\Model\MethodInterface $paymentMethod */
                 $paymentMethod = $this->order->getPayment()->getMethodInstance();
                 $store = $this->order->getStore();
