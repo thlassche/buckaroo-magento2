@@ -318,6 +318,10 @@ class Emandate extends AbstractMethod
     {
         parent::processCustomPostData($payment, $postData);
 
+        if (!is_array($postData)) {
+            return;
+        }
+
         $fieldsToSave = [
             'MandateId', 'IsError', 'EmandateStatus', 'SignerName', 'AccountName', 'BankId',
             'Iban', 'Reference', 'ValidationReference', 'OriginalMandateId', 'MaxAmount'
