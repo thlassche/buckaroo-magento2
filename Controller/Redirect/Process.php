@@ -39,6 +39,7 @@
 
 namespace TIG\Buckaroo\Controller\Redirect;
 
+use Magento\Sales\Api\Data\TransactionInterface;
 use TIG\Buckaroo\Logging\Log;
 use TIG\Buckaroo\Model\Method\AbstractMethod;
 
@@ -68,6 +69,9 @@ class Process extends \Magento\Framework\App\Action\Action implements \Magento\F
      * @var \Magento\Quote\Model\Quote $quote
      */
     protected $quote;
+
+    /** @var TransactionInterface */
+    private $transaction;
 
     /**
      * @var \TIG\Buckaroo\Helper\Data $helper
@@ -105,6 +109,7 @@ class Process extends \Magento\Framework\App\Action\Action implements \Magento\F
      * @param \Magento\Checkout\Model\Cart                        $cart
      * @param \Magento\Sales\Model\Order                          $order
      * @param \Magento\Quote\Model\Quote                          $quote
+     * @param TransactionInterface        $transaction
      * @param Log                                                 $logger
      * @param \TIG\Buckaroo\Model\ConfigProvider\Factory          $configProviderFactory
      * @param \Magento\Sales\Model\Order\Email\Sender\OrderSender $orderSender
@@ -118,6 +123,7 @@ class Process extends \Magento\Framework\App\Action\Action implements \Magento\F
         \Magento\Checkout\Model\Cart $cart,
         \Magento\Sales\Model\Order $order,
         \Magento\Quote\Model\Quote $quote,
+        TransactionInterface $transaction,
         Log $logger,
         \TIG\Buckaroo\Model\ConfigProvider\Factory $configProviderFactory,
         \Magento\Sales\Model\Order\Email\Sender\OrderSender $orderSender,
@@ -128,6 +134,7 @@ class Process extends \Magento\Framework\App\Action\Action implements \Magento\F
         $this->cart               = $cart;
         $this->order              = $order;
         $this->quote              = $quote;
+        $this->transaction        = $transaction;
         $this->logger             = $logger;
         $this->orderSender        = $orderSender;
         $this->orderStatusFactory = $orderStatusFactory;
@@ -155,13 +162,8 @@ class Process extends \Magento\Framework\App\Action\Action implements \Magento\F
 
         $statusCode = (int)$this->response['brq_statuscode'];
 
-        if (isset($this->response['brq_ordernumber']) && !empty($this->response['brq_ordernumber'])) {
-            $brqOrderId = $this->response['brq_ordernumber'];
-        } else {
-            $brqOrderId = $this->response['brq_invoicenumber'];
-        }
+        $this->loadOrder();
 
-        $this->order->loadByIncrementId($brqOrderId);
         if (!$this->order->getId()) {
             $statusCode = $this->helper->getStatusCode('TIG_BUCKAROO_ORDER_FAILED');
         } else {
@@ -188,6 +190,8 @@ class Process extends \Magento\Framework\App\Action\Action implements \Magento\F
                         $this->order->save();
                     }
                 }
+
+                $payment->getMethodInstance()->processCustomPostData($payment, $this->response);
 
                 /** @var \Magento\Payment\Model\MethodInterface $paymentMethod */
                 $paymentMethod = $this->order->getPayment()->getMethodInstance();
@@ -254,6 +258,55 @@ class Process extends \Magento\Framework\App\Action\Action implements \Magento\F
         }
 
         return $this->_response;
+    }
+
+    /**
+     * @throws \TIG\Buckaroo\Exception
+     */
+    private function loadOrder()
+    {
+        $brqOrderId = false;
+
+        if (isset($this->response['brq_invoicenumber']) && !empty($this->response['brq_invoicenumber'])) {
+            $brqOrderId = $this->response['brq_invoicenumber'];
+        }
+
+        if (isset($this->response['brq_ordernumber']) && !empty($this->response['brq_ordernumber'])) {
+            $brqOrderId = $this->response['brq_ordernumber'];
+        }
+
+        $this->order->loadByIncrementId($brqOrderId);
+
+        if (!$this->order->getId()) {
+            $this->logger->addDebug('Order could not be loaded by brq_invoicenumber or brq_ordernumber');
+            $this->order = $this->getOrderByTransactionKey();
+        }
+    }
+
+    /**
+     * @return bool
+     * @throws \TIG\Buckaroo\Exception
+     */
+    private function getOrderByTransactionKey()
+    {
+        $trxId = '';
+
+        if (isset($this->response['brq_transactions']) && !empty($this->response['brq_transactions'])) {
+            $trxId = $this->response['brq_transactions'];
+        }
+
+        if (isset($this->response['brq_datarequest']) && !empty($this->response['brq_datarequest'])) {
+            $trxId = $this->response['brq_datarequest'];
+        }
+
+        $this->transaction->load($trxId, 'txn_id');
+        $order = $this->transaction->getOrder();
+
+        if (!$order) {
+            throw new \TIG\Buckaroo\Exception(__('There was no order found by transaction Id'));
+        }
+
+        return $order;
     }
 
     /**

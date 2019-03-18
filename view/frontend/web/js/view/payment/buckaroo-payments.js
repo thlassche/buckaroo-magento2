@@ -131,6 +131,10 @@ define(
             {
                 type: 'tig_buckaroo_klarna',
                 component: 'TIG_Buckaroo/js/view/payment/method-renderer/klarna'
+            },
+            {
+                type: 'tig_buckaroo_emandate',
+                component: 'TIG_Buckaroo/js/view/payment/method-renderer/emandate'
             }
 
         );

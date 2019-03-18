@@ -57,7 +57,8 @@
     .tig_buckaroo_giropay .payment-method-second-col,
     .tig_buckaroo_payperemail .payment-method-second-col,
     .tig_buckaroo_paymentguarantee .payment-method-second-col,
-    .tig_buckaroo_klarna .payment-method-second-col
+    .tig_buckaroo_klarna .payment-method-second-col,
+    .tig_buckaroo_emandate .payment-method-second-col
     {
         float:left;
         width: 50%;
@@ -75,7 +76,8 @@
     .tig_buckaroo_giropay .payment-method-billing-address,
     .tig_buckaroo_payperemail .payment-method-billing-address,
     .tig_buckaroo_paymentguarantee .payment-method-billing-address,
-    .tig_buckaroo_klarna .payment-method-billing-address
+    .tig_buckaroo_klarna .payment-method-billing-address,
+    .tig_buckaroo_emandate .payment-method-billing-address
     {
         float:left;
         width: 50%;
@@ -96,7 +98,8 @@
     .magento-blank .tig_buckaroo_giropay .fieldset > .field:not(.choice) > .label,
     .magento-blank .tig_buckaroo_payperemail .fieldset > .field:not(.choice) > .label,
     .magento-blank .tig_buckaroo_paymentguarantee .fieldset > .field:not(.choice) > .label,
-    .magento-blank .tig_buckaroo_klarna .fieldset > .field:not(.choice) > .label
+    .magento-blank .tig_buckaroo_klarna .fieldset > .field:not(.choice) > .label,
+    .magento-blank .tig_buckaroo_emandate .fieldset > .field:not(.choice) > .label
     {
         padding: 6px 15px 0 0 !important;
         text-align: left !important;
@@ -115,7 +118,8 @@
     .magento-blank .tig_buckaroo_giropay .fieldset > .field:not(.choice) > .control,
     .magento-blank .tig_buckaroo_payperemail .fieldset > .field:not(.choice) > .control,
     .magento-blank .tig_buckaroo_paymentguarantee .fieldset > .field:not(.choice) > .control,
-    .magento-blank .tig_buckaroo_klarna .fieldset > .field:not(.choice) > .control
+    .magento-blank .tig_buckaroo_klarna .fieldset > .field:not(.choice) > .control,
+    .magento-blank .tig_buckaroo_emandate .fieldset > .field:not(.choice) > .control
     {
         width: 100% !important;
         float: left !important;
@@ -132,7 +136,8 @@
     .magento-blank .tig_buckaroo_giropay .fieldset > .field.choice:before,
     .magento-blank .tig_buckaroo_payperemail .fieldset > .field.choice:before,
     .magento-blank .tig_buckaroo_paymentguarantee .fieldset > .field.choice:before,
-    .magento-blank .tig_buckaroo_klarna .fieldset > .field.choice:before
+    .magento-blank .tig_buckaroo_klarna .fieldset > .field.choice:before,
+    .magento-blank .tig_buckaroo_emandate .fieldset > .field.choice:before
     {
         padding:0 !important;
         width: auto !important;
@@ -426,8 +431,34 @@
     /*margin-top: 4px; */
 }
 #Saluation li {
-    list-style:none;
+    list-style: none;
     /*float:left; width: 30%; */
+}
+
+/* ===================== Emandate ================================ */
+.tig_buckaroo_emandate .payment-method-second-col .bank-types{
+    float:left;
+    width: 100%;
+}
+
+.tig_buckaroo_emandate .payment-method-second-col .bank-types-img{
+    vertical-align:middle;
+    margin-right:10px;
+}
+
+.tig_buckaroo_emandate .payment-method-second-col .bank-types-input{
+    margin-top:10px;
+}
+
+.tig_buckaroo_emandate .tig_buckaroo_image_title:after {
+    background: url(../images/tig_buckaroo_emandate_title.png) no-repeat;
+    float: right;
+    margin-right: 10px;
+    margin-top: -1px;
+    background-size: auto 25px;
+    width: 30px;
+    height: 25px;
+    content: ' ';
 }
 
 /* =============================================================== */
@@ -612,6 +643,19 @@
     /* KBC */
     .tig_buckaroo_kbc .tig_buckaroo_image_title:before {
         background: url(../images/tig_buckaroo_kbc_title.png) no-repeat;
+        float: left;
+        margin-right: 10px;
+        margin-top: -1px;
+        background-size: auto 25px;
+        width: 40px;
+        height: 30px;
+        content: ' ';
+    }
+
+
+    /* Emandate */
+    .tig_buckaroo_emandate .tig_buckaroo_image_title:before {
+        background: url(../images/tig_buckaroo_emandate_title.png) no-repeat;
         float: left;
         margin-right: 10px;
         margin-top: -1px;

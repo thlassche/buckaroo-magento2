@@ -103,5 +103,7 @@
 
         <include path="TIG_Buckaroo::system/payment_methods/klarna.xml"/>
 
+        <include path="TIG_Buckaroo::system/payment_methods/emandate.xml"/>
+
     </group>
 </include>

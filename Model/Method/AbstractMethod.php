@@ -431,12 +431,11 @@ abstract class AbstractMethod extends \Magento\Payment\Model\Method\AbstractMeth
 
     /**
      * @param OrderPaymentInterface|InfoInterface $payment
-     *
-     * @return null
+     * @param array                               $postData
      */
-    public function canProcessCustomPostData($payment)
+    public function processCustomPostData($payment, $postData)
     {
-        return null;
+        return;
     }
 
     /**
@@ -1147,8 +1146,7 @@ abstract class AbstractMethod extends \Magento\Payment\Model\Method\AbstractMeth
                 $rawInfo
             );
 
-            $this->response = $response;
-            $payment->getMethodInstance()->canProcessCustomPostData($payment);
+            $payment->getMethodInstance()->processCustomPostData($payment, $response);
 
             /**
              * @noinspection PhpUndefinedMethodInspection

@@ -71,6 +71,10 @@
         <plugin name="tig_buckaroo_sepadirectdebit" type="TIG\Buckaroo\Model\Plugin\Method\SepaDirectDebit" />
     </type>
 
+    <type name="Magento\Sales\Api\OrderRepositoryInterface">
+        <plugin name="tig_buckaroo_add_order_extension_attributes" type="TIG\Buckaroo\Model\Plugin\OrderExtensionAttribute" />
+    </type>
+
     <type name="Magento\Sales\Model\Order">
         <plugin name="tig_buckaroo_plugin_afterpay" type="TIG\Buckaroo\Model\Plugin\Method\Afterpay"/>
         <plugin name="tig_buckaroo_plugin_afterpay2" type="TIG\Buckaroo\Model\Plugin\Method\Afterpay2"/>
@@ -240,6 +244,10 @@
                 <item name="klarna" xsi:type="array">
                     <item name="type" xsi:type="string">klarna</item>
                     <item name="model" xsi:type="string">TIG\Buckaroo\Model\ConfigProvider\Method\Klarna</item>
+                </item>
+                <item name="emandate" xsi:type="array">
+                    <item name="type" xsi:type="string">emandate</item>
+                    <item name="model" xsi:type="string">TIG\Buckaroo\Model\ConfigProvider\Method\Emandate</item>
                 </item>
             </argument>
         </arguments>

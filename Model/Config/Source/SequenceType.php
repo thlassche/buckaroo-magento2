@@ -1,11 +1,15 @@
-<?xml version="1.0"?>
-<!--
+<?php
 /**
- *                  ___________  ___    ________
- *                  \__    ___/ |   |  /  _____/
- *                    |    |    |   | /   \  ___
- *                    |    |    |   | \    \_\  \
- *                    |____|    |___|  \________/
+ *
+ *          ..::..
+ *     ..::::::::::::..
+ *   ::'''''':''::'''''::
+ *   ::..  ..:  :  ....::
+ *   ::::  :::  :  :   ::
+ *   ::::  :::  :  ''' ::
+ *   ::::..:::..::.....::
+ *     ''::::::::::::''
+ *          ''::''
  *
  *
  * NOTICE OF LICENSE
@@ -25,11 +29,21 @@
  * @copyright   Copyright (c) Total Internet Group B.V. https://tig.nl/copyright
  * @license     http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US
  */
- -->
-<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:TIG_Buckaroo:etc/tig_module.xsd">
-    <module name="TIG_Buckaroo" setup_version="1.9.2" build_number="1721" stability="stable">
-        <sequence>
-            <module name="Magento_Payment"/>
-        </sequence>
-    </module>
-</config>
+
+namespace TIG\Buckaroo\Model\Config\Source;
+
+class SequenceType implements \Magento\Framework\Option\ArrayInterface
+{
+    const SEQUENCE_TYPE_ONEOFF = 1;
+    const SEQUENCE_TYPE_RECURRING = 0;
+
+    public function toOptionArray()
+    {
+        $options = [];
+
+        $options[] = ['value' => self::SEQUENCE_TYPE_ONEOFF, 'label' => __('One-Off')];
+        $options[] = ['value' => self::SEQUENCE_TYPE_RECURRING, 'label' => __('Recurring')];
+
+        return $options;
+    }
+}

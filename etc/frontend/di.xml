@@ -62,6 +62,7 @@
                 <item name="buckaroo_config_provider_payconiq" xsi:type="object">TIG\Buckaroo\Model\ConfigProvider\Method\Payconiq</item>
                 <item name="buckaroo_config_provider_kbc" xsi:type="object">TIG\Buckaroo\Model\ConfigProvider\Method\Kbc</item>
                 <item name="buckaroo_config_provider_klarna" xsi:type="object">TIG\Buckaroo\Model\ConfigProvider\Method\Klarna</item>
+                <item name="buckaroo_config_provider_emandate" xsi:type="object">TIG\Buckaroo\Model\ConfigProvider\Method\Emandate</item>
             </argument>
         </arguments>
     </type>

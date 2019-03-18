@@ -843,14 +843,15 @@ class Klarna extends AbstractMethod
     /**
      * {@inheritdoc}
      */
-    public function canProcessCustomPostData($payment)
+    public function processCustomPostData($payment, $postData)
     {
         $order = $payment->getOrder();
-        if ($order->getBuckarooReservationNumber())
-        {
+
+        if ($order->getBuckarooReservationNumber()) {
             return;
         }
-        $order->setBuckarooReservationNumber($this->response->Services->Service->ResponseParameter->_);
+
+        $order->setBuckarooReservationNumber($postData->Services->Service->ResponseParameter->_);
         $order->save();
     }
 
