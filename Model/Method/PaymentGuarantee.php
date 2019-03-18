@@ -161,7 +161,6 @@ class PaymentGuarantee extends AbstractMethod
      * @param \TIG\Buckaroo\Model\ConfigProvider\Method\Factory       $configProviderMethodFactory
      * @param \Magento\Framework\Pricing\Helper\Data                  $priceHelper
      * @param array                                                   $data
-     * @param \Magento\Directory\Helper\Data|null                     $directory
      */
     public function __construct(
         \Magento\Framework\ObjectManagerInterface $objectManager,
@@ -188,8 +187,7 @@ class PaymentGuarantee extends AbstractMethod
         \TIG\Buckaroo\Model\ConfigProvider\Factory $configProviderFactory = null,
         \TIG\Buckaroo\Model\ConfigProvider\Method\Factory $configProviderMethodFactory = null,
         \Magento\Framework\Pricing\Helper\Data $priceHelper = null,
-        array $data = [],
-        \Magento\Directory\Helper\Data $directory = null
+        array $data = []
     ) {
         parent::__construct(
             $objectManager,
@@ -212,8 +210,7 @@ class PaymentGuarantee extends AbstractMethod
             $configProviderFactory,
             $configProviderMethodFactory,
             $priceHelper,
-            $data,
-            $directory
+            $data
         );
 
         $this->invoiceFactory = $invoiceFactory;

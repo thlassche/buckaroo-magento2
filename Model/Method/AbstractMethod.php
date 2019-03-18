@@ -190,9 +190,9 @@ abstract class AbstractMethod extends \Magento\Payment\Model\Method\AbstractMeth
      * @param \TIG\Buckaroo\Model\ConfigProvider\Factory              $configProviderFactory
      * @param \TIG\Buckaroo\Model\ConfigProvider\Method\Factory       $configProviderMethodFactory
      * @param \Magento\Framework\Pricing\Helper\Data                  $priceHelper
-     * @param \Magento\Developer\Helper\Data                          $developmentHelper
      * @param array                                                   $data
-     * @param \Magento\Directory\Helper\Data                          $directory
+     *
+     * @throws \TIG\Buckaroo\Exception
      */
     public function __construct(
         \Magento\Framework\ObjectManagerInterface $objectManager,
@@ -215,8 +215,7 @@ abstract class AbstractMethod extends \Magento\Payment\Model\Method\AbstractMeth
         \TIG\Buckaroo\Model\ConfigProvider\Factory $configProviderFactory = null,
         \TIG\Buckaroo\Model\ConfigProvider\Method\Factory $configProviderMethodFactory = null,
         \Magento\Framework\Pricing\Helper\Data $priceHelper = null,
-        array $data = [],
-        \Magento\Directory\Helper\Data $directory = null
+        array $data = []
     ) {
         parent::__construct(
             $context,
@@ -228,8 +227,7 @@ abstract class AbstractMethod extends \Magento\Payment\Model\Method\AbstractMeth
             $logger,
             $resource,
             $resourceCollection,
-            $data,
-            $directory
+            $data
         );
         /**
          * @todo : Remove usage of objectManager, better to use DI.
