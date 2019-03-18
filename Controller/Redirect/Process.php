@@ -41,20 +41,9 @@ namespace TIG\Buckaroo\Controller\Redirect;
 
 use Magento\Sales\Api\Data\TransactionInterface;
 use TIG\Buckaroo\Logging\Log;
-use TIG\Buckaroo\Model\Method\AbstractMethod;
 
-class Process extends \Magento\Framework\App\Action\Action implements \Magento\Framework\App\CsrfAwareActionInterface
+class Process extends \Magento\Framework\App\Action\Action
 {
-    public function createCsrfValidationException(\Magento\Framework\App\RequestInterface $request): ?\Magento\Framework\App\Request\InvalidRequestException
-    {
-        return null;
-    }
-
-    public function validateForCsrf(\Magento\Framework\App\RequestInterface $request): ?bool
-    {
-        return true;
-    }
-
     /**
      * @var array
      */
