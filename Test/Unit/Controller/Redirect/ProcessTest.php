@@ -42,6 +42,7 @@ use Magento\Checkout\Model\ConfigProviderInterface;
 use Magento\Framework\App\Response\RedirectInterface;
 use Magento\Framework\App\ResponseInterface;
 use Magento\Framework\Message\ManagerInterface;
+use Magento\Sales\Api\Data\TransactionInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Payment;
 use TIG\Buckaroo\Model\ConfigProvider\Factory;
@@ -90,7 +91,9 @@ class ProcessTest extends BaseTest
         $params = [
             'brq_ordernumber' => null,
             'brq_invoicenumber' => null,
-            'brq_statuscode' => null
+            'brq_statuscode' => null,
+            'brq_transactions' => null,
+            'brq_datarequest' => null
         ];
 
         $response = $this->getFakeMock(ResponseInterface::class)->getMockForAbstractClass();
@@ -140,7 +143,7 @@ class ProcessTest extends BaseTest
             ])
             ->getMock();
         $orderMock->expects($this->once())->method('loadByIncrementId')->with(null)->willReturnSelf();
-        $orderMock->expects($this->once())->method('getId')->willReturn(null);
+        $orderMock->expects($this->exactly(2))->method('getId')->willReturn(null);
         $orderMock->expects($this->once())->method('getState')->willReturn('!canceled');
         $orderMock->expects($this->once())->method('canCancel')->willReturn(true);
         $orderMock->expects($this->once())->method('cancel')->willReturnSelf();
@@ -157,11 +160,18 @@ class ProcessTest extends BaseTest
             ->with($this->anything(), $orderMock)
             ->willReturn($failureStatus);
 
+        $transactionMock = $this->getFakeMock(TransactionInterface::class)
+            ->setMethods(['load', 'getOrder'])
+            ->getMockForAbstractClass();
+        $transactionMock->expects($this->once())->method('load')->with(null, 'txn_id');
+        $transactionMock->expects($this->once())->method('getOrder')->willReturn($orderMock);
+
         $instance = $this->getInstance([
             'context' => $contextMock,
             'configProviderFactory' => $configProviderFactoryMock,
             'cart' => $cartMock,
             'order' => $orderMock,
+            'transaction' => $transactionMock,
             'helper' => $helperMock,
             'orderStatusFactory' => $orderStatusFactoryMock
         ]);
@@ -176,7 +186,9 @@ class ProcessTest extends BaseTest
         $params = [
             'brq_ordernumber' => null,
             'brq_invoicenumber' => null,
-            'brq_statuscode' => null
+            'brq_statuscode' => null,
+            'brq_transactions' => null,
+            'brq_datarequest' => null
         ];
 
         $response = $this->getFakeMock(ResponseInterface::class)->getMockForAbstractClass();
@@ -223,18 +235,25 @@ class ProcessTest extends BaseTest
             ->setMethods(['loadByIncrementId', 'getId', 'canCancel', 'getStore','getPayment'])
             ->getMock();
         $orderMock->expects($this->once())->method('loadByIncrementId')->with(null)->willReturnSelf();
-        $orderMock->expects($this->once())->method('getId')->willReturn(null);
+        $orderMock->expects($this->exactly(2))->method('getId')->willReturn(null);
         $orderMock->expects($this->once())->method('canCancel')->willReturn(false);
         $orderMock->method('getStore')->willReturnSelf();
         $orderMock->expects($this->once())->method('getPayment')->willReturn($payment);
 
         $helperMock = $this->getFakeMock(Data::class)->setMethods(null)->getMock();
 
+        $transactionMock = $this->getFakeMock(TransactionInterface::class)
+            ->setMethods(['load', 'getOrder'])
+            ->getMockForAbstractClass();
+        $transactionMock->expects($this->once())->method('load')->with(null, 'txn_id');
+        $transactionMock->expects($this->once())->method('getOrder')->willReturn($orderMock);
+
         $instance = $this->getInstance([
             'context' => $contextMock,
             'configProviderFactory' => $configProviderFactoryMock,
             'cart' => $cartMock,
             'order' => $orderMock,
+            'transaction' => $transactionMock,
             'helper' => $helperMock,
         ]);
         $instance->execute();
@@ -281,10 +300,11 @@ class ProcessTest extends BaseTest
         $configProviderFactoryMock->expects($this->once())->method('get')->willReturn($configProviderMock);
 
         $payment = $this->getFakeMock(Payment::class)
-            ->setMethods(['getMethodInstance', 'canProcessPostData'])
+            ->setMethods(['getMethodInstance', 'canProcessPostData', 'processCustomPostData'])
             ->getMock();
-        $payment->expects($this->exactly(2))->method('getMethodInstance')->willReturnSelf();
+        $payment->expects($this->exactly(3))->method('getMethodInstance')->willReturnSelf();
         $payment->expects($this->once())->method('canProcessPostData')->with($payment, $params)->willReturn(true);
+        $payment->expects($this->once())->method('processCustomPostData')->with($payment, $params);
 
         $orderMock = $this->getFakeMock(Order::class)
             ->setMethods([
@@ -293,7 +313,7 @@ class ProcessTest extends BaseTest
             ])
             ->getMock();
         $orderMock->expects($this->once())->method('loadByIncrementId')->with(null)->willReturnSelf();
-        $orderMock->expects($this->once())->method('getId')->willReturn(true);
+        $orderMock->expects($this->exactly(2))->method('getId')->willReturn(true);
         $orderMock->expects($this->once())->method('canInvoice')->willReturn(true);
         $orderMock->expects($this->once())->method('getQuoteId')->willReturn(1);
         $orderMock->expects($this->once())->method('setStatus')->willReturnSelf();
@@ -318,5 +338,83 @@ class ProcessTest extends BaseTest
             'orderStatusFactory' => $orderStatusFactoryMock
         ]);
         $instance->execute();
+    }
+
+    public function loadOrderProvider()
+    {
+        return [
+            'by invoicenumber' => [
+                'brq_invoicenumber',
+                'TIG-001',
+                false
+            ],
+            'by ordernumber' => [
+                'brq_ordernumber',
+                'TIG-002',
+                false
+            ],
+            'by transaction' => [
+                'brq_transactions',
+                'TG321',
+                true
+            ],
+            'by datarequest' => [
+                'brq_datarequest',
+                'TG654',
+                true
+            ],
+            'throws exception' => [
+                'brq_random_key',
+                null,
+                true
+            ]
+        ];
+    }
+
+    /**
+     * @param $paramKey
+     * @param $paramValue
+     * @param $byTransaction
+     *
+     * @dataProvider loadOrderProvider
+     */
+    public function testLoadOrder($paramKey, $paramValue, $byTransaction)
+    {
+        $params = [
+            'brq_invoicenumber' => null,
+            'brq_ordernumber' => null,
+            'brq_transactions' => null,
+            'brq_datarequest' => null,
+        ];
+
+        $params[$paramKey] = $paramValue;
+
+        $orderId = false;
+        if (!$byTransaction) {
+            $orderId = $paramValue;
+        }
+
+        $orderMock = $this->getFakeMock(Order::class)->setMethods(['loadByIncrementId', 'getId'])->getMock();
+        $orderMock->expects($this->once())->method('loadByIncrementId')->with($orderId)->willReturnSelf();
+        $orderMock->expects($this->once())->method('getId')->willReturn($orderId);
+
+        $transactionResult = $orderMock;
+        if (!$paramValue) {
+            $transactionResult = false;
+
+            $exceptionMessage = 'There was no order found by transaction Id';
+            $this->setExpectedException(\TIG\Buckaroo\Exception::class, $exceptionMessage);
+        }
+
+        $transactionMock = $this->getFakeMock(TransactionInterface::class)
+            ->setMethods(['load', 'getOrder'])
+            ->getMockForAbstractClass();
+        $transactionMock->method('load')->with($paramValue, 'txn_id');
+        $transactionMock->method('getOrder')->willReturn($transactionResult);
+
+        $instance = $this->getInstance(['order' => $orderMock, 'transaction' => $transactionMock]);
+
+        $this->setProperty('response', $params, $instance);
+        $this->invoke('loadOrder', $instance);
     }
 }
