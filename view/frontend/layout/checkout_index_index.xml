@@ -133,6 +133,9 @@
                                                                         <item name="tig_buckaroo_afterpay2" xsi:type="array">
                                                                             <item name="isBillingAddressRequired" xsi:type="boolean">true</item>
                                                                         </item>
+                                                                        <item name="tig_buckaroo_afterpay20" xsi:type="array">
+                                                                            <item name="isBillingAddressRequired" xsi:type="boolean">true</item>
+                                                                        </item>
                                                                         <item name="tig_buckaroo_eps" xsi:type="array">
                                                                         	<item name="isBillingAddressRequired" xsi:type="boolean">true</item>
                                                                         </item>

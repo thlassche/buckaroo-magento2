@@ -48,28 +48,28 @@ use TIG\Buckaroo\Model\Config\Source\Business;
  */
 class Afterpay20 extends AbstractConfigProvider
 {
-    const XPATH_ALLOWED_CURRENCIES               = 'buckaroo/tig_buckaroo_AFTERPAY20/allowed_currencies';
+    const XPATH_ALLOWED_CURRENCIES               = 'buckaroo/tig_buckaroo_afterpay20/allowed_currencies';
 
-    const XPATH_ALLOW_SPECIFIC                   = 'payment/tig_buckaroo_AFTERPAY20/allowspecific';
-    const XPATH_SPECIFIC_COUNTRY                 = 'payment/tig_buckaroo_afterpay2/specificcountry';
+    const XPATH_ALLOW_SPECIFIC                   = 'payment/tig_buckaroo_afterpay20/allowspecific';
+    const XPATH_SPECIFIC_COUNTRY                 = 'payment/tig_buckaroo_afterpay20/specificcountry';
 
-    const XPATH_AFTERPAY20_ACTIVE                 = 'payment/tig_buckaroo_AFTERPAY20/active';
-    const XPATH_AFTERPAY20_PAYMENT_FEE            = 'payment/tig_buckaroo_AFTERPAY20/payment_fee';
-    const XPATH_AFTERPAY20_PAYMENT_FEE_LABEL      = 'payment/tig_buckaroo_afterpay2/.0payment_fee_label';
-    const XPATH_AFTERPAY20_SEND_EMAIL             = 'payment/tig_buckaroo_AFTERPAY20/send_email';
-    const XPATH_AFTERPAY20_ACTIVE_STATUS          = 'payment/tig_buckaroo_AFTERPAY20/active_status';
-    const XPATH_AFTERPAY20_ORDER_STATUS_SUCCESS   = 'payment/tig_buckaroo_AFTERPAY20/order_status_success';
-    const XPATH_AFTERPAY20_ORDER_STATUS_FAILED    = 'payment/tig_buckaroo_AFTERPAY20/order_status_failed';
-    const XPATH_AFTERPAY20_AVAILABLE_IN_BACKEND   = 'payment/tig_buckaroo_AFTERPAY20/available_in_backend';
-    const XPATH_AFTERPAY20_DUE_DATE               = 'payment/tig_buckaroo_AFTERPAY20/due_date';
-    const XPATH_AFTERPAY20_ALLOWED_CURRENCIES     = 'payment/tig_buckaroo_AFTERPAY20/allowed_currencies';
-    const XPATH_AFTERPAY20_BUSINESS               = 'payment/tig_buckaroo_AFTERPAY20/business';
-    const XPATH_AFTERPAY20_PAYMENT_METHODS        = 'payment/tig_buckaroo_AFTERPAY20/payment_method';
-    const XPATH_AFTERPAY20_HIGH_TAX               = 'payment/tig_buckaroo_AFTERPAY20/high_tax';
-    const XPATH_AFTERPAY20_MIDDLE_TAX             = 'payment/tig_buckaroo_AFTERPAY20/middle_tax';
-    const XPATH_AFTERPAY20_LOW_TAX                = 'payment/tig_buckaroo_AFTERPAY20/low_tax';
-    const XPATH_AFTERPAY20_ZERO_TAX               = 'payment/tig_buckaroo_AFTERPAY20/zero_tax';
-    const XPATH_AFTERPAY20_NO_TAX                 = 'payment/tig_buckaroo_AFTERPAY20/no_tax';
+    const XPATH_AFTERPAY20_ACTIVE                 = 'payment/tig_buckaroo_afterpay20/active';
+    const XPATH_AFTERPAY20_PAYMENT_FEE            = 'payment/tig_buckaroo_afterpay20/payment_fee';
+    const XPATH_AFTERPAY20_PAYMENT_FEE_LABEL      = 'payment/tig_buckaroo_afterpay20/payment_fee_label';
+    const XPATH_AFTERPAY20_SEND_EMAIL             = 'payment/tig_buckaroo_afterpay20/send_email';
+    const XPATH_AFTERPAY20_ACTIVE_STATUS          = 'payment/tig_buckaroo_afterpay20/active_status';
+    const XPATH_AFTERPAY20_ORDER_STATUS_SUCCESS   = 'payment/tig_buckaroo_afterpay20/order_status_success';
+    const XPATH_AFTERPAY20_ORDER_STATUS_FAILED    = 'payment/tig_buckaroo_afterpay20/order_status_failed';
+    const XPATH_AFTERPAY20_AVAILABLE_IN_BACKEND   = 'payment/tig_buckaroo_afterpay20/available_in_backend';
+    const XPATH_AFTERPAY20_DUE_DATE               = 'payment/tig_buckaroo_afterpay20/due_date';
+    const XPATH_AFTERPAY20_ALLOWED_CURRENCIES     = 'payment/tig_buckaroo_afterpay20/allowed_currencies';
+    const XPATH_AFTERPAY20_BUSINESS               = 'payment/tig_buckaroo_afterpay20/business';
+    const XPATH_AFTERPAY20_PAYMENT_METHODS        = 'payment/tig_buckaroo_afterpay20/payment_method';
+    const XPATH_AFTERPAY20_HIGH_TAX               = 'payment/tig_buckaroo_afterpay20/high_tax';
+    const XPATH_AFTERPAY20_MIDDLE_TAX             = 'payment/tig_buckaroo_afterpay20/middle_tax';
+    const XPATH_AFTERPAY20_LOW_TAX                = 'payment/tig_buckaroo_afterpay20/low_tax';
+    const XPATH_AFTERPAY20_ZERO_TAX               = 'payment/tig_buckaroo_afterpay20/zero_tax';
+    const XPATH_AFTERPAY20_NO_TAX                 = 'payment/tig_buckaroo_afterpay20/no_tax';
 
     /**
      * @return array
@@ -88,7 +88,7 @@ class Afterpay20 extends AbstractConfigProvider
         return [
             'payment' => [
                 'buckaroo' => [
-                    'afterpay2' => [
+                    'afterpay20' => [
                         'sendEmail'         => (bool) $this->getSendEmail(),
                         'paymentFeeLabel'   => $paymentFeeLabel,
                         'allowedCurrencies' => $this->getAllowedCurrencies(),
@@ -244,13 +244,9 @@ class Afterpay20 extends AbstractConfigProvider
         }
 
         if ($method) {
-            switch ($method) {
-                case '1':
-                    $paymentMethodName = 'afterpayacceptgiro';
-                    break;
-                case '2':
-                    $paymentMethodName = 'afterpaydigiaccept';
-            }
+
+            $paymentMethodName = 'afterpay';
+
         }
 
         return $paymentMethodName;

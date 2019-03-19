@@ -41,11 +41,11 @@
 <include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
     <!-- Afterpay Payment method group -->
     <group id="tig_buckaroo_afterpay20" translate="label" type="text" sortOrder="230" showInDefault="1" showInWebsite="1" showInStore="1">
-        <label>Afterpay 2.0</label>
+        <label>Afterpay</label>
         <frontend_model>TIG\Buckaroo\Block\Config\Form\Field\Fieldset</frontend_model>
 
         <field id="active" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>Enable Afterpay 2.0</label>
+            <label>Enable Afterpay</label>
             <comment><![CDATA[Enable or disable this payment method.]]></comment>
             <source_model>TIG\Buckaroo\Model\Config\Source\Enablemode</source_model>
             <config_path>payment/tig_buckaroo_afterpay20/active</config_path>
@@ -67,14 +67,14 @@
             <label>Default Configuration</label>
 
             <field id="payment_method" translate="label comment" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
-                <label>Afterpay 2.0 payment method</label>
+                <label>Afterpay payment method</label>
                 <comment><![CDATA[Select which paymethod must be used at Afterpay.]]></comment>
                 <source_model>TIG\Buckaroo\Model\Config\Source\Afterpay20PaymentMethods</source_model>
                 <config_path>payment/tig_buckaroo_afterpay20/payment_method</config_path>
             </field>
 
             <field id="business" translate="label comment" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
-                <label>Afterpay 2.0 payment method</label>
+                <label>Afterpay payment method</label>
                 <comment><![CDATA[Select which paymethod must be used at Afterpay.]]></comment>
                 <source_model>TIG\Buckaroo\Model\Config\Source\Business</source_model>
                 <config_path>payment/tig_buckaroo_afterpay20/business</config_path>

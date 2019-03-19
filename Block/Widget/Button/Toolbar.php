@@ -49,6 +49,7 @@ class Toolbar
     private $allowedMethods = [
         'tig_buckaroo_afterpay',
         'tig_buckaroo_afterpay2',
+        'tig_buckaroo_afterpay20',
         'tig_buckaroo_payperemail',
         'tig_buckaroo_creditcard',
         'tig_buckaroo_ideal',
