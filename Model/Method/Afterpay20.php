@@ -266,22 +266,10 @@ class Afterpay20 extends AbstractMethod
                 'customer_billingName',
                 $additionalData['customer_billingName']
             );
-            $this->getInfoInstance()->setAdditionalInformation('customer_iban', $additionalData['customer_iban']);
 
             $dobDate = \DateTime::createFromFormat('d/m/Y', $additionalData['customer_DoB']);
             $dobDate = (!$dobDate ? $additionalData['customer_DoB'] : $dobDate->format('Y-m-d'));
             $this->getInfoInstance()->setAdditionalInformation('customer_DoB', $dobDate);
-
-            if (isset($additionalData['selectedBusiness'])
-                && $additionalData['selectedBusiness'] == self::BUSINESS_METHOD_B2B
-            ) {
-                $this->getInfoInstance()->setAdditionalInformation('COCNumber', $additionalData['COCNumber']);
-                $this->getInfoInstance()->setAdditionalInformation('CompanyName', $additionalData['CompanyName']);
-                $this->getInfoInstance()->setAdditionalInformation(
-                    'selectedBusiness',
-                    $additionalData['selectedBusiness']
-                );
-            }
 
             if (isset($additionalData['customer_telephone'])) {
                 $this->getInfoInstance()->setAdditionalInformation(
@@ -423,7 +411,7 @@ class Afterpay20 extends AbstractMethod
         }
 
         // Add aditional shippin costs.
-        $shippingCosts = $this->getShippingCostsLine($currentInvoice, $latestkey);
+        $shippingCosts = $this->getShippingCostsLine($currentInvoice, $count);
         $articles = array_merge($articles, $shippingCosts);
 
         $services['RequestParameter'] = $articles;
@@ -759,6 +747,9 @@ class Afterpay20 extends AbstractMethod
         $articles = [];
         $count = 1;
 
+        $refundType = $this->getRefundType($count);
+        $articles = array_merge($articles, $refundType);
+
         /** @var \Magento\Sales\Model\Order\Creditmemo\Item $item */
         foreach ($creditmemo->getAllItems() as $item) {
             if (empty($item) || $this->calculateProductPrice($item, $includesTax) == 0) {
@@ -798,11 +789,21 @@ class Afterpay20 extends AbstractMethod
         if (count($articles) > 0 && !$payment->getOrder()->hasCreditmemos()) {
             $serviceLine = $this->getServiceCostLine($count, $creditmemo, $includesTax);
             $articles = array_merge($articles, $serviceLine);
+
+            $refundType = $this->getRefundType($count);
+            $articles = array_merge($articles, $refundType);
+            $count++;
         }
 
         // Add aditional shippin costs.
-        $shippingCosts = $this->getShippingCostsLine($creditmemo);
-        $articles = array_merge($articles, $shippingCosts);
+        $shippingCosts = $this->getShippingCostsLine($creditmemo, $count);
+        if (!empty($shippingCosts)) {
+            $articles = array_merge($articles, $shippingCosts);
+
+            $refundType = $this->getRefundType($count);
+            $articles = array_merge($articles, $refundType);
+            $count++;
+        }
 
         return $articles;
     }
@@ -896,7 +897,7 @@ class Afterpay20 extends AbstractMethod
     /**
      * @param \Magento\Sales\Model\Order|\Magento\Sales\Model\Order\Invoice|\Magento\Sales\Model\Order\Creditmemo $order
      *
-     * @param $latestKey
+     * @param $count
      * @return array
      */
     private function getShippingCostsLine($order, $count)
@@ -1111,6 +1112,20 @@ class Afterpay20 extends AbstractMethod
         return $article;
     }
 
+    public function getRefundType($count)
+    {
+        $article = [
+            [
+                '_'       => 'Refund',
+                'Name'    => 'RefundType',
+                'GroupID' => $count,
+                'Group' => 'Article',
+            ]
+        ];
+
+        return $article;
+    }
+
     /**
      * @param      $taxClassId
      * @param null|int $storeId
@@ -1170,6 +1185,12 @@ class Afterpay20 extends AbstractMethod
         $telephone = (empty($telephone) ? $billingAddress->getTelephone() : $telephone);
         $category = 'Person';
 
+        $gender = 'Mrs';
+
+        if ($payment->getAdditionalInformation('customer_gender') === '1') {
+            $gender = 'Mr';
+        }
+
         $billingData = [
             [
                 '_'    => $category,
@@ -1178,7 +1199,7 @@ class Afterpay20 extends AbstractMethod
                 'GroupID' => '',
             ],
             [
-                '_'    => 'Mr',
+                '_'    => $gender,
                 'Name' => 'Salutation',
                 'Group' => 'BillingCustomer',
                 'GroupID' => '',
@@ -1263,15 +1284,6 @@ class Afterpay20 extends AbstractMethod
             ];
         }
 
-        if ($billingAddress->getCountryId() === 'FI') {
-            $billingData[] =     [
-                '_'    => '123',
-                'Name' => 'IdentificationNumber',
-                'Group' => 'BillingCustomer',
-                'GroupID' => '',
-            ];
-        }
-
         return $billingData;
     }
 
@@ -1289,6 +1301,12 @@ class Afterpay20 extends AbstractMethod
         $streetFormat    = $this->formatStreet($shippingAddress->getStreet());
         $category = 'Person';
 
+        $gender = 'Mrs';
+
+        if ($payment->getAdditionalInformation('customer_gender') == '1') {
+            $gender = 'Mr';
+        }
+
         $shippingData = [
             [
                 '_'    => $category,
@@ -1297,7 +1315,7 @@ class Afterpay20 extends AbstractMethod
                 'GroupID' => '',
             ],
             [
-                '_'    => 'Mr',
+                '_'    => $gender,
                 'Name' => 'Salutation',
                 'Group' => 'ShippingCustomer',
                 'GroupID' => '',
