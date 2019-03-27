@@ -221,9 +221,12 @@ class Emandate extends AbstractMethod
             $this->getParameterLine('debtorreference', $billingAddress->getEmail()),
             $this->getParameterLine('sequencetype', $sequenceType),
             $this->getParameterLine('purchaseid', $order->getIncrementId()),
-            $this->getParameterLine('language', $language),
-            $this->getParameterLine('emandatereason', $reason)
+            $this->getParameterLine('language', $language)
         ];
+
+        if (!empty($reason)) {
+            $parameters[] = $this->getParameterLine('emandatereason', $reason);
+        }
 
         return $parameters;
     }

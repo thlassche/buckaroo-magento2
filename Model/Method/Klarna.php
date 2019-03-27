@@ -545,14 +545,6 @@ class Klarna extends AbstractMethod
                 'Name' => 'ShippingLastName',
             ],
             [
-                '_' => $streetFormat['house_number'],
-                'Name' => 'ShippingHouseNumber',
-            ],
-            [
-                '_' => $streetFormat['number_addition'],
-                'Name' => 'ShippingHouseNumberSuffix',
-            ],
-            [
                 '_' => $shippingAddress->getTelephone(),
                 'Name' => 'ShippingPhoneNumber',
             ],
@@ -565,6 +557,21 @@ class Klarna extends AbstractMethod
                 'Name' => 'ShippingStreet',
             ],
         ];
+
+
+        if (!empty($streetFormat['house_number'])) {
+            $shippingData[] = [
+                '_'    => $streetFormat['house_number'],
+                'Name' => 'ShippingHouseNumber',
+            ];
+        }
+
+        if (!empty($streetFormat['number_addition'])) {
+            $shippingData[] = [
+                '_'    => $streetFormat['number_addition'],
+                'Name' => 'ShippingHouseNumberSuffix',
+            ];
+        }
 
         return $shippingData;
     }
@@ -1024,14 +1031,6 @@ class Klarna extends AbstractMethod
                 'Name' => 'BillingLastName',
             ],
             [
-                '_' => $streetFormat['house_number'],
-                'Name' => 'BillingHouseNumber',
-            ],
-            [
-                '_' => $streetFormat['number_addition'],
-                'Name' => 'BillingHouseNumberSuffix',
-            ],
-            [
                 '_' => $telephone,
                 'Name' => 'BillingPhoneNumber',
             ],
@@ -1060,6 +1059,20 @@ class Klarna extends AbstractMethod
                 'Name' => 'Encoding',
             ]
         ];
+
+        if (!empty($streetFormat['house_number'])) {
+            $billingData[] = [
+                '_'    => $streetFormat['house_number'],
+                'Name' => 'BillingHouseNumber',
+            ];
+        }
+
+        if (!empty($streetFormat['number_addition'])) {
+            $billingData[] = [
+                '_'    => $streetFormat['number_addition'],
+                'Name' => 'BillingHouseNumberSuffix',
+            ];
+        }
 
         return $billingData;
     }
