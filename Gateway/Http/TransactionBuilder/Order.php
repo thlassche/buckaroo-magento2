@@ -191,7 +191,9 @@ class Order extends AbstractTransactionBuilder
             unset($body['Invoice']);
         }
 
-        if ($services['Name'] == 'paymentguarantee' && $services['Action'] == 'PartialInvoice') {
+        if (($services['Name'] == 'paymentguarantee' && $services['Action'] == 'PartialInvoice') ||
+            ($services['Name'] == 'klarna' && $services['Action'] == 'Pay')
+        ) {
             unset($body['OriginalTransactionKey']);
         }
 

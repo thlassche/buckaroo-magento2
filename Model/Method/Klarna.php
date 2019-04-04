@@ -135,6 +135,11 @@ class Klarna extends AbstractMethod
     /**
      * @var bool
      */
+    public $closeAuthorizeTransaction   = false;
+
+    /**
+     * @var bool
+     */
     protected $_canRefundInvoicePartial = true;
     // @codingStandardsIgnoreEnd
 
@@ -252,10 +257,36 @@ class Klarna extends AbstractMethod
     }
 
     /**
+     * Check capture availability
+     *
+     * @return bool
+     * @api
+     */
+    public function canCapture()
+    {
+        if ($this->getConfigData('payment_action') == 'order') {
+            return false;
+        }
+        return $this->_canCapture;
+    }
+
+    /**
      * {@inheritdoc}
      */
-
     public function getOrderTransactionBuilder($payment)
+    {
+
+    }
+
+    public function cancelOrderTransactionBuilder($payment)
+    {
+
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getAuthorizeTransactionBuilder($payment)
     {
         $transactionBuilder = $this->transactionBuilderFactory->get('order');
 
@@ -274,19 +305,6 @@ class Klarna extends AbstractMethod
             ->setMethod('DataRequest');
 
         return $transactionBuilder;
-    }
-
-    public function cancelOrderTransactionBuilder($payment)
-    {
-
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getAuthorizeTransactionBuilder($payment)
-    {
-        return false;
     }
 
     /**

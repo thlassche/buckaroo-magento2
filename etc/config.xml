@@ -327,7 +327,7 @@
                 <order_email>1</order_email>
                 <payment_fee_label>Fee</payment_fee_label>
                 <group>tig_buckaroo</group>
-                <payment_action>order</payment_action>
+                <payment_action>authorize</payment_action>
                 <available_in_backend>0</available_in_backend>
             </tig_buckaroo_klarna>
 
