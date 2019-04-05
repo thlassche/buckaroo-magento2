@@ -316,9 +316,7 @@
     display :block;
 }
 
-#payment_other_tig_buckaroo_payment_section,
-#payment_us_tig_buckaroo_payment_section,
-#payment_nl_tig_buckaroo_payment_section {
+.tig_buckaroo-section fieldset.admin__collapsible-block {
     float:left;
     width: 100%;
     clear: both;
