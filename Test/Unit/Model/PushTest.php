@@ -41,6 +41,7 @@ namespace TIG\Buckaroo\Test\Unit\Model;
 use Magento\Directory\Model\Currency;
 use Magento\Framework\Webapi\Rest\Request;
 use Magento\Payment\Model\MethodInterface;
+use Magento\Sales\Api\Data\TransactionInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Email\Sender\OrderSender;
 use Magento\Sales\Model\Order\Invoice;
@@ -193,10 +194,59 @@ class PushTest extends \TIG\Buckaroo\Test\BaseTest
             ->method('addDebug')
             ->with('Order could not be loaded by brq_invoicenumber or brq_ordernumber');
 
-        $instance = $this->getInstance(['logging' => $debuggerMock]);
+
+        $transactionMock = $this->getFakeMock(TransactionInterface::class)
+            ->setMethods(['load', 'getOrder'])
+            ->getMockForAbstractClass();
+        $transactionMock->expects($this->once())->method('load')->with('', 'txn_id');
+        $transactionMock->expects($this->once())->method('getOrder')->willReturn(null);
+
+        $instance = $this->getInstance(['transaction' => $transactionMock, 'logging' => $debuggerMock]);
 
         $this->setExpectedException(Exception::class, 'There was no order found by transaction Id');
         $this->invoke('loadOrder', $instance);
+    }
+
+    public function getTransactionKeyProvider()
+    {
+        return [
+            'no key' => [
+                [
+                    'brq_some_key' => 'abc',
+                    'brq_amount' => '1.23'
+                ],
+                ''
+            ],
+            'transaction key' => [
+                [
+                    'brq_transactions' => '456def',
+                    'brq_comment' => 'Transaction Comment'
+                ],
+                '456def'
+            ],
+            'datarequest key' => [
+                [
+                    'brq_status' => 'success',
+                    'brq_datarequest' => 'ghi789'
+                ],
+                'ghi789'
+            ]
+        ];
+    }
+
+    /**
+     * @param $postData
+     * @param $expected
+     *
+     * @dataProvider getTransactionKeyProvider
+     */
+    public function testGetTransactionKey($postData, $expected)
+    {
+        $instance = $this->getInstance();
+        $this->setProperty('postData', $postData, $instance);
+
+        $result = $this->invoke('getTransactionKey', $instance);
+        $this->assertEquals($expected, $result);
     }
 
     /**

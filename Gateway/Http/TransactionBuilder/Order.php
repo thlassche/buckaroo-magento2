@@ -185,11 +185,15 @@ class Order extends AbstractTransactionBuilder
             return $body;
         }
 
-        if ($services['Name'] == 'paymentguarantee' && $services['Action'] == 'Order') {
+        if (($services['Name'] == 'paymentguarantee' && $services['Action'] == 'Order') ||
+            ($services['Name'] == 'emandate' && $this->getMethod() == 'DataRequest')
+        ) {
             unset($body['Invoice']);
         }
 
-        if ($services['Name'] == 'paymentguarantee' && $services['Action'] == 'PartialInvoice') {
+        if (($services['Name'] == 'paymentguarantee' && $services['Action'] == 'PartialInvoice') ||
+            ($services['Name'] == 'klarna' && $services['Action'] == 'Pay')
+        ) {
             unset($body['OriginalTransactionKey']);
         }
 

@@ -48,6 +48,7 @@ use Magento\Framework\Model\Context;
 use Magento\Framework\Pricing\Helper\Data as PriceHelperData;
 use Magento\Framework\Registry;
 use Magento\Payment\Model\InfoInterface;
+use Magento\Payment\Model\MethodInterface;
 use Magento\Quote\Api\Data\CartInterface;
 use Magento\Sales\Model\Order\Payment;
 use Magento\Sales\Model\Order\Payment\Transaction as PaymentTransaction;
@@ -960,7 +961,8 @@ class AbstractMethodTest extends \TIG\Buckaroo\Test\BaseTest
                 'setTransactionAdditionalInfo',
                 'setIsTransactionClosed',
                 'setTransactionId',
-                'setAdditionalInformation'
+                'setAdditionalInformation',
+                'getMethodInstance'
             ])
             ->getMock();
 
@@ -976,6 +978,13 @@ class AbstractMethodTest extends \TIG\Buckaroo\Test\BaseTest
                 ->method('setAdditionalInformation')
                 ->with(AbstractMethodMock::BUCKAROO_ORIGINAL_TRANSACTION_KEY_KEY, $key);
         }
+
+        $methodInstanceMock = $this->getFakeMock(MethodInterface::class)
+            ->setMethods(['processCustomPostData'])
+            ->getMockForAbstractClass();
+        $methodInstanceMock->expects($this->once())->method('processCustomPostData')->with($payment, $response);
+
+        $payment->expects($this->once())->method('getMethodInstance')->willReturn($methodInstanceMock);
 
         $helperMock = $this->getFakeMock(HelperData::class)
             ->setMethods(['getMode', 'getTransactionAdditionalInfo'])

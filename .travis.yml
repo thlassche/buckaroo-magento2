@@ -31,9 +31,14 @@ matrix:
       env: MAGENTO_VERSION=2.2.3 CODE_COVERAGE=true
     - php: 7.1
       env: MAGENTO_VERSION=2.2.7
+    - php: 7.2
+      env: MAGENTO_VERSION=2.3.0
 
   allow_failures:
-  - env: MAGENTO_VERSION=2.2.7
+    - php: 7.1
+      env: MAGENTO_VERSION=2.2.7
+    - php: 7.2
+      env: MAGENTO_VERSION=2.3.0
 
 before_script:
   - composer config -a -g http-basic.repo.magento.com $MAGENTO_USERNAME $MAGENTO_PASSWORD

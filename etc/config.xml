@@ -97,7 +97,7 @@
                 <group>tig_buckaroo</group>
                 <payment_action>order</payment_action>
                 <available_in_backend>0</available_in_backend>
-                <payment_method_after_expiry>amex,bancontactmrcash,cartebancaire,cartebleuevisa,dankort,eps,giftcard,giropay,ideal,mastercard,paypal,sofortueberweisung,transfer,visa,maestro,visaelectron,vpay</payment_method_after_expiry>
+                <payment_method_after_expiry>amex,bancontactmrcash,cartebancaire,cartebleuevisa,nexi,dankort,eps,giftcard,giropay,ideal,mastercard,paypal,sofortueberweisung,transfer,visa,maestro,visaelectron,vpay</payment_method_after_expiry>
             </tig_buckaroo_sepadirectdebit>
 
             <tig_buckaroo_paypal>
@@ -169,7 +169,7 @@
                 <group>tig_buckaroo</group>
                 <payment_action>order</payment_action>
                 <available_in_backend>1</available_in_backend>
-                <payment_method_after_expiry>amex,bancontactmrcash,cartebancaire,cartebleuevisa,dankort,eps,giftcard,giropay,ideal,mastercard,paypal,sofortueberweisung,transfer,visa,maestro,visaelectron,vpay</payment_method_after_expiry>
+                <payment_method_after_expiry>amex,bancontactmrcash,cartebancaire,cartebleuevisa,nexi,dankort,eps,giftcard,giropay,ideal,mastercard,paypal,sofortueberweisung,transfer,visa,maestro,visaelectron,vpay</payment_method_after_expiry>
             </tig_buckaroo_transfer>
 
             <tig_buckaroo_giropay>
@@ -260,8 +260,8 @@
                 <can_capture_partial>1</can_capture_partial>
                 <available_in_backend>1</available_in_backend>
                 <send_mail>1</send_mail>
-                <payment_method>amex,bancontactmrcash,cartebancaire,cartebleuevisa,dankort,eps,sepadirectdebit,giftcard,giropay,ideal,mastercard,paypal,sofortueberweisung,transfer,visa,maestro,visaelectron,vpay</payment_method>
-                <payment_method_after_expiry>amex,bancontactmrcash,cartebancaire,cartebleuevisa,dankort,eps,giftcard,giropay,ideal,mastercard,paypal,sofortueberweisung,transfer,visa,maestro,visaelectron,vpay</payment_method_after_expiry>
+                <payment_method>amex,bancontactmrcash,cartebancaire,cartebleuevisa,nexi,dankort,eps,sepadirectdebit,giftcard,giropay,ideal,mastercard,paypal,sofortueberweisung,transfer,visa,maestro,visaelectron,vpay</payment_method>
+                <payment_method_after_expiry>amex,bancontactmrcash,cartebancaire,cartebleuevisa,nexi,dankort,eps,giftcard,giropay,ideal,mastercard,paypal,sofortueberweisung,transfer,visa,maestro,visaelectron,vpay</payment_method_after_expiry>
             </tig_buckaroo_payperemail>
 
             <tig_buckaroo_eps>
@@ -303,6 +303,49 @@
                 <payment_action>order</payment_action>
                 <available_in_backend>0</available_in_backend>
             </tig_buckaroo_paymentguarantee>
+
+            <tig_buckaroo_kbc>
+                <active>0</active>
+                <model>TIG\Buckaroo\Model\Method\Kbc</model>
+                <order_status>pending</order_status>
+                <title>TIG Buckaroo KBC</title>
+                <allowspecific>0</allowspecific>
+                <sort_order>210</sort_order>
+                <order_email>1</order_email>
+                <payment_fee_label>Fee</payment_fee_label>
+                <group>tig_buckaroo</group>
+                <payment_action>order</payment_action>
+                <available_in_backend>0</available_in_backend>
+            </tig_buckaroo_kbc>
+
+            <tig_buckaroo_klarna>
+                <active>0</active>
+                <model>TIG\Buckaroo\Model\Method\Klarna</model>
+                <order_status>pending</order_status>
+                <title>TIG Buckaroo Klarna</title>
+                <sort_oder>220</sort_oder>
+                <order_email>1</order_email>
+                <payment_fee_label>Fee</payment_fee_label>
+                <group>tig_buckaroo</group>
+                <payment_action>authorize</payment_action>
+                <available_in_backend>0</available_in_backend>
+            </tig_buckaroo_klarna>
+
+            <tig_buckaroo_emandate>
+                <active>0</active>
+                <model>TIG\Buckaroo\Model\Method\Emandate</model>
+                <order_status>pending</order_status>
+                <title>TIG Buckaroo Emandate</title>
+                <sequence_type>1</sequence_type>
+                <language>nl_NL</language>
+                <allowspecific>0</allowspecific>
+                <sort_order>230</sort_order>
+                <order_email>1</order_email>
+                <payment_fee_label>Fee</payment_fee_label>
+                <group>tig_buckaroo</group>
+                <payment_action>order</payment_action>
+                <available_in_backend>0</available_in_backend>
+            </tig_buckaroo_emandate>
         </payment>
 
         <tig_buckaroo>

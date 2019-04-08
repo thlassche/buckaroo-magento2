@@ -424,10 +424,10 @@ class UpgradeData implements \Magento\Framework\Setup\UpgradeDataInterface
     );
 
     /**
-     * @param \Magento\Sales\Setup\SalesSetupFactory                   $salesSetupFactory
-     * @param \Magento\Quote\Setup\QuoteSetupFactory                   $quoteSetupFactory
+     * @param \Magento\Sales\Setup\SalesSetupFactory $salesSetupFactory
+     * @param \Magento\Quote\Setup\QuoteSetupFactory $quoteSetupFactory
      * @param \TIG\Buckaroo\Model\ResourceModel\Certificate\Collection $certificateCollection
-     * @param \Magento\Framework\Encryption\Encryptor                  $encryptor
+     * @param \Magento\Framework\Encryption\Encryptor $encryptor
      */
     public function __construct(
         \Magento\Sales\Setup\SalesSetupFactory $salesSetupFactory,
@@ -435,7 +435,8 @@ class UpgradeData implements \Magento\Framework\Setup\UpgradeDataInterface
         \TIG\Buckaroo\Model\ResourceModel\Giftcard\Collection $giftcardCollection,
         \TIG\Buckaroo\Model\ResourceModel\Certificate\Collection $certificateCollection,
         \Magento\Framework\Encryption\Encryptor $encryptor
-    ) {
+    )
+    {
         $this->salesSetupFactory = $salesSetupFactory;
         $this->quoteSetupFactory = $quoteSetupFactory;
         $this->giftcardCollection = $giftcardCollection;
@@ -489,6 +490,35 @@ class UpgradeData implements \Magento\Framework\Setup\UpgradeDataInterface
         if (version_compare($context->getVersion(), '1.5.3', '<')) {
             $this->installPaymentFeeInclTaxColumns($setup);
         }
+
+        if (version_compare($context->getVersion(), '1.9.2', '<')) {
+            $this->installReservationNrColumn($setup);
+            $this->installPushDataColumn($setup);
+        }
+    }
+
+    /**
+     * @param ModuleDataSetupInterface $setup
+     *
+     * @return $this
+     */
+    public function installReservationNrColumn(ModuleDataSetupInterface $setup)
+    {
+        /**
+         * @noinspection PhpUndefinedMethodInspection
+         */
+        $salesInstaller = $this->salesSetupFactory->create(['resourceName' => 'sales_setup', 'setup' => $setup]);
+
+        /**
+         * @noinspection PhpUndefinedMethodInspection
+         */
+        $salesInstaller->addAttribute(
+            'order',
+            'buckaroo_reservation_number',
+            ['type' => \Magento\Framework\DB\Ddl\Table::TYPE_TEXT]
+        );
+
+        return $this;
     }
 
     /**
@@ -1055,6 +1085,19 @@ class UpgradeData implements \Magento\Framework\Setup\UpgradeDataInterface
             'creditmemo',
             'base_buckaroo_fee_incl_tax',
             ['type' => \Magento\Framework\DB\Ddl\Table::TYPE_DECIMAL]
+        );
+
+        return $this;
+    }
+
+    protected function installPushDataColumn(ModuleDataSetupInterface $setup)
+    {
+        $salesInstaller = $this->salesSetupFactory->create(['resourceName' => 'sales_setup', 'setup' => $setup]);
+
+        $salesInstaller->addAttribute(
+            'order',
+            'buckaroo_push_data',
+            ['type' => \Magento\Framework\DB\Ddl\Table::TYPE_TEXT]
         );
 
         return $this;
