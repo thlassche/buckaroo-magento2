@@ -123,7 +123,20 @@ define(
             {
                 type: 'tig_buckaroo_paymentguarantee',
                 component: 'TIG_Buckaroo/js/view/payment/method-renderer/paymentguarantee'
+            },
+            {
+                type: 'tig_buckaroo_kbc',
+                component: 'TIG_Buckaroo/js/view/payment/method-renderer/kbc'
+            },
+            {
+                type: 'tig_buckaroo_klarna',
+                component: 'TIG_Buckaroo/js/view/payment/method-renderer/klarna'
+            },
+            {
+                type: 'tig_buckaroo_emandate',
+                component: 'TIG_Buckaroo/js/view/payment/method-renderer/emandate'
             }
+
         );
         /**
          * Add view logic here if needed

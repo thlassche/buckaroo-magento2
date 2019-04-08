@@ -3,31 +3,16 @@
 ?>
 <div id="supporttab" class="tig-buckaroo-supporttab" data-mage-init='{"buckarooConfig": true}'>
 
-
-    <div id="block">
-        <div class="block-legend">
-            <h3 ><?php echo $block->escapeHtml(__('Legend'));?></h3>
-            <div>
-                <ul id="legend">
-                    <li class="disabled">
-                        <span class="img"></span>
-                        <span class="text"><?php echo $block->escapeHtml(__('Payment method'));?>: </span>
-                        <span class="status"><?php echo $block->escapeHtml(__('Disabled'));?></span>
-                    </li>
-                    <li class="test">
-                        <span class="img"></span>
-                        <span class="text"><?php echo $block->escapeHtml(__('Payment method'));?>: </span>
-                        <span class="status"><?php echo $block->escapeHtml(__('Test Mode'));?></span>
-                    </li>
-                    <li class="live">
-                        <span class="img"></span>
-                        <span class="text"><?php echo $block->escapeHtml(__('Payment method'));?>: </span>
-                        <span class="status"><?php echo $block->escapeHtml(__('Live Mode'));?></span>
-                    </li>
-                </ul>
+    <div class="message-system-inner">
+        <div class="message-system-short-wrapper">
+            <div class="message">
+                <?php echo $block->escapeHtml(__("The payment methods of the Buckaroo Extension can be found under"))?> <br/>
+                <span class='italic'><?php echo $block->escapeHtml(__("Configuration > Sales > Payment Methods > Buckaroo"))?></span>
             </div>
         </div>
+    </div>
 
+    <div id="block">
         <div class="block-version">
             <h3 ><?php echo $block->escapeHtml(__('Magento version compatibility'));?></h3>
             <div>
@@ -36,13 +21,13 @@
                         <span class="text">
                             <?php echo $block->escapeHtml(__('Magento Commerce'));?>:
                         </span>
-                        <span class="version"> 2.1.16, 2.2.7, 2.3.0 </span>
+                        <span class="version"> 2.2.8, 2.3.1 </span>
                     </li>
                     <li>
                         <span class="text">
                             <?php echo $block->escapeHtml(__('Magento Open Source'));?>:
                         </span>
-                        <span class="version"> 2.1.16, 2.2.7, 2.3.0 </span>
+                        <span class="version"> 2.2.8, 2.3.1 </span>
                     </li>
 
                     <li>

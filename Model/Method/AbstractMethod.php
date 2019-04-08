@@ -63,6 +63,11 @@ abstract class AbstractMethod extends \Magento\Payment\Model\Method\AbstractMeth
     protected $gateway;
 
     /**
+     * @var array
+     */
+    protected $response;
+
+    /**
      * @var \TIG\Buckaroo\Gateway\Http\TransactionBuilderFactory
      */
     protected $transactionBuilderFactory;
@@ -185,8 +190,9 @@ abstract class AbstractMethod extends \Magento\Payment\Model\Method\AbstractMeth
      * @param \TIG\Buckaroo\Model\ConfigProvider\Factory              $configProviderFactory
      * @param \TIG\Buckaroo\Model\ConfigProvider\Method\Factory       $configProviderMethodFactory
      * @param \Magento\Framework\Pricing\Helper\Data                  $priceHelper
-     * @param \Magento\Developer\Helper\Data                          $developmentHelper
      * @param array                                                   $data
+     *
+     * @throws \TIG\Buckaroo\Exception
      */
     public function __construct(
         \Magento\Framework\ObjectManagerInterface $objectManager,
@@ -419,6 +425,15 @@ abstract class AbstractMethod extends \Magento\Payment\Model\Method\AbstractMeth
     public function canProcessPostData($payment, $postData)
     {
         return true;
+    }
+
+    /**
+     * @param OrderPaymentInterface|InfoInterface $payment
+     * @param array                               $postData
+     */
+    public function processCustomPostData($payment, $postData)
+    {
+        return;
     }
 
     /**
@@ -1090,12 +1105,13 @@ abstract class AbstractMethod extends \Magento\Payment\Model\Method\AbstractMeth
     }
 
     /**
-     * @param \StdClass                                                                          $response
-     * @param OrderPaymentInterface|InfoInterface                        $payment
+     * @param \StdClass $response
+     * @param OrderPaymentInterface|InfoInterface $payment
      * @param                                                                                    $close
-     * @param bool                                                                               $saveId
+     * @param bool $saveId
      *
      * @return OrderPaymentInterface|InfoInterface
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function saveTransactionData(
         \StdClass $response,
@@ -1127,6 +1143,8 @@ abstract class AbstractMethod extends \Magento\Payment\Model\Method\AbstractMeth
                 \Magento\Sales\Model\Order\Payment\Transaction::RAW_DETAILS,
                 $rawInfo
             );
+
+            $payment->getMethodInstance()->processCustomPostData($payment, $response);
 
             /**
              * @noinspection PhpUndefinedMethodInspection

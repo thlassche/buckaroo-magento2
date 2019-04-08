@@ -100,7 +100,7 @@ define(
                  */
                     this.bicnumber.subscribe(
                         function () {
-                            $('.' + this.getCode() + ' [data-validate]').valid();
+                            $('.' + this.getCode() + ' .payment [data-validate]').valid();
                             this.selectPaymentMethod();
                         },
                         this
@@ -112,7 +112,7 @@ define(
                  */
                     this.bicnumber.subscribe(
                         function () {
-                            $('.' + this.getCode() + ' [data-validate]').valid();
+                            $('.' + this.getCode() + ' .payment [data-validate]').valid();
                             this.selectPaymentMethod();
                         },
                         this
@@ -138,7 +138,7 @@ define(
              */
 
                 validate: function () {
-                    return $('.' + this.getCode() + ' [data-validate]').valid();
+                    return $('.' + this.getCode() + ' .payment [data-validate]').valid();
                 },
 
                 /**

@@ -43,7 +43,7 @@ class Data
     const MODULE_CODE = 'TIG_Buckaroo';
 
     /** Version of Module */
-    const BUCKAROO_VERSION = '1.9.1';
+    const BUCKAROO_VERSION = '1.9.2';
 
     /** @var ProductMetadataInterface */
     private $productMetadata;
@@ -81,6 +81,14 @@ class Data
     }
 
     /**
+     * @return string
+     */
+    public function getModuleVersion()
+    {
+        return self::BUCKAROO_VERSION;
+    }
+
+    /**
      * @return array
      */
     private function getPlatformData()
@@ -105,7 +113,7 @@ class Data
         $moduleData = [
             'ModuleSupplier'    => self::MODULE_SUPPLIER,
             'ModuleName'        => $module['name'],
-            'ModuleVersion'     => self::BUCKAROO_VERSION
+            'ModuleVersion'     => $this->getModuleVersion()
         ];
 
         return $moduleData;
