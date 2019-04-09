@@ -66,23 +66,6 @@
         <group id="tig_buckaroo_default" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Default Configuration</label>
 
-            <field id="payment_method" translate="label comment" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
-                <label>Afterpay payment method</label>
-                <comment><![CDATA[Select which paymethod must be used at Afterpay.]]></comment>
-                <source_model>TIG\Buckaroo\Model\Config\Source\Afterpay20PaymentMethods</source_model>
-                <config_path>payment/tig_buckaroo_afterpay20/payment_method</config_path>
-            </field>
-
-            <field id="business" translate="label comment" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
-                <label>Afterpay payment method</label>
-                <comment><![CDATA[Select which paymethod must be used at Afterpay.]]></comment>
-                <source_model>TIG\Buckaroo\Model\Config\Source\Business</source_model>
-                <config_path>payment/tig_buckaroo_afterpay20/business</config_path>
-                <depends>
-                    <field id="payment_method">2</field>
-                </depends>
-            </field>
-
             <field id="high_tax" translate="label comment" type="multiselect" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label> High VAT tax classes</label>
                 <comment><![CDATA[Select which tax classes count as 'high' VAT.]]></comment>
