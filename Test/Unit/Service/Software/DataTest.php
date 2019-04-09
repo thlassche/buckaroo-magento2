@@ -107,4 +107,11 @@ class DataTest extends BaseTest
 
         $this->assertInstanceOf(ProductMetadataInterface::class, $result);
     }
+
+    public function testGetModuleVersion()
+    {
+        $instance = $this->getInstance();
+        $result = $instance->getModuleVersion();
+        $this->assertEquals(Data::BUCKAROO_VERSION, $result);
+    }
 }
