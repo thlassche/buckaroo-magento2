@@ -180,6 +180,10 @@
                     <item name="type" xsi:type="string">creditcard</item>
                     <item name="model" xsi:type="string">TIG\Buckaroo\Model\ConfigProvider\Method\Creditcard</item>
                 </item>
+                <item name="creditcards" xsi:type="array">
+                    <item name="type" xsi:type="string">creditcards</item>
+                    <item name="model" xsi:type="string">TIG\Buckaroo\Model\ConfigProvider\Method\Creditcards</item>
+                </item>
                 <item name="giropay" xsi:type="array">
                     <item name="type" xsi:type="string">giropay</item>
                     <item name="model" xsi:type="string">TIG\Buckaroo\Model\ConfigProvider\Method\Giropay</item>
