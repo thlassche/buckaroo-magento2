@@ -873,21 +873,6 @@ class Klarna extends AbstractMethod
     }
 
     /**
-     *
-     * @return array
-     */
-    public function getRequestCustomerData()
-    {
-        $customerData = [
-            [
-                '_' => $this->getRemoteAddress(),
-                'Name' => 'ClientIP',
-            ]
-        ];
-
-        return $customerData;
-    }
-    /**
      * @param array $addressOne
      * @param array $addressTwo
      *
