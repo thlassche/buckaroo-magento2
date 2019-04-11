@@ -106,6 +106,7 @@
                                    },
                                    valueUpdate: 'blur',
                                    value: dateValidate,
+                                   event: { blur: forceSelectedGender },
                                    attr: { 'data-validate': JSON.stringify({ 'required': true, 'validate-date-au': true })}"
                                    name="payment[tig_buckaroo_afterpay20][customer_DoB]">
                         </div>
@@ -123,6 +124,7 @@
                                    data-bind="
                                    value: bankaccountnumber,
                                    valueUpdate: 'keyup',
+                                   event: { blur: forceSelectedGender },
                                    attr: {'data-validate': JSON.stringify({ 'required': true, 'IBAN':true })}"
                                    name="payment[tig_buckaroo_afterpay20][customer_iban]">
                         </div>
@@ -200,6 +202,7 @@
                                    type="checkbox"
                                    data-bind="
                                    checked: termsValidate,
+                                   event: { click: forceSelectedGender },
                                    attr: { 'data-validate': JSON.stringify({ 'required': true})}"
                                    name="payment[tig_buckaroo_afterpay20][termsCondition]">
                             <span>

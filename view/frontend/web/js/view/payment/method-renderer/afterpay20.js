@@ -314,6 +314,11 @@ define(
                     return this;
                 },
 
+                forceSelectedGender: function () {
+                    this.selectedGender.valueHasMutated();
+                    return true;
+                },
+
                 /**
                  * Place order.
                  *
