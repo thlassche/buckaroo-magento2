@@ -19,7 +19,7 @@
             <form data-hasrequired="* Required Fields" data-bind="mageInit: { 'validation': [] }">
                 <fieldset class="fieldset payment">
 
-
+                    <!-- ko if: showGender -->
                     <div class="field required disabled">
                         <legend class="label"> <span data-bind="i18n: 'Salutation:'"> </span> </legend>
                         <div class="control">
@@ -52,6 +52,7 @@
                             <div for="gender" generated="true" class="mage-error" id="gender-error" style="display: none;"><span data-bind="i18n: 'This is a required field.'"></span> </div>
                         </div>
                     </div>
+                    <!-- /ko -->
 
 
                     <div class="field required">

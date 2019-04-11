@@ -67,7 +67,6 @@ define(
         /**
          *  constants for backend settings
          */
-        var BUSINESS_METHOD_B2C = 1;
         var BUSINESS_METHOD_BOTH = 3;
 
         var PAYMENT_METHOD_ACCEPTGIRO = 1;
@@ -91,7 +90,7 @@ define(
                     termsUrl: 'https://www.afterpay.nl/nl/klantenservice/betalingsvoorwaarden/',
                     termsValidate: false,
                     genderValidate: null,
-                    differentClass: '',
+                    showGenderValue: null
                 },
                 redirectAfterPlaceOrder : true,
                 paymentFeeLabel : window.checkoutConfig.payment.buckaroo.afterpay20.paymentFeeLabel,
@@ -127,8 +126,17 @@ define(
                             'termsValidate',
                             'genderValidate',
                             'dummy',
-                            'differentClass'
+                            'showGenderValue'
                         ]
+                    );
+
+                    this.showGender = ko.computed(
+                        function () {
+                            if (this.showGenderValue() !== null) {
+                                return this.showGenderValue();
+                            }
+                        },
+                        this
                     );
 
                     this.businessMethod = window.checkoutConfig.payment.buckaroo.afterpay20.businessMethod;
@@ -171,21 +179,6 @@ define(
                         this.termsUrl(newUrl);
                     };
 
-                    this.getCountryId = function (country) {
-                      this.country = country;
-                      var addClass = checkCountry();
-
-                        this.differentClass(addClass);
-                    };
-
-                    var checkCountry = function() {
-                        var requireClass = 1;
-                        if (getNewCountryId() === 'NL' || getNewCountryId() ==='BE') {
-                            requireClass = 2;
-                        }
-                        return requireClass;
-                    }.bind(this);
-
                     var getAcceptgiroUrl = function() {
                         if (this.country === 'NL') {
                             return 'https://documents.myafterpay.com/consumer-terms-conditions/nl_nl/';
@@ -206,42 +199,31 @@ define(
                         return 'https://www.afterpay.nl/nl/algemeen/betalen-met-afterpay/betalingsvoorwaarden';
                     }.bind(this);
 
-                    var getNewCountryId = function() {
-                        return this.country;
-                    }.bind(this);
-
                     var getDigiacceptUrl = function() {
-                        var businessMethod = getBusinessMethod();
                         var url = 'https://www.afterpay.nl/nl/algemeen/betalen-met-afterpay/betalingsvoorwaarden';
 
-                        if (this.country === 'NL' && businessMethod == BUSINESS_METHOD_B2C) {
+                        if (this.country === 'NL') {
                             url = 'https://documents.myafterpay.com/consumer-terms-conditions/nl_nl/';
                         }
-                        if (this.country === 'DE' && businessMethod == BUSINESS_METHOD_B2C) {
+                        if (this.country === 'DE') {
                             url = 'https://documents.myafterpay.com/consumer-terms-conditions/de_de/';
                         }
-                        if (this.country === 'BE' && businessMethod == BUSINESS_METHOD_B2C) {
+                        if (this.country === 'BE') {
                             url = 'https://documents.myafterpay.com/consumer-terms-conditions/nl_be/';
                         }
-                        if (this.country === 'AT' && businessMethod == BUSINESS_METHOD_B2C) {
+                        if (this.country === 'AT') {
                             url = 'https://documents.myafterpay.com/consumer-terms-conditions/de_at/';
                         }
-                        if (this.country === 'FI' && businessMethod == BUSINESS_METHOD_B2C) {
+                        if (this.country === 'FI') {
                             url = 'https://documents.myafterpay.com/consumer-terms-conditions/fi_fi/';
                         }
 
                         return url;
                     }.bind(this);
 
-                    var getBusinessMethod = function() {
-                        var businessMethod = BUSINESS_METHOD_B2C;
-                        return businessMethod;
-                    }.bind(this);
-
                     if (quote.billingAddress()) {
                         this.updateBillingName(quote.billingAddress().firstname, quote.billingAddress().lastname);
                         this.updateTermsUrl(quote.billingAddress().countryId);
-                        this.getCountryId(quote.billingAddress().countryId);
                     }
 
                     quote.billingAddress.subscribe(
@@ -259,7 +241,12 @@ define(
 
                             if (newAddress.countryId !== this.country) {
                                 this.updateTermsUrl(newAddress.countryId);
-                                this.getCountryId(newAddress.countryId);
+                            }
+
+                            if (this.country !== null && (this.country == 'NL' || this.country == 'BE')) {
+                                this.showGenderValue(true);
+                            } else {
+                                this.showGenderValue(false);
                             }
                         }.bind(this)
                     );
@@ -276,7 +263,6 @@ define(
 
                     var updateSelectedBusiness = function () {
                         this.updateTermsUrl(this.country);
-                        this.getCountryId(this.country);
                     };
 
                     this.selectedBusiness.subscribe(updateSelectedBusiness, this);
@@ -296,7 +282,11 @@ define(
                      */
 
                     var runValidation = function () {
-                        $('.' + this.getCode() + ' [data-validate]').filter(':not([name*="agreement"])').valid();
+                        var elements = $('.' + this.getCode() + ' [data-validate]').filter(':not([name*="agreement"])');
+                        if (this.country != 'NL' && this.country != 'BE') {
+                            elements = elements.filter(':not([name*="customer_gender"])');
+                        }
+                        elements.valid();
                         this.selectPaymentMethod();
                     };
 
@@ -307,38 +297,16 @@ define(
                     this.dummy.subscribe(runValidation,this);
 
                     /**
-                     * Create a function to check if all the required fields, in specific conditions, are filled in.
-                     */
-
-                    var checkB2C = function () {
-                        return (
-                            (this.telephoneNumber() !== null || this.hasTelephoneNumber) &&
-                            this.selectedGender() !== null &&
-                            this.BillingName() !== null &&
-                            this.dateValidate() !== null &&
-                            this.termsValidate() !== false &&
-                            this.genderValidate() !== null &&
-                            this.validate()
-                        );
-                    };
-
-                    /**
                      * Check if the required fields are filled. If so: enable place order button (true) | if not: disable place order button (false)
                      */
                     this.buttoncheck = ko.computed(
                         function () {
-
-
-                            /**
-                             * Run If Else function to select the right fields to validate.
-                             * Other fields will be ignored.
-                             */
-                            if (this.businessMethod == BUSINESS_METHOD_B2C
-                                || (this.businessMethod == BUSINESS_METHOD_BOTH
-                                    && this.selectedBusiness() == BUSINESS_METHOD_B2C)
-                            ) {
-                                return checkB2C.bind(this)();
-                            }
+                            return (this.telephoneNumber() !== null || this.hasTelephoneNumber) &&
+                            ((this.country != 'NL' && this.country != 'BE') || this.selectedGender() !== null) &&
+                            this.BillingName() !== null &&
+                            this.dateValidate() !== null &&
+                            this.termsValidate() !== false &&
+                            this.validate()
                         },
                         this
                     );
@@ -413,7 +381,6 @@ define(
                     if (quote.billingAddress()) {
                         this.updateBillingName(quote.billingAddress().firstname, quote.billingAddress().lastname);
                         this.updateTermsUrl(quote.billingAddress().countryId);
-                        this.getCountryId(quote.billingAddress().countryId);
                     }
 
                     return true;
@@ -424,7 +391,11 @@ define(
                  */
 
                 validate: function () {
-                    return $('.' + this.getCode() + ' [data-validate]:not([name*="agreement"])').valid();
+                    var elements = $('.' + this.getCode() + ' [data-validate]:not([name*="agreement"])');
+                    if (this.country != 'NL' && this.country != 'BE') {
+                        elements = elements.filter(':not([name*="customer_gender"])');
+                    }
+                    return elements.valid();
                 },
 
                 getData: function () {
