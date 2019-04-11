@@ -43,7 +43,6 @@ define(
         'Magento_Checkout/js/view/payment/default',
         'Magento_Checkout/js/model/payment/additional-validators',
         'TIG_Buckaroo/js/action/place-order',
-        'Magento_Checkout/js/model/quote',
         'ko',
         'Magento_Checkout/js/checkout-data',
         'Magento_Checkout/js/action/select-payment-method',
@@ -54,22 +53,37 @@ define(
         Component,
         additionalValidators,
         placeOrderAction,
-        quote,
         ko,
         checkoutData,
         selectPaymentMethodAction
     ) {
         'use strict';
 
+
+        /**
+         * Add validation methods
+         */
+        $.validator.addMethod(
+            'validateCvc',
+            function (value) {
+                // Create a proper validation for CVC, and apply this method for the other fields as well.
+
+                // var patternIBAN = new RegExp('^[a-zA-Z]{2}[0-9]{2}[a-zA-Z0-9]{4}[0-9]{7}([a-zA-Z0-9]?){0,16}$');
+                // return false;
+            },
+            $.mage.__('Enter Valid IBAN')
+        );
+
         return Component.extend(
             {
                 defaults: {
-                    template: 'TIG_Buckaroo/payment/tig_buckaroo_creditcards',
-                    CardNumber: null,
-                    Cvc: null,
-                    CardHolderName: null,
-                    ExpirationYear: null,
-                    ExpirationMonth: null
+                    template        : 'TIG_Buckaroo/payment/tig_buckaroo_creditcards',
+                    CardNumber      : null,
+                    Cvc             : null,
+                    CardHolderName  : null,
+                    ExpirationYear  : null,
+                    ExpirationMonth : null
+
                 },
                 paymentFeeLabel : window.checkoutConfig.payment.buckaroo.creditcards.paymentFeeLabel,
                 currencyCode : window.checkoutConfig.quoteData.quote_currency_code,
@@ -98,6 +112,10 @@ define(
                         ]
                     );
 
+                    /** Subscribe the fields to validate them on changes. The .valid() method will force the $.validator to run **/
+                    // check if this is actually necessary, because this.validate is being run in the computed function below.
+                    this.Cvc.subscribe(this.validate, this);
+
                     /** Check used to see if input is valid **/
                     this.buttoncheck = ko.computed(
                         function () {
@@ -107,13 +125,17 @@ define(
                                 this.CardHolderName() !== null &&
                                 this.ExpirationYear() !== null &&
                                 this.ExpirationMonth() !== null &&
-                                this.validate(this.country)
+                                this.validate()
                             );
                         },
                         this
                     );
 
                     return this;
+                },
+
+                observeCardNumber: function (value) {
+                    console.log('test123');
                 },
 
                 selectPaymentMethod: function () {
@@ -127,7 +149,7 @@ define(
                 /**
                  * Run validation function
                  */
-                validate: function (country) {
+                validate: function () {
                     var elements = $('.' + this.getCode() + ' [data-validate]:not([name*="agreement"])');
                     this.selectPaymentMethod();
                     return elements.valid();
