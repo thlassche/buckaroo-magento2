@@ -90,7 +90,9 @@ define(
                     termsUrl: 'https://www.afterpay.nl/nl/klantenservice/betalingsvoorwaarden/',
                     termsValidate: false,
                     genderValidate: null,
-                    showGenderValue: null
+                    identificationValidate: null,
+                    showGenderValue: null,
+                    showIdentificationValue: null,
                 },
                 redirectAfterPlaceOrder : true,
                 paymentFeeLabel : window.checkoutConfig.payment.buckaroo.afterpay20.paymentFeeLabel,
@@ -125,8 +127,10 @@ define(
                             'termsUrl',
                             'termsValidate',
                             'genderValidate',
+                            'identificationValidate',
                             'dummy',
-                            'showGenderValue'
+                            'showGenderValue',
+                            'showIdentificationValue',
                         ]
                     );
 
@@ -134,6 +138,15 @@ define(
                         function () {
                             if (this.showGenderValue() !== null) {
                                 return this.showGenderValue();
+                            }
+                        },
+                        this
+                    );
+
+                    this.showIdentification = ko.computed(
+                        function () {
+                            if (this.showIdentificationValue() !== null) {
+                                return this.showIdentificationValue();
                             }
                         },
                         this
@@ -248,6 +261,12 @@ define(
                             } else {
                                 this.showGenderValue(false);
                             }
+
+                            if (this.country !== null && (this.country == 'FI')) {
+                                this.showIdentificationValue(true);
+                            } else {
+                                this.showIdentificationValue(false);
+                            }
                         }.bind(this)
                     );
 
@@ -294,6 +313,7 @@ define(
                     this.dateValidate.subscribe(runValidation,this);
                     this.termsValidate.subscribe(runValidation,this);
                     this.genderValidate.subscribe(runValidation,this);
+                    this.identificationValidate.subscribe(runValidation,this);
                     this.dummy.subscribe(runValidation,this);
 
                     /**
@@ -416,6 +436,7 @@ define(
                         "additional_data": {
                             "customer_telephone" : this.telephoneNumber(),
                             "customer_gender" : this.genderValidate(),
+                            "customer_indentificationNumber" : this.identificationValidate(),
                             "customer_billingName" : this.BillingName(),
                             "customer_DoB" : this.dateValidate(),
                             "termsCondition" : this.termsValidate(),

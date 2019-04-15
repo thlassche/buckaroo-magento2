@@ -43,9 +43,9 @@ use Magento\Catalog\Model\Product\Type;
 use Magento\Sales\Api\Data\CreditmemoInterface;
 use Magento\Sales\Api\Data\InvoiceInterface;
 use Magento\Sales\Api\Data\OrderInterface;
-use TIG\Buckaroo\Service\Software\Data as SoftwareData;
 use Magento\Tax\Model\Calculation;
 use Magento\Tax\Model\Config;
+use TIG\Buckaroo\Service\Software\Data as SoftwareData;
 
 class Afterpay20 extends AbstractMethod
 {
@@ -329,10 +329,9 @@ class Afterpay20 extends AbstractMethod
          * @noinspection PhpUndefinedMethodInspection
          */
         $services = [
-            'Name'             => $this->getPaymentMethodName($payment),
+            'Name'             => 'afterpay',
             'Action'           => 'Pay',
-            'RequestParameter' =>
-                $this->getAfterPayRequestParameters($payment),
+            'RequestParameter' => $this->getAfterPayRequestParameters($payment),
         ];
 
         /**
@@ -347,7 +346,8 @@ class Afterpay20 extends AbstractMethod
          * @todo when buckaroo changes the push / response order this can be removed
          */
         $payment->setAdditionalInformation(
-            'skip_push', 1
+            'skip_push',
+            1
         );
 
         return $transactionBuilder;
@@ -416,7 +416,6 @@ class Afterpay20 extends AbstractMethod
 
         $services['RequestParameter'] = $articles;
 
-
         /**
          * @noinspection PhpUndefinedMethodInspection
          */
@@ -431,10 +430,9 @@ class Afterpay20 extends AbstractMethod
                 )
             );
 
-
         // Partial Capture Settings
         if ($capturePartial) {
-            $transactionBuilder->setInvoiceId($payment->getOrder()->getIncrementId(). '-' . $numberOfInvoices)
+            $transactionBuilder->setInvoiceId($payment->getOrder()->getIncrementId() . '-' . $numberOfInvoices)
                 ->setOriginalTransactionKey($payment->getParentTransactionId());
         }
 
@@ -451,8 +449,7 @@ class Afterpay20 extends AbstractMethod
         $services = [
             'Name'             => $this->getPaymentMethodName($payment),
             'Action'           => 'Authorize',
-            'RequestParameter' =>
-                $this->getAfterPayRequestParameters($payment),
+            'RequestParameter' => $this->getAfterPayRequestParameters($payment),
         ];
 
         /**
@@ -467,7 +464,8 @@ class Afterpay20 extends AbstractMethod
          * @todo when buckaroo changes the push / response order this can be removed
          */
         $payment->setAdditionalInformation(
-            'skip_push', 1
+            'skip_push',
+            1
         );
 
         return $transactionBuilder;
@@ -660,7 +658,8 @@ class Afterpay20 extends AbstractMethod
 
         if (!empty($taxLine)) {
             $requestData = array_merge($requestData, $taxLine);
-            $count++;     }
+            $count++;
+        }
 
         return $requestData;
     }
@@ -676,7 +675,7 @@ class Afterpay20 extends AbstractMethod
         $includesTax = $this->_scopeConfig->getValue(static::TAX_CALCULATION_INCLUDES_TAX);
 
         // Set loop variables
-        $articles = array();
+        $articles = [];
         $count    = 1;
 
         foreach ($invoice->getAllItems() as $item) {
@@ -703,7 +702,7 @@ class Afterpay20 extends AbstractMethod
                 $count++;
                 $article = $this->getArticleArrayLine(
                     $count,
-                    'Korting op '. (int) $item->getQty() . ' x ' . $item->getName(),
+                    'Korting op ' . (int) $item->getQty() . ' x ' . $item->getName(),
                     $item->getProductId(),
                     1,
                     number_format(($item->getDiscountAmount()*-1), 2),
@@ -816,7 +815,6 @@ class Afterpay20 extends AbstractMethod
      */
     public function getPartialRequestGrandTotal($lastestKey, $invoice)
     {
-
         $article = $this->getArticleArrayLine(
             $lastestKey,
             'Total',
@@ -1279,6 +1277,15 @@ class Afterpay20 extends AbstractMethod
             $billingData[] = [
                 '_'    => $streetFormat['number_addition'],
                 'Name' => 'StreetNumberAdditional',
+                'Group' => 'BillingCustomer',
+                'GroupID' => '',
+            ];
+        }
+
+        if ($billingAddress->getCountryId() == 'FI') {
+            $billingData[] = [
+                '_'    => '',
+                'Name' => 'IdentificationNumber',
                 'Group' => 'BillingCustomer',
                 'GroupID' => '',
             ];
