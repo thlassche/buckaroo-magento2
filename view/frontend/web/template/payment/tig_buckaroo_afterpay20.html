@@ -61,9 +61,12 @@
                             <input id="tig_buckaroo_afterpay20_Identificationnumber"
                                    class="input-text field"
                                    type="text"
+                                   name="payment[tig_buckaroo_afterpay20][buckaroo_identification_number]"
                                    data-bind="
                                    attr: { 'data-validate': JSON.stringify({ 'required': true }) },
                                    checked: identificationValidate
+                                   valueUpdate: 'blur',
+                                   value: identificationValidate
                                    ">
                         </div>
                     </div>

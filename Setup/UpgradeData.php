@@ -489,6 +489,34 @@ class UpgradeData implements \Magento\Framework\Setup\UpgradeDataInterface
         if (version_compare($context->getVersion(), '1.5.3', '<')) {
             $this->installPaymentFeeInclTaxColumns($setup);
         }
+
+        if (version_compare($context->getVersion(), '1.9.3', '<')) {
+            $this->installIdentificationNumber($setup);
+        }
+    }
+
+    /**
+     * @param ModuleDataSetupInterface $setup
+     *
+     * @return $this
+     */
+    public function installIdentificationNumber(ModuleDataSetupInterface $setup)
+    {
+        /**
+         * @noinspection PhpUndefinedMethodInspection
+         */
+        $salesInstaller = $this->salesSetupFactory->create(['resourceName' => 'sales_setup', 'setup' => $setup]);
+
+        /**
+         * @noinspection PhpUndefinedMethodInspection
+         */
+        $salesInstaller->addAttribute(
+            'order',
+            'buckaroo_identification_number',
+            ['type' => \Magento\Framework\DB\Ddl\Table::TYPE_TEXT]
+        );
+
+        return $this;
     }
 
     /**

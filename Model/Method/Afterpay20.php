@@ -262,10 +262,8 @@ class Afterpay20 extends AbstractMethod
             $additionalData = $data['additional_data'];
             $this->getInfoInstance()->setAdditionalInformation('termsCondition', $additionalData['termsCondition']);
             $this->getInfoInstance()->setAdditionalInformation('customer_gender', $additionalData['customer_gender']);
-            $this->getInfoInstance()->setAdditionalInformation(
-                'customer_billingName',
-                $additionalData['customer_billingName']
-            );
+            $this->getInfoInstance()->setAdditionalInformation('customer_billingName', $additionalData['customer_billingName']);
+            $this->getInfoInstance()->setAdditionalInformation('customer_identificationNumber', $additionalData['customer_identificationNumber']);
 
             $dobDate = \DateTime::createFromFormat('d/m/Y', $additionalData['customer_DoB']);
             $dobDate = (!$dobDate ? $additionalData['customer_DoB'] : $dobDate->format('Y-m-d'));
@@ -1175,10 +1173,12 @@ class Afterpay20 extends AbstractMethod
         /**
          * @var \Magento\Sales\Api\Data\OrderAddressInterface $billingAddress
          */
-        $billingAddress = $payment->getOrder()->getBillingAddress();
+        $order = $payment->getOrder();
+        $billingAddress = $order->getBillingAddress();
         $streetFormat   = $this->formatStreet($billingAddress->getStreet());
 
         $birthDayStamp = str_replace('/', '-', $payment->getAdditionalInformation('customer_DoB'));
+        $identificationNumber = $payment->getAdditionalInformation('customer_identificationNumber');
         $telephone = $payment->getAdditionalInformation('customer_telephone');
         $telephone = (empty($telephone) ? $billingAddress->getTelephone() : $telephone);
         $category = 'Person';
@@ -1284,7 +1284,7 @@ class Afterpay20 extends AbstractMethod
 
         if ($billingAddress->getCountryId() == 'FI') {
             $billingData[] = [
-                '_'    => '',
+                '_'    => $identificationNumber,
                 'Name' => 'IdentificationNumber',
                 'Group' => 'BillingCustomer',
                 'GroupID' => '',

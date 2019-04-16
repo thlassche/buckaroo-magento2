@@ -81,6 +81,7 @@ define(
                     telephoneNumber: null,
                     selectedGender: null,
                     selectedBusiness: 1,
+                    identificationNumber: null,
                     firstName: '',
                     lastName: '',
                     CustomerName: null,
@@ -323,6 +324,7 @@ define(
                         function () {
                             return (this.telephoneNumber() !== null || this.hasTelephoneNumber) &&
                             ((this.country != 'NL' && this.country != 'BE') || this.selectedGender() !== null) &&
+                                (this.country != 'FI' || this.identificationValidate() !== null) &&
                             this.BillingName() !== null &&
                             this.dateValidate() !== null &&
                             this.termsValidate() !== false &&
@@ -429,14 +431,13 @@ define(
                     if (business == BUSINESS_METHOD_BOTH) {
                         business = this.selectedBusiness();
                     }
-
                     return {
                         "method": this.item.method,
                         "po_number": null,
                         "additional_data": {
                             "customer_telephone" : this.telephoneNumber(),
                             "customer_gender" : this.genderValidate(),
-                            "customer_indentificationNumber" : this.identificationValidate(),
+                            "customer_identificationNumber" : this.identificationValidate(),
                             "customer_billingName" : this.BillingName(),
                             "customer_DoB" : this.dateValidate(),
                             "termsCondition" : this.termsValidate(),
