@@ -29,7 +29,7 @@
                             valueUpdate: 'keyup',
                             value: CardNumber,
                             textInput: CardNumber(),
-                            attr: { 'data-validate': JSON.stringify({ 'required': true }) },
+                            attr: { 'data-validate': JSON.stringify({ 'required': true, 'validateCardNumber': true }) },
                             event: { blur: encryptCardDetails }">
                         </div>
                     </div>
@@ -61,7 +61,7 @@
                             valueUpdate: 'keyup',
                             value: CardHolderName,
                             textInput: CardHolderName(),
-                            attr: { 'data-validate': JSON.stringify({ 'required': true }) },
+                            attr: { 'data-validate': JSON.stringify({ 'required': true, 'validateCardHolderName': true }) },
                             event: { blur: encryptCardDetails }">
                         </div>
                     </div>
@@ -77,7 +77,7 @@
                             valueUpdate: 'keyup',
                             value: ExpirationYear,
                             textInput: ExpirationYear(),
-                            attr: { 'data-validate': JSON.stringify({ 'required': true }), 'min': getMinExpirationYear(), 'max': getMaxExpirationYear() },
+                            attr: { 'data-validate': JSON.stringify({ 'required': true, 'validateYear': true }), 'min': getMinExpirationYear(), 'max': getMaxExpirationYear() },
                             event: { blur: encryptCardDetails }">
                         </div>
                     </div>
@@ -95,7 +95,7 @@
                             valueUpdate: 'keyup',
                             value: ExpirationMonth,
                             textInput: ExpirationMonth(),
-                            attr: { 'data-validate': JSON.stringify({ 'required': true }) },
+                            attr: { 'data-validate': JSON.stringify({ 'required': true, 'validateMonth': true }) },
                             event: { blur: encryptCardDetails }">
                         </div>
                     </div>

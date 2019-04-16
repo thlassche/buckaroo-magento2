@@ -63,15 +63,30 @@ define(
         /**
          * Add validation methods
          */
-        $.validator.addMethod(
-            'validateCvc',
-            function (value) {
-                // Create a proper validation for CVC, and apply this method for the other fields as well.
-
-                // var patternIBAN = new RegExp('^[a-zA-Z]{2}[0-9]{2}[a-zA-Z0-9]{4}[0-9]{7}([a-zA-Z0-9]?){0,16}$');
-                // return false;
+        $.validator.addMethod('validateCardNumber', function (value) {
+                return BuckarooClientSideEncryption.V001.validateCardNumber(value);
             },
-            $.mage.__('Enter Valid IBAN')
+            $.mage.__('Enter a valid creditcard number.')
+        );
+        $.validator.addMethod('validateCvc', function (value) {
+                return BuckarooClientSideEncryption.V001.validateCvc(value);
+            },
+            $.mage.__('Enter a valid Cvc number.')
+        );
+        $.validator.addMethod('validateCardHolderName', function (value) {
+                return BuckarooClientSideEncryption.V001.validateCardholderName(value);
+            },
+            $.mage.__('Enter a valid card holder name.')
+        );
+        $.validator.addMethod('validateYear', function (value) {
+                return BuckarooClientSideEncryption.V001.validateYear(value);
+            },
+            $.mage.__('Enter a valid year number.')
+        );
+        $.validator.addMethod('validateMonth', function (value) {
+                return BuckarooClientSideEncryption.V001.validateMonth(value);
+            },
+            $.mage.__('Enter a valid month number.')
         );
 
         return Component.extend(
@@ -82,8 +97,8 @@ define(
                     Cvc             : null,
                     CardHolderName  : null,
                     ExpirationYear  : null,
-                    ExpirationMonth : null
-
+                    ExpirationMonth : null,
+                    EncryptedData   : null
                 },
                 paymentFeeLabel : window.checkoutConfig.payment.buckaroo.creditcards.paymentFeeLabel,
                 currencyCode : window.checkoutConfig.quoteData.quote_currency_code,
@@ -108,13 +123,18 @@ define(
                             'Cvc',
                             'CardHolderName',
                             'ExpirationYear',
-                            'ExpirationMonth'
+                            'ExpirationMonth',
+                            'EncryptedData'
                         ]
                     );
 
                     /** Subscribe the fields to validate them on changes. The .valid() method will force the $.validator to run **/
                     // check if this is actually necessary, because this.validate is being run in the computed function below.
-                    this.Cvc.subscribe(this.validate, this);
+                    this.CardNumber.subscribe(this.encryptCardDetails, this);
+                    this.Cvc.subscribe(this.encryptCardDetails, this);
+                    this.CardHolderName.subscribe(this.encryptCardDetails, this);
+                    this.ExpirationYear.subscribe(this.encryptCardDetails, this);
+                    this.ExpirationMonth.subscribe(this.encryptCardDetails, this);
 
                     /** Check used to see if input is valid **/
                     this.buttoncheck = ko.computed(
@@ -125,6 +145,7 @@ define(
                                 this.CardHolderName() !== null &&
                                 this.ExpirationYear() !== null &&
                                 this.ExpirationMonth() !== null &&
+                                this.EncryptedData() !== null &&
                                 this.validate()
                             );
                         },
@@ -132,10 +153,6 @@ define(
                     );
 
                     return this;
-                },
-
-                observeCardNumber: function (value) {
-                    console.log('test123');
                 },
 
                 selectPaymentMethod: function () {
@@ -204,8 +221,39 @@ define(
                 },
 
                 encryptCardDetails: function () {
-                    // Here is where the encryption should happen.
-                    console.log('test');
+                    var self = this;
+
+                    if (this.validate()) {
+                        var cardNumber = this.CardNumber();
+                        var year =    this.ExpirationYear();
+                        var month =    this.ExpirationMonth();
+                        var cvc =    this.Cvc();
+                        var cardholder =    this.CardHolderName();
+
+                        var getEncryptedData = function(cardNumber, year, month, cvc, cardholder) {
+                            BuckarooClientSideEncryption.V001.encryptCardData(cardNumber,
+                                year,
+                                month,
+                                cvc,
+                                cardholder,
+                                function(encryptedCardData) {
+                                    self.EncryptedData(encryptedCardData);
+                                });
+                        };
+                        getEncryptedData(cardNumber, year, month, cvc, cardholder);
+
+                    }
+                },
+
+                getData: function () {
+                    return {
+                        "method": this.item.method,
+                        "po_number": null,
+                        "additional_data": {
+                            "customer_encrypteddata" : this.EncryptedData(),
+                            "customer_creditcardcompany" : 'Mastercard'
+                        }
+                    };
                 },
 
                 getMinExpirationYear: function () {
