@@ -169,6 +169,29 @@ class Creditcards extends AbstractMethod
         $this->serviceParameters = $serviceParameters;
     }
 
+    public function assignData(\Magento\Framework\DataObject $data)
+    {
+        parent::assignData($data);
+
+        $data = $this->assignDataConvertToArray($data);
+
+        if (isset($data['additional_data']['customer_encrypteddata'])) {
+            $this->getInfoInstance()->setAdditionalInformation(
+                'customer_encrypteddata',
+                $data['additional_data']['customer_encrypteddata']
+            );
+        }
+
+        if (isset($data['additional_data']['customer_creditcardcompany'])) {
+            $this->getInfoInstance()->setAdditionalInformation(
+                'customer_creditcardcompany',
+                $data['additional_data']['customer_creditcardcompany']
+            );
+        }
+
+        return $this;
+    }
+
     /**
      * {@inheritdoc}
      */
@@ -211,49 +234,29 @@ class Creditcards extends AbstractMethod
      * @param \Magento\Sales\Api\Data\OrderPaymentInterface|\Magento\Payment\Model\InfoInterface $payment
      *
      * @return array
+     * @throws \TIG\Buckaroo\Exception
      */
     public function getCreditcardsService($payment)
     {
-        /** @var \TIG\Buckaroo\Model\ConfigProvider\Method\Creditcards $creditcardsConfig */
-        $creditcardsConfig = $this->configProviderMethodFactory->get('creditcards');
+        $additionalInformation = $payment->getAdditionalInformation();
 
-        $dueDays = abs($creditcardsConfig->getDueDate());
+        if (!isset($additionalInformation['customer_encrypteddata'])) {
+            throw new \TIG\Buckaroo\Exception(__('An error occured trying to send the encrypted creditcard data to Buckaroo.'));
+        }
 
-        $now = new \DateTime();
-        $now->modify('+' . $dueDays . ' day');
-
-        /**@var \Magento\Sales\Model\Order\Address $billingAddress */
-        $billingAddress = $payment->getOrder()->getBillingAddress();
+        if (!isset($additionalInformation['customer_creditcardcompany'])) {
+            throw new \TIG\Buckaroo\Exception(__('An error occured trying to send the creditcard company data to Buckaroo.'));
+        }
 
         $services = [
-            'Name'             => 'creditcards',
-            'Action'           => 'Pay',
+            'Name'             => $additionalInformation['customer_creditcardcompany'],
+            'Action'           => 'PayEncrypted',
             'Version'          => 2,
             'RequestParameter' => [
                 [
-                    '_'    => $billingAddress->getFirstname(),
-                    'Name' => 'CustomerFirstName',
+                    '_'    => $additionalInformation['customer_encrypteddata'],
+                    'Name' => 'EncryptedCardData',
                 ],
-                [
-                    '_'    => $billingAddress->getLastname(),
-                    'Name' => 'CustomerLastName',
-                ],
-                [
-                    '_'    => $billingAddress->getCountryId(),
-                    'Name' => 'CustomerCountry',
-                ],
-                [
-                    '_'    => $payment->getOrder()->getCustomerEmail(),
-                    'Name' => 'CustomerEmail',
-                ],
-                [
-                    '_'    => $now->format('Y-m-d'),
-                    'Name' => 'DateDue'
-                ],
-                [
-                    '_'    => $creditcardsConfig->getSendEmail(),
-                    'Name' => 'SendMail'
-                ]
             ],
         ];
 
