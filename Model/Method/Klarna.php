@@ -42,12 +42,12 @@ namespace TIG\Buckaroo\Model\Method;
 use Magento\Payment\Model\InfoInterface;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\OrderPaymentInterface;
+use TIG\Buckaroo\Service\Formatter\AddressFormatter;
 use TIG\Buckaroo\Service\Software\Data as SoftwareData;
 use Magento\Tax\Model\Calculation;
 use Magento\Tax\Model\Config;
 use Magento\Checkout\Model\Cart;
 use Zend_Locale;
-
 
 class Klarna extends AbstractMethod
 {
@@ -155,17 +155,11 @@ class Klarna extends AbstractMethod
     /** @var Cart */
     private $cart;
 
-    /** @var \TIG\Buckaroo\Model\ConfigProvider\BuckarooFee */
-    protected $configProviderBuckarooFee;
-
-    /** @var \TIG\Buckaroo\Model\ConfigProvider\Method\Klarna */
-    protected $configProviderKlarna;
-
-    protected $session;
+    /** @var AddressFormatter */
+    private $addressFormatter;
 
     /**
      * @param \Magento\Framework\ObjectManagerInterface $objectManager
-     * @param \Magento\Framework\Session\SessionManagerInterface $session
      * @param \Magento\Framework\Model\Context $context
      * @param \Magento\Framework\Registry $registry
      * @param \Magento\Framework\Api\ExtensionAttributesFactory $extensionFactory
@@ -174,12 +168,11 @@ class Klarna extends AbstractMethod
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
      * @param \Magento\Payment\Model\Method\Logger $logger
      * @param \Magento\Developer\Helper\Data $developmentHelper
-     * @param \TIG\Buckaroo\Model\ConfigProvider\BuckarooFee $configProviderBuckarooFee
-     * @param \TIG\Buckaroo\Model\ConfigProvider\Method\Klarna $configProviderKlarna
      * @param SoftwareData $softwareData
      * @param Config $taxConfig
      * @param Calculation $taxCalculation
      * @param Cart $cart
+     * @param AddressFormatter $addressFormatter
      * @param \Magento\Framework\Model\ResourceModel\AbstractResource $resource
      * @param \Magento\Framework\Data\Collection\AbstractDb $resourceCollection
      * @param \TIG\Buckaroo\Gateway\GatewayInterface $gateway
@@ -195,7 +188,6 @@ class Klarna extends AbstractMethod
      */
     public function __construct(
         \Magento\Framework\ObjectManagerInterface $objectManager,
-        \Magento\Framework\Session\SessionManagerInterface $session,
         \Magento\Framework\Model\Context $context,
         \Magento\Framework\Registry $registry,
         \Magento\Framework\Api\ExtensionAttributesFactory $extensionFactory,
@@ -204,12 +196,11 @@ class Klarna extends AbstractMethod
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
         \Magento\Payment\Model\Method\Logger $logger,
         \Magento\Developer\Helper\Data $developmentHelper,
-        \TIG\Buckaroo\Model\ConfigProvider\BuckarooFee $configProviderBuckarooFee,
-        \TIG\Buckaroo\Model\ConfigProvider\Method\Klarna $configProviderKlarna,
         SoftwareData $softwareData,
         Config $taxConfig,
         Calculation $taxCalculation,
         Cart $cart,
+        AddressFormatter $addressFormatter,
         \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
         \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
         \TIG\Buckaroo\Gateway\GatewayInterface $gateway = null,
@@ -247,20 +238,15 @@ class Klarna extends AbstractMethod
             $data
         );
 
-        $this->configProviderBuckarooFee = $configProviderBuckarooFee;
-        $this->configProviderKlarna = $configProviderKlarna;
         $this->softwareData = $softwareData;
         $this->taxConfig = $taxConfig;
         $this->taxCalculation = $taxCalculation;
         $this->cart = $cart;
-        $this->session = $session;
+        $this->addressFormatter = $addressFormatter;
     }
 
     /**
-     * Check capture availability
-     *
-     * @return bool
-     * @api
+     * {@inheritDoc}
      */
     public function canCapture()
     {
@@ -275,12 +261,7 @@ class Klarna extends AbstractMethod
      */
     public function getOrderTransactionBuilder($payment)
     {
-
-    }
-
-    public function cancelOrderTransactionBuilder($payment)
-    {
-
+        return false;
     }
 
     /**
@@ -318,10 +299,10 @@ class Klarna extends AbstractMethod
         $group = 1;
         $transactionBuilder = $this->transactionBuilderFactory->get('order');
 
-        $capturePartial = false;
+        $capturePartial = true;
 
+        /** @var \Magento\Sales\Model\Order $order */
         $order = $payment->getOrder();
-        $order_id = $order->getId();
 
         $totalOrder = $order->getBaseGrandTotal();
 
@@ -346,9 +327,6 @@ class Klarna extends AbstractMethod
         if ($totalOrder == $currentInvoiceTotal && $numberOfInvoices == 1) {
             //full capture
             $capturePartial = false;
-        } else {
-            //partial capture
-            $capturePartial = true;
         }
 
         /**
@@ -391,7 +369,6 @@ class Klarna extends AbstractMethod
             unset($shippingCosts[3]);
             unset($shippingCosts[4]);
             $articles = array_merge($articles, $shippingCosts);
-            $group++;
         }
 
         $services['RequestParameter'] = $articles;
@@ -424,10 +401,9 @@ class Klarna extends AbstractMethod
     {
         $transactionBuilder = $this->transactionBuilderFactory->get('refund');
 
-        $capturePartial = false;
+        $capturePartial = true;
 
         $order = $payment->getOrder();
-        $order_id = $order->getId();
 
         $totalOrder = $order->getBaseGrandTotal();
 
@@ -444,7 +420,6 @@ class Klarna extends AbstractMethod
                     continue;
                 }
 
-                $currentInvoice = $oInvoice;
                 $currentInvoiceTotal = $oInvoice->getBaseGrandTotal();
             }
         }
@@ -452,9 +427,6 @@ class Klarna extends AbstractMethod
         if ($totalOrder == $currentInvoiceTotal && $numberOfInvoices == 1) {
             //full capture
             $capturePartial = false;
-        } else {
-            //partial capture
-            $capturePartial = true;
         }
 
         $services = [
@@ -508,7 +480,7 @@ class Klarna extends AbstractMethod
     }
 
     /**
-     * @param \Magento\Sales\Api\Data\OrderPaymentInterface|\Magento\Payment\Model\InfoInterface $payment
+     * @param OrderPaymentInterface|InfoInterface $payment
      *
      * @return array
      */
@@ -518,20 +490,16 @@ class Klarna extends AbstractMethod
          * @var \Magento\Sales\Api\Data\OrderAddressInterface $shippingAddress
          */
         $shippingAddress = $payment->getOrder()->getShippingAddress();
-        $streetFormat = $this->formatStreet($shippingAddress->getStreet());
+        $streetFormat = $this->addressFormatter->formatStreet($shippingAddress->getStreet());
         $shippingSameAsBilling = $this->isAddressDataDifferent($payment);
-        $additionalFields = $this->session->getData('additionalFields');
 
 
         $rawPhoneNumber = $shippingAddress->getTelephone();
         if (!is_numeric($rawPhoneNumber) || $rawPhoneNumber == '-') {
-            $rawPhoneNumber = $additionalFields['BPE_customer_phonenumber'];
+            $rawPhoneNumber = $payment->getAdditionalInformation('customer_telephone');
         }
 
-        $phoneNumber = $this->processPhoneNumber($rawPhoneNumber);
-        if ($shippingAddress->getCountryId() == 'BE') {
-            $phoneNumber = $this->processPhoneNumberBe($rawPhoneNumber);
-        }
+        $phoneNumber = $this->addressFormatter->formatTelephone($rawPhoneNumber, $shippingAddress->getCountryId());
 
         $shippingData = [
             [
@@ -595,211 +563,6 @@ class Klarna extends AbstractMethod
     }
 
     /**
-     * The final output should look like 0031123456789 or 0031612345678
-     * So 13 characters max else number is not valid
-     *
-     * @param $telephoneNumber
-     *
-     * @return array
-     */
-    private function processPhoneNumber($telephoneNumber)
-    {
-        $number = $telephoneNumber;
-
-        //strip out the non-numeric characters:
-        $match = preg_replace('/[^0-9]/Uis', '', $number);
-        if ($match) {
-            $number = $match;
-        }
-
-        $return = array(
-            "orginal" => $number,
-            "clean" => false,
-            "mobile" => $this->_isMobileNumber($number),
-            "valid" => false
-        );
-        $numberLength = strlen((string)$number);
-
-        if ($numberLength == 13) {
-            $return['valid'] = true;
-            $return['clean'] = $number;
-        } elseif ($numberLength > 13 || $numberLength == 12 || $numberLength == 11) {
-            $return['clean'] = $this->_isValidNotation($number);
-
-            if (strlen((string)$return['clean']) == 13) {
-                $return['valid'] = true;
-            }
-        } elseif ($numberLength == 10) {
-            $return['clean'] = '0031' . substr($number, 1);
-
-            if (strlen((string) $return['clean']) == 13) {
-                $return['valid'] = true;
-            }
-        } else {
-            $return['valid'] = true;
-            $return['clean'] = $number;
-        }
-
-        return $return;
-    }
-
-    /**
-     * validate the phonenumber
-     *
-     * @param $number
-     * @return mixed
-     */
-    protected function _isValidNotation($number) {
-        //checks if the number is valid, if not: try to fix it
-        $invalidNotations = array("00310", "0310", "310", "31");
-        foreach($invalidNotations as $invalid) {
-            if( strpos( substr( $number, 0, strlen($invalid) ), $invalid ) !== false ) {
-                $valid = substr($invalid, 0, -1);
-                if (substr($valid, 0, 2) == '31') {
-                    $valid = "00" . $valid;
-                }
-                if (substr($valid, 0, 2) == '03') {
-                    $valid = "0" . $valid;
-                }
-                if ($valid == '3'){
-                    $valid = "0" . $valid . "1";
-                }
-                $number = substr_replace($number, $valid, 0, strlen($invalid));
-            }
-        }
-        return $number;
-    }
-
-
-    /**
-     * The final output should look like: 003212345678 or 0032461234567
-     *
-     * @param $telephoneNumber
-     *
-     * @return array
-     */
-    private function processPhoneNumberBe($telephoneNumber)
-    {
-        $number = $telephoneNumber;
-
-        //strip out the non-numeric characters:
-        $match = preg_replace('/[^0-9]/Uis', '', $number);
-        if ($match) {
-            $number = $match;
-        }
-
-        $return = array(
-            "orginal" => $number,
-            "clean" => false,
-            "mobile" => $this->_isMobileNumberBe($number),
-            "valid" => false
-        );
-        $numberLength = strlen((string)$number);
-
-        if (($return['mobile'] && $numberLength == 13) || (!$return['mobile'] && $numberLength == 12)) {
-            $return['valid'] = true;
-            $return['clean'] = $number;
-        } elseif ($numberLength > 13
-            || (!$return['mobile'] && $numberLength > 12)
-            || ($return['mobile'] && ($numberLength == 11 || $numberLength == 12))
-            || (!$return['mobile'] && ($numberLength == 10 || $numberLength == 11))
-        ) {
-            $return['clean'] = $this->_isValidNotationBe($number);
-            $cleanLength = strlen((string)$return['clean']);
-
-            if (($return['mobile'] && $cleanLength == 13) || (!$return['mobile'] && $cleanLength == 12)) {
-                $return['valid'] = true;
-            }
-        } elseif (($return['mobile'] && $numberLength == 10) || (!$return['mobile'] && $numberLength == 9)) {
-            $return['clean'] = '0032'.substr($number, 1);
-            $cleanLength = strlen((string)$return['clean']);
-
-            if (($return['mobile'] && $cleanLength == 13) || (!$return['mobile'] && $cleanLength == 12)) {
-                $return['valid'] = true;
-            }
-        } else {
-            $return['valid'] = true;
-            $return['clean'] = $number;
-        }
-
-        return $return;
-    }
-
-    /**
-     * Checks if the number is a mobile number or not.
-     *
-     * @param string $number
-     *
-     * @return boolean
-     */
-    protected function _isMobileNumber($number) {
-        //this function only checks if it is a mobile number, not checking valid notation
-        $checkMobileArray = array("3106","316","06","00316","003106");
-        foreach($checkMobileArray as $key => $value) {
-
-            if(strpos(substr($number, 0, strlen($value)), $value) !== false) {
-
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Checks if the number is a BE mobile number or not.
-     *
-     * @param string $number
-     *
-     * @return boolean
-     */
-    protected function _isMobileNumberBe($number) {
-        //this function only checks if it is a BE mobile number, not checking valid notation
-        $checkMobileArray = array(
-            "3246","32046","046","003246","0032046",
-            "3247","32407","047","003247","0032047",
-            "3248","32048","048","003248","0032048",
-            "3249","32049","049","003249","0032049"
-        );
-
-        foreach ($checkMobileArray as $key => $value) {
-            if (strpos(substr($number, 0, strlen($value)), $value) !== false) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * validate the BE phonenumber
-     *
-     * @param $number
-     * @return mixed
-     */
-    protected function _isValidNotationBe($number) {
-        //checks if the number is valid, if not: try to fix it
-        $invalidNotations = array("00320", "0320", "320", "32");
-
-        foreach ($invalidNotations as $invalid) {
-            if (strpos(substr($number, 0, strlen($invalid)), $invalid) !== false) {
-                $valid = substr($invalid, 0, -1);
-                if (substr($valid, 0, 2) == '32') {
-                    $valid = "00" . $valid;
-                }
-                if (substr($valid, 0, 2) == '03') {
-                    $valid = "0" . $valid;
-                }
-                if ($valid == '3') {
-                    $valid = "0" . $valid . "2";
-                }
-                $number = substr_replace($number, $valid, 0, strlen($invalid));
-            }
-        }
-
-        return $number;
-    }
-
-    /**
      * @param $invoice
      * @param $payment
      * @return array
@@ -845,12 +608,16 @@ class Klarna extends AbstractMethod
             unset($discountline[3]);
             unset($discountline[4]);
             $articles = array_merge($articles, $discountline);
-            $group++;
         }
 
         return $articles;
     }
 
+    /**
+     * @param $payment
+     *
+     * @return array
+     */
     public function getCancelReservationData($payment)
     {
         $order = $payment->getOrder();
@@ -880,6 +647,11 @@ class Klarna extends AbstractMethod
         $order->save();
     }
 
+    /**
+     * @param $payment
+     *
+     * @return array
+     */
     public function getAdditionalInformation($payment)
     {
         $order = $payment->getOrder();
@@ -903,11 +675,16 @@ class Klarna extends AbstractMethod
     }
 
     /**
-     * @return string
+     * @return bool
+     *
+     * @throws \TIG\Buckaroo\Exception
      */
     private function checkInvoiceSendByEmail()
     {
-        return (string)$this->configProviderKlarna->getInvoiceSendMethod() === 'email';
+        /** @var \TIG\Buckaroo\Model\ConfigProvider\Method\Klarna $klarnaConfig */
+        $klarnaConfig = $this->configProviderMethodFactory->get(self::PAYMENT_METHOD_CODE);
+
+        return (string)$klarnaConfig->getInvoiceSendMethod() === 'email';
     }
 
     /**
@@ -955,10 +732,9 @@ class Klarna extends AbstractMethod
     }
 
     /**
-     * @param \Magento\Sales\Api\Data\OrderPaymentInterface|\Magento\Payment\Model\InfoInterface $payment
+     * @param OrderPaymentInterface|InfoInterface $payment
      *
      * @return array
-     * @throws \TIG\Buckaroo\Exception
      */
     public function getKlarnaRequestParameters($payment)
     {
@@ -969,7 +745,7 @@ class Klarna extends AbstractMethod
         $requestData = array_merge($requestData, $this->getRequestShippingData($payment));
 
         // Merge the article data; products and fee's
-        $requestData = array_merge($requestData, $this->getRequestArticlesData($requestData, $payment));
+        $requestData = array_merge($requestData, $this->getRequestArticlesData($payment));
 
         return $requestData;
     }
@@ -979,7 +755,7 @@ class Klarna extends AbstractMethod
      * Method to compare two addresses from the payment.
      * Returns true if they are the same.
      *
-     * @param \Magento\Sales\Api\Data\OrderPaymentInterface|\Magento\Payment\Model\InfoInterface $payment
+     * @param OrderPaymentInterface|InfoInterface $payment
      *
      * @return boolean
      */
@@ -1005,7 +781,7 @@ class Klarna extends AbstractMethod
     }
 
     /**
-     * @param \Magento\Sales\Api\Data\OrderPaymentInterface|\Magento\Payment\Model\InfoInterface $payment
+     * @param OrderPaymentInterface|InfoInterface $payment
      *
      * @return array
      */
@@ -1015,12 +791,13 @@ class Klarna extends AbstractMethod
          * @var \Magento\Sales\Api\Data\OrderAddressInterface $billingAddress
          */
         $billingAddress = $payment->getOrder()->getBillingAddress();
-        $streetFormat = $this->formatStreet($billingAddress->getStreet());
+        $streetFormat = $this->addressFormatter->formatStreet($billingAddress->getStreet());
 
         $listCountries = Zend_Locale::getTranslationList('territory', 'en_US');
 
         $telephone = $payment->getAdditionalInformation('customer_telephone');
         $telephone = (empty($telephone) ? $billingAddress->getTelephone() : $telephone);
+        $telephone = $this->addressFormatter->formatTelephone($telephone, $billingAddress->getCountryId());
 
         $birthDayStamp = str_replace('-', '', $payment->getAdditionalInformation('customer_DoB'));
         $billingData = [
@@ -1096,52 +873,6 @@ class Klarna extends AbstractMethod
     }
 
     /**
-     *
-     * @return array
-     */
-    public function getRequestCustomerData()
-    {
-        $customerData = [
-            [
-                '_' => $this->getRemoteAddress(),
-                'Name' => 'ClientIP',
-            ]
-        ];
-
-        return $customerData;
-    }
-
-    /**
-     * @param $street
-     *
-     * @return array
-     */
-    public function formatStreet($street)
-    {
-        $street = implode(' ', $street);
-
-        $format = [
-            'house_number' => '',
-            'number_addition' => '',
-            'street' => $street
-        ];
-
-        if (preg_match('#^(.*?)([0-9]+)(.*)#s', $street, $matches)) {
-            // Check if the number is at the beginning of streetname
-            if ('' == $matches[1]) {
-                $format['house_number'] = trim($matches[2]);
-                $format['street'] = trim($matches[3]);
-            } else {
-                $format['street'] = trim($matches[1]);
-                $format['house_number'] = trim($matches[2]);
-                $format['number_addition'] = trim($matches[3]);
-            }
-        }
-
-        return $format;
-    }
-
-    /**
      * @param array $addressOne
      * @param array $addressTwo
      *
@@ -1173,12 +904,11 @@ class Klarna extends AbstractMethod
     }
 
     /**
-     * @param $requestData
      * @param $payment
      *
      * @return array
      */
-    public function getRequestArticlesData($requestData, $payment)
+    public function getRequestArticlesData($payment)
     {
         $includesTax = $this->_scopeConfig->getValue(static::TAX_CALCULATION_INCLUDES_TAX);
 
@@ -1245,13 +975,13 @@ class Klarna extends AbstractMethod
             }
         }
 
+        $requestData = $articles;
+
         $serviceLine = $this->getServiceCostLine($payment->getOrder(), $includesTax, $group);
 
         if (!empty($serviceLine)) {
             $requestData = array_merge($articles, $serviceLine);
             $group++;
-        } else {
-            $requestData = $articles;
         }
 
         // Add aditional shippin costs.
@@ -1266,7 +996,6 @@ class Klarna extends AbstractMethod
 
         if (!empty($discountline)) {
             $requestData = array_merge($requestData, $discountline);
-            $group++;
         }
 
         return $requestData;
@@ -1290,7 +1019,7 @@ class Klarna extends AbstractMethod
     }
 
     /**
-     * @param \Magento\Sales\Api\Data\OrderPaymentInterface|\Magento\Payment\Model\InfoInterface $payment
+     * @param OrderPaymentInterface|InfoInterface $payment
      *
      * @return float|int
      */
@@ -1316,7 +1045,7 @@ class Klarna extends AbstractMethod
     /**
      * Get the discount cost lines
      *
-     * @param \Magento\Sales\Api\Data\OrderPaymentInterface|\Magento\Payment\Model\InfoInterface $payment
+     * @param OrderPaymentInterface|InfoInterface $payment
      * @param $group
      *
      * @return array
@@ -1380,7 +1109,6 @@ class Klarna extends AbstractMethod
             return $shippingCostsArticle;
         }
 
-
         $request = $this->taxCalculation->getRateRequest(null, null, null);
         $taxClassId = $this->taxConfig->getShippingTaxClass();
         $percent = $this->taxCalculation->getRate($request->setProductClassId($taxClassId));
@@ -1392,47 +1120,47 @@ class Klarna extends AbstractMethod
             $shippingAmount += $order->getShippingTaxAmount();
         }
 
-            $shippingCostsArticle = [
-                [
-                    '_' => 2,
-                    'Group' => 'Article',
-                    'GroupID' => $group,
-                    'Name' => 'ArticleNumber',
-                ],
-                [
-                    '_' => $shippingAmount,
-                    'Group' => 'Article',
-                    'GroupID' => $group,
-                    'Name' => 'ArticlePrice',
-                ],
-                [
-                    '_' => 1,
-                    'Group' => 'Article',
-                    'GroupID' => $group,
-                    'Name' => 'ArticleQuantity',
-                ],
-                [
-                    '_' => 'Verzendkosten',
-                    'Group' => 'Article',
-                    'GroupID' => $group,
-                    'Name' => 'ArticleTitle',
-                ],
-                [
-                    '_' => $percent,
-                    'Group' => 'Article',
-                    'GroupID' => $group,
-                    'Name' => 'ArticleVat',
-                ],
-                [
-                    '_' => self::KLARNA_ARTICLE_TYPE_SHIPMENTFEE,
-                    'Group' => 'Article',
-                    'GroupID' => $group,
-                    'Name' => 'ArticleType',
-                ]
-            ];
+        $shippingCostsArticle = [
+            [
+                '_' => 2,
+                'Group' => 'Article',
+                'GroupID' => $group,
+                'Name' => 'ArticleNumber',
+            ],
+            [
+                '_' => $shippingAmount,
+                'Group' => 'Article',
+                'GroupID' => $group,
+                'Name' => 'ArticlePrice',
+            ],
+            [
+                '_' => 1,
+                'Group' => 'Article',
+                'GroupID' => $group,
+                'Name' => 'ArticleQuantity',
+            ],
+            [
+                '_' => 'Verzendkosten',
+                'Group' => 'Article',
+                'GroupID' => $group,
+                'Name' => 'ArticleTitle',
+            ],
+            [
+                '_' => $percent,
+                'Group' => 'Article',
+                'GroupID' => $group,
+                'Name' => 'ArticleVat',
+            ],
+            [
+                '_' => self::KLARNA_ARTICLE_TYPE_SHIPMENTFEE,
+                'Group' => 'Article',
+                'GroupID' => $group,
+                'Name' => 'ArticleType',
+            ]
+        ];
 
-            return $shippingCostsArticle;
-        }
+        return $shippingCostsArticle;
+    }
 
     /**
      * Get the service cost lines (buckfee)
@@ -1455,7 +1183,6 @@ class Klarna extends AbstractMethod
         $items = $order->getItems();
 
         foreach ($items as $data) {
-
             $article = [];
 
             if (false !== $buckarooFee && (double)$buckarooFee > 0) {
