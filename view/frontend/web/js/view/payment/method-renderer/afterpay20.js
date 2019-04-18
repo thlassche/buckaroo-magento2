@@ -92,8 +92,9 @@ define(
                     termsValidate: false,
                     genderValidate: null,
                     identificationValidate: null,
-                    showGenderValue: null,
+                    showNLBEFieldsValue: true,
                     showIdentificationValue: null,
+                    showFrenchTosValue: null,
                 },
                 redirectAfterPlaceOrder : true,
                 paymentFeeLabel : window.checkoutConfig.payment.buckaroo.afterpay20.paymentFeeLabel,
@@ -130,15 +131,16 @@ define(
                             'genderValidate',
                             'identificationValidate',
                             'dummy',
-                            'showGenderValue',
+                            'showNLBEFieldsValue',
                             'showIdentificationValue',
+                            'showFrenchTosValue',
                         ]
                     );
 
-                    this.showGender = ko.computed(
+                    this.showNLBEFields = ko.computed(
                         function () {
-                            if (this.showGenderValue() !== null) {
-                                return this.showGenderValue();
+                            if (this.showNLBEFieldsValue() !== null) {
+                                return this.showNLBEFieldsValue();
                             }
                         },
                         this
@@ -152,6 +154,32 @@ define(
                         },
                         this
                     );
+
+                    this.showFrenchTos = ko.computed(
+                        function () {
+                            if (this.showFrenchTosValue() !== null) {
+                                return this.showFrenchTosValue();
+                            }
+                        },
+                        this
+                    );
+
+                    this.updateShowFields = function () {
+                        if (this.country === null) {
+                            return;
+                        }
+
+                        this.showNLBEFieldsValue(false);
+                        this.showIdentificationValue(false);
+
+                        if (this.country === 'NL' || this.country === 'BE') {
+                            this.showNLBEFieldsValue(true);
+                        }
+
+                        if (this.country === 'FI') {
+                            this.showIdentificationValue(true);
+                        }
+                    };
 
                     this.businessMethod = window.checkoutConfig.payment.buckaroo.afterpay20.businessMethod;
                     this.paymentMethod  = window.checkoutConfig.payment.buckaroo.afterpay20.paymentMethod;
@@ -174,70 +202,10 @@ define(
                         this.BillingName(this.CustomerName());
                     };
 
-                    this.updateTermsUrl = function(country) {
-                        this.country = country;
-                        var newUrl = '';
-
-                        switch (this.paymentMethod) {
-                            case PAYMENT_METHOD_ACCEPTGIRO:
-                                newUrl = getAcceptgiroUrl();
-                                break;
-                            case PAYMENT_METHOD_DIGIACCEPT:
-                                newUrl = getDigiacceptUrl();
-                                break;
-                            default:
-                                newUrl = 'https://www.afterpay.nl/nl/algemeen/betalen-met-afterpay/betalingsvoorwaarden';
-                                break;
-                        }
-
-                        this.termsUrl(newUrl);
-                    };
-
-                    var getAcceptgiroUrl = function() {
-                        if (this.country === 'NL') {
-                            return 'https://documents.myafterpay.com/consumer-terms-conditions/nl_nl/';
-                        }
-                        if (this.country === 'DE') {
-                            return 'https://documents.myafterpay.com/consumer-terms-conditions/de_de/';
-                        }
-                        if (this.country === 'BE') {
-                            return 'https://documents.myafterpay.com/consumer-terms-conditions/nl_be/';
-                        }
-                        if (this.country === 'AT') {
-                            return 'https://documents.myafterpay.com/consumer-terms-conditions/de_at/';
-                        }
-                        if (this.country === 'FI') {
-                            return 'https://documents.myafterpay.com/consumer-terms-conditions/fi_fi/';
-                        }
-
-                        return 'https://www.afterpay.nl/nl/algemeen/betalen-met-afterpay/betalingsvoorwaarden';
-                    }.bind(this);
-
-                    var getDigiacceptUrl = function() {
-                        var url = 'https://www.afterpay.nl/nl/algemeen/betalen-met-afterpay/betalingsvoorwaarden';
-
-                        if (this.country === 'NL') {
-                            url = 'https://documents.myafterpay.com/consumer-terms-conditions/nl_nl/';
-                        }
-                        if (this.country === 'DE') {
-                            url = 'https://documents.myafterpay.com/consumer-terms-conditions/de_de/';
-                        }
-                        if (this.country === 'BE') {
-                            url = 'https://documents.myafterpay.com/consumer-terms-conditions/nl_be/';
-                        }
-                        if (this.country === 'AT') {
-                            url = 'https://documents.myafterpay.com/consumer-terms-conditions/de_at/';
-                        }
-                        if (this.country === 'FI') {
-                            url = 'https://documents.myafterpay.com/consumer-terms-conditions/fi_fi/';
-                        }
-
-                        return url;
-                    }.bind(this);
-
                     if (quote.billingAddress()) {
                         this.updateBillingName(quote.billingAddress().firstname, quote.billingAddress().lastname);
                         this.updateTermsUrl(quote.billingAddress().countryId);
+                        this.updateShowFields();
                     }
 
                     quote.billingAddress.subscribe(
@@ -257,17 +225,7 @@ define(
                                 this.updateTermsUrl(newAddress.countryId);
                             }
 
-                            if (this.country !== null && (this.country == 'NL' || this.country == 'BE')) {
-                                this.showGenderValue(true);
-                            } else {
-                                this.showGenderValue(false);
-                            }
-
-                            if (this.country !== null && (this.country == 'FI')) {
-                                this.showIdentificationValue(true);
-                            } else {
-                                this.showIdentificationValue(false);
-                            }
+                            this.updateShowFields();
                         }.bind(this)
                     );
 
@@ -323,22 +281,17 @@ define(
                     this.buttoncheck = ko.computed(
                         function () {
                             return (this.telephoneNumber() !== null || this.hasTelephoneNumber) &&
-                            ((this.country != 'NL' && this.country != 'BE') || this.selectedGender() !== null) &&
-                                (this.country != 'FI' || this.identificationValidate() !== null) &&
-                            this.BillingName() !== null &&
-                            this.dateValidate() !== null &&
-                            this.termsValidate() !== false &&
-                            this.validate()
+                                (!this.showNLBEFields() || this.selectedGender() !== null) &&
+                                (!this.showIdentification() || this.identificationValidate() !== null) &&
+                                this.BillingName() !== null &&
+                                (!this.showNLBEFields() || this.dateValidate() !== null) &&
+                                this.termsValidate() !== false &&
+                                this.validate()
                         },
                         this
                     );
 
                     return this;
-                },
-
-                forceSelectedGender: function () {
-                    this.selectedGender.valueHasMutated();
-                    return true;
                 },
 
                 /**
@@ -444,6 +397,64 @@ define(
                             "selectedBusiness" : business
                         }
                     };
+                },
+
+                updateTermsUrl: function (country, tosCountry = false) {
+                    this.country = country;
+                    var newUrl = this.getTermsUrl(tosCountry);
+
+                    this.showFrenchTosValue(false);
+
+                    if (this.country === 'BE') {
+                        this.showFrenchTosValue(true);
+                    }
+
+                    this.termsUrl(newUrl);
+                },
+
+                getTermsUrl: function (tosCountry = false) {
+                    var tosUrl = 'https://documents.myafterpay.com/consumer-terms-conditions/';
+
+                    if (tosCountry !== false) {
+                        tosUrl += tosCountry + '/';
+                        return tosUrl;
+                    }
+
+                    switch (this.country) {
+                        case 'DE':
+                            tosCountry = 'de_de';
+                            break;
+                        case 'AT':
+                            tosCountry = 'de_at';
+                            break;
+                        case 'NL':
+                            tosCountry = 'nl_nl';
+                            break;
+                        case 'BE':
+                            tosCountry = 'nl_be';
+                            break;
+                        case 'FI':
+                            tosCountry = 'fi_fi';
+                            break;
+                        default:
+                            tosCountry = 'en_nl';
+                            break;
+                    }
+
+                    tosUrl += tosCountry + '/';
+
+                    return tosUrl;
+                },
+
+                getFrenchTos: function () {
+                    var tosUrl = this.getTermsUrl('fr_be');
+                    var tosText = '(Or click here for the French translation: '
+                        + '<a target="_blank" href="%s">terms and condition</a>.)';
+
+                    tosText = $.mage.__(tosText);
+                    tosText = tosText.replace('%s', tosUrl);
+
+                    return tosText;
                 }
             }
         );

@@ -357,3 +357,4 @@
 "Your order has been placed succesfully.","Uw bestelling is succesvol geplaatst."
 "You have canceled the order. We kindly ask you to not complete the payment in the Payconiq app - Your order will not be processed. Place the order again if you still want to make the payment.","U heeft de bestelling geannuleerd. Indien u de QR code al heeft gescand, verzoeken wij u vriendelijk de betaling in de Payconiq app niet te voltooien - uw order zal niet verwerkt worden. Mocht u de betaling toch willen doen, plaats dan de bestelling opnieuw"
 "Identification number:","Identificatie nummer:"
+"(Or click here for the French translation: <a target=\"_blank\" href=\"%s\">terms and condition</a>.)","(Of klik hier voor de Franse vertaling: <a target=\"_blank\" href=\"%s\">aanvullende voorwaarden</a>.)"

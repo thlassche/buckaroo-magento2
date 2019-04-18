@@ -19,11 +19,11 @@
             <form data-hasrequired="* Required Fields" data-bind="mageInit: { 'validation': [] }">
                 <fieldset class="fieldset payment">
 
-                    <!-- ko if: showGender -->
-                    <div class="field required disabled">
+                    <!-- ko if: showNLBEFields -->
+                    <div class="field required">
                         <legend class="label"> <span data-bind="i18n: 'Salutation:'"> </span> </legend>
                         <div class="control">
-                            <ul id="Salutation">
+                            <ul id="Saluation">
                                 <li>
                                     <input type="radio" id="tig_buckaroo_afterpay20_genderSelectMan"
                                            data-bind="
@@ -89,6 +89,7 @@
                     <!-- Default | Hide this field if phone number is already filled in. Show this field if phone number is empty -->
 
                     <!-- ko ifnot: hasTelephoneNumber -->
+                    <!-- ko if: showNLBEFields -->
                     <div class="field required" >
                         <label class="label" for="tig_buckaroo_afterpay20_Telephone"> <span data-bind="i18n: 'Telephone:'"> </span> </label>
                         <div class="control">
@@ -103,7 +104,9 @@
                         </div>
                     </div>
                     <!-- /ko -->
+                    <!-- /ko -->
 
+                    <!-- ko if: showNLBEFields -->
                     <div class="field required">
                         <label class="label" for="tig_buckaroo_afterpay20_DoB"> <span data-bind="i18n: 'Date of Birth:'"> </span> </label>
                         <span><sup data-bind="i18n: '(DD/MM/YYYY)' "></sup></span>
@@ -123,11 +126,11 @@
                                    },
                                    valueUpdate: 'blur',
                                    value: dateValidate,
-                                   event: { blur: forceSelectedGender },
                                    attr: { 'data-validate': JSON.stringify({ 'required': true, 'validate-date-au': true })}"
                                    name="payment[tig_buckaroo_afterpay20][customer_DoB]">
                         </div>
                     </div>
+                    <!-- /ko -->
 
                     <!-- Show IBAN field when Acceptgiro (paymentMethod: 1) is activated in the backend-->
 
@@ -141,7 +144,6 @@
                                    data-bind="
                                    value: bankaccountnumber,
                                    valueUpdate: 'keyup',
-                                   event: { blur: forceSelectedGender },
                                    attr: {'data-validate': JSON.stringify({ 'required': true, 'IBAN':true })}"
                                    name="payment[tig_buckaroo_afterpay20][customer_iban]">
                         </div>
@@ -219,7 +221,6 @@
                                    type="checkbox"
                                    data-bind="
                                    checked: termsValidate,
-                                   event: { click: forceSelectedGender },
                                    attr: { 'data-validate': JSON.stringify({ 'required': true})}"
                                    name="payment[tig_buckaroo_afterpay20][termsCondition]">
                             <span>
@@ -229,6 +230,9 @@
                                        attr: { 'href': termsUrl }
                                    ">
                                 </a>
+                                <!-- ko if: showFrenchTos -->
+                                <span data-bind="html: getFrenchTos()"></span>
+                                <!-- /ko -->
                             </span>
                             <div for="tig_buckaroo_afterpay20_TermsCondition" generated="true" class="mage-error" id="tig_buckaroo_afterpay20_TermsCondition-error" style="display: none;"><span data-bind="i18n: 'This is a required field.' "></span></div>
                         </div>

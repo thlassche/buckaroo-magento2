@@ -1197,12 +1197,6 @@ class Afterpay20 extends AbstractMethod
                 'GroupID' => '',
             ],
             [
-                '_'    => $gender,
-                'Name' => 'Salutation',
-                'Group' => 'BillingCustomer',
-                'GroupID' => '',
-            ],
-            [
                 '_'    => $billingAddress->getFirstname(),
                 'Name' => 'FirstName',
                 'Group' => 'BillingCustomer',
@@ -1211,12 +1205,6 @@ class Afterpay20 extends AbstractMethod
             [
                 '_'    => $billingAddress->getLastName(),
                 'Name' => 'LastName',
-                'Group' => 'BillingCustomer',
-                'GroupID' => '',
-            ],
-            [
-                '_'    => $birthDayStamp,
-                'Name' => 'BirthDate',
                 'Group' => 'BillingCustomer',
                 'GroupID' => '',
             ],
@@ -1286,6 +1274,22 @@ class Afterpay20 extends AbstractMethod
             $billingData[] = [
                 '_'    => $identificationNumber,
                 'Name' => 'IdentificationNumber',
+                'Group' => 'BillingCustomer',
+                'GroupID' => '',
+            ];
+        }
+
+        if ($billingAddress->getCountryId() == 'NL' || $billingAddress->getCountryId() == 'BE') {
+            $billingData[] = [
+                '_'    => $gender,
+                'Name' => 'Salutation',
+                'Group' => 'BillingCustomer',
+                'GroupID' => '',
+            ];
+
+            $billingData[] = [
+                '_'    => $birthDayStamp,
+                'Name' => 'BirthDate',
                 'Group' => 'BillingCustomer',
                 'GroupID' => '',
             ];
