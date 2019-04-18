@@ -59,7 +59,6 @@ define(
     ) {
         'use strict';
 
-
         /**
          * Add validation methods
          */

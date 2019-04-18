@@ -217,9 +217,7 @@ class Creditcards extends AbstractMethod
         if (count($cmService) > 0) {
             $services[] = $cmService;
 
-            $payment->setAdditionalInformation(
-                'skip_push', 2
-            );
+            $payment->setAdditionalInformation('skip_push', 2);
         }
 
         /** @var \TIG\Buckaroo\Model\ConfigProvider\Method\Creditcards $creditcardsConfig */
