@@ -98,11 +98,14 @@ define(
                     CardHolderName  : null,
                     ExpirationYear  : null,
                     ExpirationMonth : null,
-                    EncryptedData   : null
+                    EncryptedData   : null,
+                    CardIssuer      : null,
+                    issuerImage     : null
                 },
                 paymentFeeLabel : window.checkoutConfig.payment.buckaroo.creditcards.paymentFeeLabel,
                 currencyCode : window.checkoutConfig.quoteData.quote_currency_code,
                 baseCurrencyCode : window.checkoutConfig.quoteData.base_currency_code,
+                creditcards : window.checkoutConfig.payment.buckaroo.creditcards.creditcards,
 
                 /**
                  * @override
@@ -124,17 +127,23 @@ define(
                             'CardHolderName',
                             'ExpirationYear',
                             'ExpirationMonth',
-                            'EncryptedData'
+                            'EncryptedData',
+                            'issuerImage',
+                            'CardIssuer'
                         ]
                     );
 
-                    /** Subscribe the fields to validate them on changes. The .valid() method will force the $.validator to run **/
-                    // check if this is actually necessary, because this.validate is being run in the computed function below.
-                    this.CardNumber.subscribe(this.encryptCardDetails, this);
-                    this.Cvc.subscribe(this.encryptCardDetails, this);
-                    this.CardHolderName.subscribe(this.encryptCardDetails, this);
-                    this.ExpirationYear.subscribe(this.encryptCardDetails, this);
-                    this.ExpirationMonth.subscribe(this.encryptCardDetails, this);
+                    this.CardIssuer.subscribe(this.changeIssuerLogo, this);
+
+                    /**
+                     * Subscribe the fields to validate them on changes.
+                     * The .valid() method inside validateIndividual will force the $.validator to run.
+                     **/
+                    this.CardNumber.subscribe(this.validateIndividual, 'tig_buckaroo_creditcards_cardnumber');
+                    this.Cvc.subscribe(this.validateIndividual, 'tig_buckaroo_creditcards_cvc');
+                    this.CardHolderName.subscribe(this.validateIndividual, 'tig_buckaroo_creditcards_cardholdername');
+                    this.ExpirationYear.subscribe(this.validateIndividual, 'tig_buckaroo_creditcards_expirationyear');
+                    this.ExpirationMonth.subscribe(this.validateIndividual, 'tig_buckaroo_creditcards_expirationmonth');
 
                     /** Check used to see if input is valid **/
                     this.buttoncheck = ko.computed(
@@ -146,6 +155,7 @@ define(
                                 this.ExpirationYear() !== null &&
                                 this.ExpirationMonth() !== null &&
                                 this.EncryptedData() !== null &&
+                                this.CardIssuer() !== null &&
                                 this.validate()
                             );
                         },
@@ -153,6 +163,11 @@ define(
                     );
 
                     return this;
+                },
+
+                /** This will run the $.validator functions that are defined at the top of this file. **/
+                validateIndividual: function() {
+                    $('#' + this).valid();
                 },
 
                 selectPaymentMethod: function () {
@@ -170,6 +185,15 @@ define(
                     var elements = $('.' + this.getCode() + ' [data-validate]:not([name*="agreement"])');
                     this.selectPaymentMethod();
                     return elements.valid();
+                },
+
+                changeIssuerLogo: function() {
+                    var issuer = this.creditcards.find(o => o.code === this.CardIssuer());
+                    if (issuer) {
+                        this.issuerImage(issuer.img);
+                    } else {
+                        this.issuerImage(this.creditcards[0].img);
+                    }
                 },
 
                 payWithBaseCurrency: function () {
@@ -220,8 +244,18 @@ define(
                     }
                 },
 
+                /** Encrypt the creditcard details using Buckaroo's encryption system. **/
                 encryptCardDetails: function () {
                     var self = this;
+
+                    if (this.CardNumber() == null ||
+                        this.ExpirationYear() == null ||
+                        this.ExpirationMonth() == null ||
+                        this.Cvc() == null ||
+                        this.CardHolderName() == null
+                    ) {
+                        return;
+                    }
 
                     if (this.validate()) {
                         var cardNumber = this.CardNumber();
@@ -245,13 +279,64 @@ define(
                     }
                 },
 
+                /** This and getCardIssuer are currently unused. As mentioned in BUCKM2-391, this should be included in the future. **/
+                processCard: function () {
+                    var cardIssuer = this.getCardIssuer();
+                    if (cardIssuer && cardIssuer.active) {
+                        this.issuerImage(cardIssuer.img);
+                    }
+                    this.CardIssuer = cardIssuer;
+                },
+
+                /** Get the card issuer based on the creditcard number **/
+                getCardIssuer: function () {
+                    if (!this.CardNumber()) {
+                        return false;
+                    }
+
+                    var issuerIdentificationNumbers = {
+                        'amex': {
+                            'regex': '^(34|37)[0-9]{13}$',
+                            'name': 'American Express'
+                        },
+                        'maestro': {
+                            'regex': '^(6759[0-9]{2}|676770|676774)[0-9]{6,13}$',
+                            'name': 'Maestro'
+                        },
+                        'dankort': {
+                            'regex': '^(5019|4571)[0-9]{12}$',
+                            'name': 'Dankort'
+                        },
+                        'mastercard': {
+                            'regex': '^(222[1-9]|2[3-6][0-9]{2}|27[0-1][0-9]|2720|5[1-5][0-9]{2})[0-9]{12}$',
+                            'name': 'Mastercard'
+                        },
+                        'visaelectron': {
+                            'regex': '^(4026[0-9]{2}|417500|4508[0-9]{2}|4844[0-9]{2}|4913[0-9]{2}|4917[0-9]{2})[0-9]{10}$',
+                            'name': 'Visa Electron'
+                        },
+                        'visa': {
+                            'regex': '^4[0-9]{15,18}$',
+                            'name': 'Visa'
+                        }
+                    };
+
+                    for (var key in issuerIdentificationNumbers) {
+                        if (this.CardNumber().match(issuerIdentificationNumbers[key].regex)) {
+                            return this.creditcards.find(function (creditcard) { return creditcard.code == key; });
+                        }
+                    }
+
+                    return false;
+                },
+
                 getData: function () {
                     return {
                         "method": this.item.method,
                         "po_number": null,
                         "additional_data": {
                             "customer_encrypteddata" : this.EncryptedData(),
-                            "customer_creditcardcompany" : 'Mastercard'
+                            "customer_creditcardcompany" : this.CardIssuer()
                         }
                     };
                 },

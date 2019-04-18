@@ -39,6 +39,12 @@
 
 namespace TIG\Buckaroo\Model\ConfigProvider\Method;
 
+use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\View\Asset\Repository;
+use TIG\Buckaroo\Helper\PaymentFee;
+use TIG\Buckaroo\Model\ConfigProvider\AllowedCurrencies;
+use TIG\Buckaroo\Model\ConfigProvider\Method\Creditcard;
+
 /**
  * @method getPaymentFeeLabel()
  * @method getSellersProtection()
@@ -61,6 +67,7 @@ class Creditcards extends AbstractConfigProvider
     const XPATH_CREDITCARDS_SELLERS_PROTECTION_INELIGIBLE    = 'payment/tig_buckaroo_creditcards/sellers_protection_ineligible';
     const XPATH_CREDITCARDS_SELLERS_PROTECTION_ITEMNOTRECEIVED_ELIGIBLE = 'payment/tig_buckaroo_creditcards/sellers_protection_itemnotreceived_eligible';
     const XPATH_CREDITCARDS_SELLERS_PROTECTION_UNAUTHORIZEDPAYMENT_ELIGIBLE = 'payment/tig_buckaroo_creditcards/sellers_protection_unauthorizedpayment_eligible';
+    const XPATH_CREDITCARDS_ALLOWED_ISSUERS              = 'payment/tig_buckaroo_creditcards/allowed_creditcards';
 
     const XPATH_ALLOWED_CURRENCIES = 'payment/tig_buckaroo_creditcards/allowed_currencies';
 
@@ -68,17 +75,40 @@ class Creditcards extends AbstractConfigProvider
     const XPATH_SPECIFIC_COUNTRY                = 'payment/tig_buckaroo_creditcards/specificcountry';
 
     /**
+     * Creditcards constructor.
+     *
+     * @param Repository           $assetRepo
+     * @param ScopeConfigInterface $scopeConfig
+     * @param AllowedCurrencies    $allowedCurrencies
+     * @param PaymentFee           $paymentFeeHelper
+     * @param Creditcard           $creditcardConfigProvider
+     */
+    public function __construct(
+        Repository $assetRepo,
+        ScopeConfigInterface $scopeConfig,
+        AllowedCurrencies $allowedCurrencies,
+        PaymentFee $paymentFeeHelper,
+        Creditcard $creditcardConfigProvider
+    ) {
+        parent::__construct($assetRepo, $scopeConfig, $allowedCurrencies, $paymentFeeHelper);
+
+        $this->issuers = $creditcardConfigProvider->getIssuers();
+    }
+
+    /**
      * @return array|void
      */
     public function getConfig()
     {
         $paymentFeeLabel = $this->getBuckarooPaymentFeeLabel(\TIG\Buckaroo\Model\Method\Creditcards::PAYMENT_METHOD_CODE);
+        $issuers = $this->formatIssuers();
 
         return [
             'payment' => [
                 'buckaroo' => [
                     'creditcards' => [
                         'paymentFeeLabel' => $paymentFeeLabel,
+                        'creditcards' => $issuers,
                         'allowedCurrencies' => $this->getAllowedCurrencies(),
                     ],
                 ],
@@ -100,5 +130,25 @@ class Creditcards extends AbstractConfigProvider
         );
 
         return $paymentFee ? $paymentFee : false;
+    }
+
+    /**
+     * Add the active flag to the creditcard list. This is used in the checkout process.
+     *
+     * @return array
+     */
+    public function formatIssuers()
+    {
+        $issuers = parent::formatIssuers();
+        $allowed = explode(',', $this->scopeConfig->getValue(
+            self::XPATH_CREDITCARDS_ALLOWED_ISSUERS,
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+        ));
+
+        foreach ($issuers as $key => $issuer) {
+            $issuers[$key]['active'] = in_array($issuer['code'], $allowed);
+        }
+
+        return $issuers;
     }
 }

@@ -17,6 +17,20 @@
         <div class="payment-method-second-col billing-address-form">
             <form data-hasrequired="* Required Fields" data-bind="mageInit: { 'validation': [] }">
                 <fieldset class="fieldset payment">
+                    <div class="field required" >
+                        <label class="label" for="tig_buckaroo_creditcards_issuer"> <span data-bind="i18n: 'Card Issuer:'"> </span> </label>
+                        <div class="control">
+                            <select id="tig_buckaroo_creditcards_issuer"
+                                    data-bind="value: CardIssuer"
+                                    name="payment[tig_buckaroo_creditcards][issuer]">
+                            <!-- ko foreach: creditcards -->
+                                <!-- ko if: active -->
+                                    <option data-bind="i18n: name, 'value': code, event: { select: $parent.myFunction }"></option>
+                                <!--/ko-->
+                            <!--/ko-->
+                            </select>
+                        </div>
+                    </div>
 
                     <div class="field required" >
                         <label class="label" for="tig_buckaroo_creditcards_cardnumber"> <span data-bind="i18n: 'Cardnumber:'"> </span> </label>
@@ -26,7 +40,7 @@
                                    class="input-text field"
                                    name="payment[tig_buckaroo_creditcards][cardnumber]"
                                    data-bind="
-                            valueUpdate: 'keyup',
+                            valueUpdate: 'blur',
                             value: CardNumber,
                             textInput: CardNumber(),
                             attr: { 'data-validate': JSON.stringify({ 'required': true, 'validateCardNumber': true }) },
@@ -41,8 +55,8 @@
                                    type="text"
                                    class="input-text field"
                                    name="payment[tig_buckaroo_creditcards][cvc]"
-                            data-bind="
-                            valueUpdate: 'keyup',
+                                   data-bind="
+                            valueUpdate: 'blur',
                             value: Cvc,
                             textInput: Cvc(),
                             attr: { 'data-validate': JSON.stringify({ 'required': true, 'validateCvc': true }) },
@@ -58,7 +72,7 @@
                                    class="input-text field"
                                    name="payment[tig_buckaroo_creditcards][cardholdername]"
                             data-bind="
-                            valueUpdate: 'keyup',
+                            valueUpdate: 'blur',
                             value: CardHolderName,
                             textInput: CardHolderName(),
                             attr: { 'data-validate': JSON.stringify({ 'required': true, 'validateCardHolderName': true }) },
@@ -74,7 +88,7 @@
                                    class="input-text field"
                                    name="payment[tig_buckaroo_creditcards][expirationyear]"
                             data-bind="
-                            valueUpdate: 'keyup',
+                            valueUpdate: 'blur',
                             value: ExpirationYear,
                             textInput: ExpirationYear(),
                             attr: { 'data-validate': JSON.stringify({ 'required': true, 'validateYear': true }), 'min': getMinExpirationYear(), 'max': getMaxExpirationYear() },
@@ -92,12 +106,20 @@
                                    min="1"
                                    max="12"
                             data-bind="
-                            valueUpdate: 'keyup',
+                            valueUpdate: 'blur',
                             value: ExpirationMonth,
                             textInput: ExpirationMonth(),
                             attr: { 'data-validate': JSON.stringify({ 'required': true, 'validateMonth': true }) },
                             event: { blur: encryptCardDetails }">
                         </div>
+                    </div>
+
+                    <div>
+                            <img class="issuer-img" data-bind="attr: {
+                                     'src': issuerImage(),
+                                     'width': 60,
+                                     'height': 60 }"
+                            />
                     </div>
 
                     <div class="field">

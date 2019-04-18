@@ -63,6 +63,13 @@
             <config_path>payment/tig_buckaroo_creditcards/sort_order</config_path>
         </field>
 
+        <field id="allowed_creditcards" translate="label comment" type="multiselect" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Allowed Creditcards</label>
+            <comment><![CDATA[Select payment method specific Creditcards.]]></comment>
+            <config_path>payment/tig_buckaroo_creditcards/allowed_creditcards</config_path>
+            <source_model>TIG\Buckaroo\Model\Config\Source\Creditcard</source_model>
+        </field>
+
         <group id="tig_buckaroo_advanced" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Advanced Configuration</label>
 
