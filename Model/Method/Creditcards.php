@@ -328,8 +328,10 @@ class Creditcards extends AbstractMethod
     {
         $transactionBuilder = $this->transactionBuilderFactory->get('refund');
 
+        $additionalInformation = $payment->getAdditionalInformation();
+
         $services = [
-            'Name'    => 'creditcards',
+            'Name'    => $additionalInformation['customer_creditcardcompany'],
             'Action'  => 'Refund',
             'Version' => 1,
         ];

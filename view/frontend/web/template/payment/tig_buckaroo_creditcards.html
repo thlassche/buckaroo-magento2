@@ -21,13 +21,15 @@
                         <label class="label" for="tig_buckaroo_creditcards_issuer"> <span data-bind="i18n: 'Card Issuer:'"> </span> </label>
                         <div class="control">
                             <select id="tig_buckaroo_creditcards_issuer"
-                                    data-bind="value: CardIssuer"
+                                    data-bind="value: CardIssuer,
+                                    attr: { 'data-validate': JSON.stringify({ 'required-entry': true }) }"
                                     name="payment[tig_buckaroo_creditcards][issuer]">
-                            <!-- ko foreach: creditcards -->
-                                <!-- ko if: active -->
-                                    <option data-bind="i18n: name, 'value': code, event: { select: $parent.myFunction }"></option>
+                                <option data-bind="i18n: 'Select a creditcard', 'value': ''"></option>
+                                <!-- ko foreach: creditcards -->
+                                    <!-- ko if: active -->
+                                        <option data-bind="i18n: name, 'value': code, event: { select: $parent.myFunction }"></option>
+                                    <!--/ko-->
                                 <!--/ko-->
-                            <!--/ko-->
                             </select>
                         </div>
                     </div>
