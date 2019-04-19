@@ -41,11 +41,11 @@
 <include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
     <!-- Creditcards Payment method group -->
     <group id="tig_buckaroo_creditcards" translate="label" type="text" sortOrder="35" showInDefault="1" showInWebsite="1" showInStore="1">
-        <label>Creditcards All</label>
+        <label>Creditcards (Client sided)</label>
         <frontend_model>TIG\Buckaroo\Block\Config\Form\Field\Fieldset</frontend_model>
 
         <field id="active" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>Enable Creditcards</label>
+            <label>Enable Creditcards (Client sided)</label>
             <comment><![CDATA[Enable or disable this payment method.]]></comment>
             <source_model>TIG\Buckaroo\Model\Config\Source\Enablemode</source_model>
             <config_path>payment/tig_buckaroo_creditcards/active</config_path>

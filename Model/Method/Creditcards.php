@@ -217,9 +217,7 @@ class Creditcards extends AbstractMethod
         if (count($cmService) > 0) {
             $services[] = $cmService;
 
-            $payment->setAdditionalInformation(
-                'skip_push', 2
-            );
+            $payment->setAdditionalInformation('skip_push', 2);
         }
 
         /** @var \TIG\Buckaroo\Model\ConfigProvider\Method\Creditcards $creditcardsConfig */
@@ -328,8 +326,10 @@ class Creditcards extends AbstractMethod
     {
         $transactionBuilder = $this->transactionBuilderFactory->get('refund');
 
+        $additionalInformation = $payment->getAdditionalInformation();
+
         $services = [
-            'Name'    => 'creditcards',
+            'Name'    => $additionalInformation['customer_creditcardcompany'],
             'Action'  => 'Refund',
             'Version' => 1,
         ];

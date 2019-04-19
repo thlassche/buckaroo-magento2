@@ -59,24 +59,23 @@ define(
     ) {
         'use strict';
 
-
         /**
          * Add validation methods
          */
         $.validator.addMethod('validateCardNumber', function (value) {
-                return BuckarooClientSideEncryption.V001.validateCardNumber(value);
+                return BuckarooClientSideEncryption.V001.validateCardNumber(value.replace(/\s+/g, ''));
             },
-            $.mage.__('Enter a valid creditcard number.')
+            $.mage.__('Please enter a valid creditcard number.')
         );
         $.validator.addMethod('validateCvc', function (value) {
                 return BuckarooClientSideEncryption.V001.validateCvc(value);
             },
-            $.mage.__('Enter a valid Cvc number.')
+            $.mage.__('Please enter a valid Cvc number.')
         );
         $.validator.addMethod('validateCardHolderName', function (value) {
                 return BuckarooClientSideEncryption.V001.validateCardholderName(value);
             },
-            $.mage.__('Enter a valid card holder name.')
+            $.mage.__('Please enter a valid card holder name.')
         );
         $.validator.addMethod('validateYear', function (value) {
                 return BuckarooClientSideEncryption.V001.validateYear(value);
@@ -139,6 +138,7 @@ define(
                      * Subscribe the fields to validate them on changes.
                      * The .valid() method inside validateIndividual will force the $.validator to run.
                      **/
+                    // this.CardIssuer.subscribe(this.validateIndividual, 'tig_buckaroo_creditcards_issuer');
                     this.CardNumber.subscribe(this.validateIndividual, 'tig_buckaroo_creditcards_cardnumber');
                     this.Cvc.subscribe(this.validateIndividual, 'tig_buckaroo_creditcards_cvc');
                     this.CardHolderName.subscribe(this.validateIndividual, 'tig_buckaroo_creditcards_cardholdername');
@@ -258,7 +258,7 @@ define(
                     }
 
                     if (this.validate()) {
-                        var cardNumber = this.CardNumber();
+                        var cardNumber = this.CardNumber().replace(/\s+/g, '');
                         var year =    this.ExpirationYear();
                         var month =    this.ExpirationMonth();
                         var cvc =    this.Cvc();
