@@ -838,35 +838,30 @@ class Afterpay20 extends AbstractMethod
      */
     public function getServiceCostLine($latestKey, $order, $includesTax)
     {
-        /**
-         * @noinspection PhpUndefinedMethodInspection
-         */
+        $store = $order->getStore();
         $buckarooFee = $order->getBuckarooFee();
 
         if ($includesTax) {
-            /**
-             * @noinspection PhpUndefinedMethodInspection
-             */
             $buckarooFeeLine = $order->getBaseBuckarooFee() + $order->getBuckarooFeeTaxAmount();
         } else {
-            /**
-             * @noinspection PhpUndefinedMethodInspection
-             */
             $buckarooFeeLine = $order->getBaseBuckarooFee();
         }
 
         $article = [];
 
-        if (false !== $buckarooFee && (double)$buckarooFee > 0) {
-            $storeId = (int) $order->getStoreId();
+        $request = $this->taxCalculation->getRateRequest(null, null, null, $store);
+        $taxClassId = $this->configProviderBuckarooFee->getTaxClass($store);
+        $percent = $this->taxCalculation->getRate($request->setProductClassId($taxClassId));
 
+
+        if (false !== $buckarooFee && (double)$buckarooFee > 0) {
             $article = $this->getArticleArrayLine(
                 $latestKey,
                 'Servicekosten',
                 1,
                 1,
                 round($buckarooFeeLine, 2),
-                $this->getTaxCategory($this->configProviderBuckarooFee->getTaxClass($storeId), $storeId)
+                $percent
             );
         }
 
@@ -1103,22 +1098,6 @@ class Afterpay20 extends AbstractMethod
         ];
 
         return $article;
-    }
-
-    /**
-     * TODO: Refactor for proper tax percentage
-     *
-     * @param      $taxClassId
-     * @param null|int $storeId
-     *
-     * @return int
-     * @throws \TIG\Buckaroo\Exception
-     */
-    public function getTaxCategory($taxClassId, $storeId = null)
-    {
-        $taxCategory = 4;
-
-        return $taxCategory;
     }
 
     /**
