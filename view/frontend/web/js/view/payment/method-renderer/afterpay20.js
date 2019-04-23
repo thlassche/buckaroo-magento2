@@ -63,24 +63,12 @@ define(
     ) {
         'use strict';
 
-
-        /**
-         *  constants for backend settings
-         */
-        var BUSINESS_METHOD_BOTH = 3;
-
-        var PAYMENT_METHOD_ACCEPTGIRO = 1;
-        var PAYMENT_METHOD_DIGIACCEPT = 2;
-
         return Component.extend(
             {
                 defaults                : {
                     template : 'TIG_Buckaroo/payment/tig_buckaroo_afterpay20',
-                    businessMethod: null,
-                    paymentMethod: null,
                     telephoneNumber: null,
                     selectedGender: null,
-                    selectedBusiness: 1,
                     identificationNumber: null,
                     firstName: '',
                     lastName: '',
@@ -115,11 +103,8 @@ define(
                 initObservable: function () {
                     this._super().observe(
                         [
-                            'businessMethod',
-                            'paymentMethod',
                             'telephoneNumber',
                             'selectedGender',
-                            'selectedBusiness',
                             'firstname',
                             'lastname',
                             'CustomerName',
@@ -181,9 +166,6 @@ define(
                         }
                     };
 
-                    this.businessMethod = window.checkoutConfig.payment.buckaroo.afterpay20.businessMethod;
-                    this.paymentMethod  = window.checkoutConfig.payment.buckaroo.afterpay20.paymentMethod;
-
                     /**
                      * Observe customer first & lastname
                      * bind them together, so they could appear in the frontend
@@ -238,12 +220,6 @@ define(
                         self.selectedGender(value);
                         return true;
                     };
-
-                    var updateSelectedBusiness = function () {
-                        this.updateTermsUrl(this.country);
-                    };
-
-                    this.selectedBusiness.subscribe(updateSelectedBusiness, this);
 
                     /**
                      * Check if TelephoneNumber is filled in. If not - show field
@@ -379,11 +355,6 @@ define(
                 },
 
                 getData: function () {
-                    var business = this.businessMethod;
-
-                    if (business == BUSINESS_METHOD_BOTH) {
-                        business = this.selectedBusiness();
-                    }
                     return {
                         "method": this.item.method,
                         "po_number": null,
@@ -394,7 +365,6 @@ define(
                             "customer_billingName" : this.BillingName(),
                             "customer_DoB" : this.dateValidate(),
                             "termsCondition" : this.termsValidate(),
-                            "selectedBusiness" : business
                         }
                     };
                 },

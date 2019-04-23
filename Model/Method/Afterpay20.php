@@ -60,16 +60,12 @@ class Afterpay20 extends AbstractMethod
     const AFTERPAY_MAX_ARTICLE_COUNT = 99;
 
     /**
-     * Business methods that will be used in afterpay.
-     */
-    const BUSINESS_METHOD_B2C = 1;
-    const BUSINESS_METHOD_B2B = 2;
-
-    /**
      * Check if the tax calculation includes tax.
      */
     const TAX_CALCULATION_INCLUDES_TAX = 'tax/calculation/price_includes_tax';
     const TAX_CALCULATION_SHIPPING_INCLUDES_TAX = 'tax/calculation/shipping_includes_tax';
+
+    const AFTERPAY_PAYMENT_METHOD_NAME = 'afterpay';
 
     /**
      * @var string
@@ -295,25 +291,11 @@ class Afterpay20 extends AbstractMethod
     }
 
     /**
-     * @param \Magento\Sales\Api\Data\OrderPaymentInterface|\Magento\Payment\Model\InfoInterface $payment
-     *
-     * @return bool|string
-     * @throws \TIG\Buckaroo\Exception
+     * @return string
      */
-    public function getPaymentMethodName($payment)
+    public function getPaymentMethodName()
     {
-        /**
-         * @var \TIG\Buckaroo\Model\ConfigProvider\Method\Afterpay20 $afterpayConfig
-         */
-        $afterpayConfig = $this->configProviderMethodFactory->get('afterpay20');
-
-        $methodName = $afterpayConfig->getPaymentMethodName();
-
-        if ($payment->getAdditionalInformation('selectedBusiness')) {
-            $methodName = $afterpayConfig->getPaymentMethodName($payment->getAdditionalInformation('selectedBusiness'));
-        }
-
-        return $methodName;
+        return static::AFTERPAY_PAYMENT_METHOD_NAME;
     }
 
     /**
@@ -391,7 +373,7 @@ class Afterpay20 extends AbstractMethod
         }
 
         $services = [
-            'Name'             => $this->getPaymentMethodName($payment),
+            'Name'             => $this->getPaymentMethodName(),
             'Action'           => 'Capture',
         ];
 
@@ -445,7 +427,7 @@ class Afterpay20 extends AbstractMethod
         $transactionBuilder = $this->transactionBuilderFactory->get('order');
 
         $services = [
-            'Name'             => $this->getPaymentMethodName($payment),
+            'Name'             => $this->getPaymentMethodName(),
             'Action'           => 'Authorize',
             'RequestParameter' => $this->getAfterPayRequestParameters($payment),
         ];
@@ -477,7 +459,7 @@ class Afterpay20 extends AbstractMethod
         $transactionBuilder = $this->transactionBuilderFactory->get('order');
 
         $services = [
-            'Name'             => $this->getPaymentMethodName($payment),
+            'Name'             => $this->getPaymentMethodName(),
             'Action'           => 'CancelAuthorize',
         ];
 
@@ -510,7 +492,7 @@ class Afterpay20 extends AbstractMethod
         $transactionBuilder = $this->transactionBuilderFactory->get('refund');
 
         $services = [
-            'Name'    => $this->getPaymentMethodName($payment),
+            'Name'    => $this->getPaymentMethodName(),
             'Action'  => 'Refund',
         ];
 
@@ -676,6 +658,7 @@ class Afterpay20 extends AbstractMethod
         $articles = [];
         $count    = 1;
 
+        /** @var \Magento\Sales\Model\Order\Invoice\Item $item */
         foreach ($invoice->getAllItems() as $item) {
             if (empty($item) || $this->calculateProductPrice($item, $includesTax) == 0) {
                 continue;
@@ -690,7 +673,7 @@ class Afterpay20 extends AbstractMethod
                 $item->getProductId(),
                 1,
                 $this->calculateProductPrice($item, $includesTax),
-                $this->getTaxCategory($itemTaxClassId, $invoice->getOrder()->getStore())
+                $item->getOrderItem()->getTaxPercent()
             );
 
             $articles = array_merge($articles, $article);
@@ -704,7 +687,7 @@ class Afterpay20 extends AbstractMethod
                     $item->getProductId(),
                     1,
                     number_format(($item->getDiscountAmount()*-1), 2),
-                    $this->getTaxCategory($item->getTaxClassId(), $invoice->getOrder()->getStore())
+                    $item->getOrderItem()->getTaxPercent()
                 );
                 $articles = array_merge($articles, $article);
             }
@@ -761,7 +744,7 @@ class Afterpay20 extends AbstractMethod
                 $item->getProductId(),
                 1,
                 $this->calculateProductPrice($item, $includesTax) - $item->getDiscountAmount(),
-                $this->getTaxCategory($itemTaxClassId, $payment->getOrder()->getStore())
+                $item->getOrderItem()->getTaxPercent()
             );
 
             $articles = array_merge($articles, $article);
@@ -1123,6 +1106,8 @@ class Afterpay20 extends AbstractMethod
     }
 
     /**
+     * TODO: Refactor for proper tax percentage
+     *
      * @param      $taxClassId
      * @param null|int $storeId
      *
@@ -1132,33 +1117,6 @@ class Afterpay20 extends AbstractMethod
     public function getTaxCategory($taxClassId, $storeId = null)
     {
         $taxCategory = 4;
-
-        if (!$taxClassId) {
-            return $taxCategory;
-        }
-        /**
-         * @var \TIG\Buckaroo\Model\ConfigProvider\Method\Afterpay20 $afterPayConfig
-         */
-        $afterPayConfig = $this->configProviderMethodFactory
-            ->get(\TIG\Buckaroo\Model\Method\Afterpay20::PAYMENT_METHOD_CODE);
-
-        $highClasses   = explode(',', $afterPayConfig->getHighTaxClasses($storeId));
-        $middleClasses = explode(',', $afterPayConfig->getMiddleTaxClasses($storeId));
-        $lowClasses    = explode(',', $afterPayConfig->getLowTaxClasses($storeId));
-        $zeroClasses   = explode(',', $afterPayConfig->getZeroTaxClasses($storeId));
-
-        if (in_array($taxClassId, $highClasses)) {
-            $taxCategory = 1;
-        } elseif (in_array($taxClassId, $middleClasses)) {
-            $taxCategory = 5;
-        } elseif (in_array($taxClassId, $lowClasses)) {
-            $taxCategory = 2;
-        } elseif (in_array($taxClassId, $zeroClasses)) {
-            $taxCategory = 3;
-        } else {
-            // No classes == 4
-            $taxCategory = 4;
-        }
 
         return $taxCategory;
     }

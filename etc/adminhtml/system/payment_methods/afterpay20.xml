@@ -66,41 +66,6 @@
         <group id="tig_buckaroo_default" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Default Configuration</label>
 
-            <field id="high_tax" translate="label comment" type="multiselect" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
-                <label> High VAT tax classes</label>
-                <comment><![CDATA[Select which tax classes count as 'high' VAT.]]></comment>
-                <source_model>TIG\Buckaroo\Model\Config\Source\TaxClass\Product</source_model>
-                <config_path>payment/tig_buckaroo_afterpay20/high_tax</config_path>
-            </field>
-
-            <field id="middle_tax" translate="label comment" type="multiselect" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
-                <label> Middle VAT tax classes</label>
-                <comment><![CDATA[Select which tax classes count as 'middle' VAT.]]></comment>
-                <source_model>TIG\Buckaroo\Model\Config\Source\TaxClass\Product</source_model>
-                <config_path>payment/tig_buckaroo_afterpay20/middle_tax</config_path>
-            </field>
-
-            <field id="low_tax" translate="label comment" type="multiselect" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1">
-                <label> Low VAT tax classes</label>
-                <comment><![CDATA[Select which tax classes count as 'low' VAT.]]></comment>
-                <source_model>TIG\Buckaroo\Model\Config\Source\TaxClass\Product</source_model>
-                <config_path>payment/tig_buckaroo_afterpay20/low_tax</config_path>
-            </field>
-
-            <field id="zero_tax" translate="label comment" type="multiselect" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="1">
-                <label> Zero VAT tax classes</label>
-                <comment><![CDATA[Select which tax classes count as 'zero' VAT.]]></comment>
-                <source_model>TIG\Buckaroo\Model\Config\Source\TaxClass\Product</source_model>
-                <config_path>payment/tig_buckaroo_afterpay20/zero_tax</config_path>
-            </field>
-
-            <field id="no_tax" translate="label comment" type="multiselect" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="1">
-                <label> No VAT tax classes</label>
-                <comment><![CDATA[Select which tax classes count as 'no' VAT.]]></comment>
-                <source_model>TIG\Buckaroo\Model\Config\Source\TaxClass\Product</source_model>
-                <config_path>payment/tig_buckaroo_afterpay20/no_tax</config_path>
-            </field>
-
             <field id="payment_email" translate="label comment" type="select" sortOrder="90" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Send payment email</label>
                 <comment><![CDATA[Buckaroo sends an email to the customer with the payment procedures.]]></comment>
@@ -118,14 +83,7 @@
                 <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 <config_path>payment/tig_buckaroo_afterpay20/order_email</config_path>
             </field>
-<!--
-            <field id="payment_flow" translate="label comment" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
-                <label>Payment flow</label>
-                <comment><![CDATA[Whether to use separate authorize and capture calls or to use a combined 'pay' call.]]></comment>
-                <config_path>payment/tig_buckaroo_afterpay20/payment_action</config_path>
-                <source_model>TIG\Buckaroo\Model\Config\Source\PaymentFlow</source_model>
-            </field>
--->
+
             <field id="payment_fee" translate="label comment" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Payment fee</label>
                 <comment><![CDATA[The above amount is calculated based on de Tax settings in Stores > Configuration > Sales > Tax.]]></comment>

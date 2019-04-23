@@ -39,8 +39,7 @@
 
 namespace TIG\Buckaroo\Model\ConfigProvider\Method;
 
-use TIG\Buckaroo\Model\Config\Source\Afterpay2PaymentMethods;
-use TIG\Buckaroo\Model\Config\Source\Business;
+use TIG\Buckaroo\Model\Method\Afterpay20 as Afterpay20Method;
 
 /**
  * @method getDueDate()
@@ -63,13 +62,6 @@ class Afterpay20 extends AbstractConfigProvider
     const XPATH_AFTERPAY20_AVAILABLE_IN_BACKEND   = 'payment/tig_buckaroo_afterpay20/available_in_backend';
     const XPATH_AFTERPAY20_DUE_DATE               = 'payment/tig_buckaroo_afterpay20/due_date';
     const XPATH_AFTERPAY20_ALLOWED_CURRENCIES     = 'payment/tig_buckaroo_afterpay20/allowed_currencies';
-    const XPATH_AFTERPAY20_BUSINESS               = 'payment/tig_buckaroo_afterpay20/business';
-    const XPATH_AFTERPAY20_PAYMENT_METHODS        = 'payment/tig_buckaroo_afterpay20/payment_method';
-    const XPATH_AFTERPAY20_HIGH_TAX               = 'payment/tig_buckaroo_afterpay20/high_tax';
-    const XPATH_AFTERPAY20_MIDDLE_TAX             = 'payment/tig_buckaroo_afterpay20/middle_tax';
-    const XPATH_AFTERPAY20_LOW_TAX                = 'payment/tig_buckaroo_afterpay20/low_tax';
-    const XPATH_AFTERPAY20_ZERO_TAX               = 'payment/tig_buckaroo_afterpay20/zero_tax';
-    const XPATH_AFTERPAY20_NO_TAX                 = 'payment/tig_buckaroo_afterpay20/no_tax';
 
     /**
      * @return array
@@ -83,7 +75,7 @@ class Afterpay20 extends AbstractConfigProvider
             return [];
         }
 
-        $paymentFeeLabel = $this->getBuckarooPaymentFeeLabel(\TIG\Buckaroo\Model\Method\Afterpay2::PAYMENT_METHOD_CODE);
+        $paymentFeeLabel = $this->getBuckarooPaymentFeeLabel(Afterpay20Method::PAYMENT_METHOD_CODE);
 
         return [
             'payment' => [
@@ -92,164 +84,11 @@ class Afterpay20 extends AbstractConfigProvider
                         'sendEmail'         => (bool) $this->getSendEmail(),
                         'paymentFeeLabel'   => $paymentFeeLabel,
                         'allowedCurrencies' => $this->getAllowedCurrencies(),
-                        'businessMethod'    => $this->getBusiness(),
-                        'paymentMethod'     => $this->getPaymentMethod(),
                     ],
                     'response' => [],
                 ],
             ],
         ];
-    }
-
-    /**
-     * businessMethod 1 = B2C
-     * businessMethod 2 = B2B
-     * businessMethod 3 = Both
-     *
-     * @return bool|int
-     */
-    public function getBusiness()
-    {
-        $business = (int) $this->scopeConfig->getValue(
-            self::XPATH_AFTERPAY20_BUSINESS,
-            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
-        );
-
-        $paymentMethod = $this->getPaymentMethod();
-
-        // Acceptgiro payment method is ALWAYS B2C
-        if ($paymentMethod == Afterpay2PaymentMethods::PAYMENT_METHOD_ACCEPTGIRO) {
-            $business = Business::BUSINESS_B2C;
-        }
-
-        return $business ? $business : false;
-    }
-
-    /**
-     * paymentMethod 1 = afterpayacceptgiro
-     * paymentMethod 2 = afterpaydigiaccept
-     *
-     * @return bool|int
-     */
-    public function getPaymentMethod()
-    {
-        $paymentMethod = (int) $this->scopeConfig->getValue(
-            self::XPATH_AFTERPAY20_PAYMENT_METHODS,
-            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
-        );
-
-        return $paymentMethod ? $paymentMethod : false;
-    }
-
-    /**
-     * Get the config values for the high tax classes.
-     *
-     * @param null|int $storeId
-     *
-     * @return bool|mixed
-     */
-    public function getHighTaxClasses($storeId = null)
-    {
-        $taxClasses = $this->scopeConfig->getValue(
-            self::XPATH_AFTERPAY20_HIGH_TAX,
-            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
-            $storeId
-        );
-
-        return $taxClasses ? $taxClasses : false;
-    }
-
-    /**
-     * Get the config values for the middle tax classes
-     *
-     * @param null|int $storeId
-     *
-     * @return bool|mixed
-     */
-    public function getMiddleTaxClasses($storeId = null)
-    {
-        $taxClasses = $this->scopeConfig->getValue(
-            self::XPATH_AFTERPAY20_MIDDLE_TAX,
-            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
-            $storeId
-        );
-
-        return $taxClasses ? $taxClasses : false;
-    }
-
-    /**
-     * Get the config values for the low tax classes
-     *
-     * @param null|int $storeId
-     *
-     * @return bool|mixed
-     */
-    public function getLowTaxClasses($storeId = null)
-    {
-        $taxClasses = $this->scopeConfig->getValue(
-            self::XPATH_AFTERPAY20_LOW_TAX,
-            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
-            $storeId
-        );
-
-        return $taxClasses ? $taxClasses : false;
-    }
-
-    /**
-     * Get the config values for the zero tax classes
-     *
-     * @param null|int $storeId
-     *
-     * @return bool|mixed
-     */
-    public function getZeroTaxClasses($storeId = null)
-    {
-        $taxClasses = $this->scopeConfig->getValue(
-            self::XPATH_AFTERPAY20_ZERO_TAX,
-            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
-            $storeId
-        );
-
-        return $taxClasses ? $taxClasses : false;
-    }
-
-    /**
-     * Get the config values for the no tax classes
-     *
-     * @return bool|mixed
-     */
-    public function getNoTaxClasses()
-    {
-        $taxClasses = $this->scopeConfig->getValue(
-            self::XPATH_AFTERPAY20_NO_TAX,
-            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
-        );
-
-        return $taxClasses ? $taxClasses : false;
-    }
-
-    /**
-     * Get the methods name
-     *
-     * @param int $method
-     *
-     * @return bool|string
-     */
-    public function getPaymentMethodName($method = null)
-    {
-        $paymentMethodName = false;
-
-        if (!$method) {
-            $method = $this->getPaymentMethod();
-        }
-
-        if ($method) {
-
-            $paymentMethodName = 'afterpay';
-
-        }
-
-        return $paymentMethodName;
     }
 
     /**
