@@ -105,7 +105,7 @@
         float: left !important;
     }
 
-    .magento-blank .tig_buckaroo_ideal .fieldset > .field:not(.choice) > .control,
+    .magento-blank .tig_buckaroo_ideal di.fieldset > .field:not(.choice) > .control,
     .magento-blank .tig_buckaroo_idealprocessing .fieldset > .field:not(.choice) > .control,
     .magento-blank .tig_buckaroo_creditcard .fieldset > .field:not(.choice) > .control,
     .magento-blank .tig_buckaroo_creditcards .fieldset > .field:not(.choice) > .control,
@@ -666,15 +666,14 @@
 
 /* Information */
 
-.card.styled .card_back .card_info svg {
+.card .card_back .card_info svg {
     height : 20px;
     width: 20px;
     cursor: pointer;
     fill: #989898;
 }
 
-
-.card.styled .card_back .card_info .popup {
+.card .card_back .card_info .popup {
     font-family: "Helvetica Neue", Verdana, Arial, sans-serif;
     text-transform :none;
     display :none;
@@ -688,7 +687,7 @@
     z-index: 100;
 }
 
-.card.styled .card_back .card_info .popup:before {
+.card .card_back .card_info .popup:before {
     position: absolute;
     left: 187px;
     top: -14px;
@@ -701,7 +700,7 @@
     border-left: 7px solid transparent;
 }
 
-.card.styled .card_back .card_info .popup:after {
+.card .card_back .card_info .popup:after {
     position: absolute;
     left: 187px;
     top: -13px;
@@ -714,11 +713,11 @@
     border-left: 7px solid transparent;
 }
 
-.card.styled .card_back .card_info:hover .popup {
+.card .card_back .card_info:hover .popup {
     display :block;
 }
 
-.card.styled .card_back .card_info {
+.card .card_back .card_info {
     text-align: right;
     margin-top: 10px;
     position: relative;
@@ -749,4 +748,60 @@
 .card.styled .width-10 {
     width: 10%;
     float:left;
+}
+
+/* Theme specific exceptions ======================================================================================== */
+
+.magento-blank .checkout-payment-method .payment-method-content .card.styled .fieldset > .field {
+    margin: 0;
+}
+
+.magento-blank .tig_buckaroo_creditcards .card.styled .fieldset > .field:not(.choice) > .control {
+    margin-top: 0 !important;
+}
+
+.magento-blank .tig_buckaroo_creditcards .card.styled .fieldset > .field:not(.choice) > .label {
+    padding-top: 0 !important;
+}
+
+.magento-blank .tig_buckaroo_creditcards .card.styled  .fieldset.card_back > .field:not(.choice) > .label {
+    width: 40% !important;
+}
+
+.magento-blank .tig_buckaroo_creditcards .card.styled .fieldset.card_back > .field:not(.choice) > .control {
+    width: 50% !important;
+}
+
+.magento-blank .opc-wrapper .fieldset > .field.required > label:after {
+    top: unset;
+}
+
+.magento-blank .tig_buckaroo_creditcards .fieldset .styled > .field:not(.choice) > .label {
+    width: auto !important;
+}
+
+.magento-luma .tig_buckaroo_creditcards .fieldset > .field.card_security,
+.magento-blank .tig_buckaroo_creditcards .fieldset > .field.card_security {
+    float:left;
+    width: 100%;
+}
+
+.magento-luma .tig_buckaroo_creditcards .card:not(.styled) .fieldset > .field:not(.choice) > .control.card-info-input,
+.magento-blank .tig_buckaroo_creditcards .fieldset > .field:not(.choice) > .control.card-info-input {
+    width: 90% !important;
+    float :left;
+}
+
+.magento-luma .tig_buckaroo_creditcards .card:not(.styled) .card_info,
+.magento-blank .tig_buckaroo_creditcards .card:not(.styled) .card_info {
+    width: 10%;
+    float:left;
+    margin-top: 5px;
+    text-align: center;
+}
+
+@media screen and (min-width: 768px){
+    .magento-blank .tig_buckaroo_creditcards .card:not(.styled) .card_info {
+        margin-top: 15px;
+    }
 }
