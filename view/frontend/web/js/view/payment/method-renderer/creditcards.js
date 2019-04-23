@@ -98,13 +98,29 @@ define(
                     ExpirationYear  : null,
                     ExpirationMonth : null,
                     EncryptedData   : null,
+                    issuerImage     : null,
                     CardIssuer      : null,
-                    issuerImage     : null
+                    CardDesign      : Boolean(window.checkoutConfig.payment.buckaroo.creditcards.useCardDesign)
                 },
                 paymentFeeLabel : window.checkoutConfig.payment.buckaroo.creditcards.paymentFeeLabel,
                 currencyCode : window.checkoutConfig.quoteData.quote_currency_code,
                 baseCurrencyCode : window.checkoutConfig.quoteData.base_currency_code,
                 creditcards : window.checkoutConfig.payment.buckaroo.creditcards.creditcards,
+                months : [
+                    {'value' : '', 'label' : 'Select a month'},
+                    {'value' : 1, 'label' : '01'},
+                    { 'value': 2, 'label' : '02'},
+                    { 'value': 3, 'label' : '03'},
+                    { 'value': 4, 'label' : '04'},
+                    { 'value': 5, 'label' : '05'},
+                    { 'value': 6, 'label' : '06'},
+                    { 'value': 7, 'label' : '07'},
+                    { 'value': 8, 'label' : '08'},
+                    { 'value': 9, 'label' : '09'},
+                    { 'value': 10, 'label' : '10'},
+                    { 'value': 11, 'label' : '11'},
+                    { 'value': 12, 'label' : '12'}
+                ],
 
                 /**
                  * @override
@@ -138,12 +154,9 @@ define(
                      * Subscribe the fields to validate them on changes.
                      * The .valid() method inside validateIndividual will force the $.validator to run.
                      **/
-                    // this.CardIssuer.subscribe(this.validateIndividual, 'tig_buckaroo_creditcards_issuer');
                     this.CardNumber.subscribe(this.validateIndividual, 'tig_buckaroo_creditcards_cardnumber');
                     this.Cvc.subscribe(this.validateIndividual, 'tig_buckaroo_creditcards_cvc');
                     this.CardHolderName.subscribe(this.validateIndividual, 'tig_buckaroo_creditcards_cardholdername');
-                    this.ExpirationYear.subscribe(this.validateIndividual, 'tig_buckaroo_creditcards_expirationyear');
-                    this.ExpirationMonth.subscribe(this.validateIndividual, 'tig_buckaroo_creditcards_expirationmonth');
 
                     /** Check used to see if input is valid **/
                     this.buttoncheck = ko.computed(
@@ -166,7 +179,7 @@ define(
                 },
 
                 /** This will run the $.validator functions that are defined at the top of this file. **/
-                validateIndividual: function() {
+                validateIndividual: function () {
                     $('#' + this).valid();
                 },
 
@@ -178,6 +191,18 @@ define(
                     return true;
                 },
 
+                validateIssuer: function() {
+                    $('#tig_buckaroo_creditcards_issuer').valid()
+                },
+
+                validateMonth: function() {
+                    $('#tig_buckaroo_creditcards_expirationmonth').valid()
+                },
+
+                validateYear: function() {
+                    $('#tig_buckaroo_creditcards_expirationyear').valid()
+                },
+
                 /**
                  * Run validation function
                  */
@@ -187,7 +212,7 @@ define(
                     return elements.valid();
                 },
 
-                changeIssuerLogo: function() {
+                changeIssuerLogo: function () {
                     var issuer = this.creditcards.find(o => o.code === this.CardIssuer());
                     if (issuer) {
                         this.issuerImage(issuer.img);
@@ -281,11 +306,11 @@ define(
 
                 /** This and getCardIssuer are currently unused. As mentioned in BUCKM2-391, this should be included in the future. **/
                 processCard: function () {
-                    var cardIssuer = this.getCardIssuer();
-                    if (cardIssuer && cardIssuer.active) {
-                        this.issuerImage(cardIssuer.img);
+                    var cardIssuerObject = this.getCardIssuer();
+                    if (cardIssuerObject && cardIssuerObject.active) {
+                        this.issuerImage(cardIssuerObject.img);
                     }
-                    this.CardIssuer = cardIssuer;
+                    this.CardIssuerObject = cardIssuerObject;
                 },
 
                 /** Get the card issuer based on the creditcard number **/
@@ -339,14 +364,6 @@ define(
                             "customer_creditcardcompany" : this.CardIssuer()
                         }
                     };
-                },
-
-                getMinExpirationYear: function () {
-                    return new Date().getFullYear();
-                },
-
-                getMaxExpirationYear: function () {
-                    return new Date().getFullYear() + 10;
                 }
             }
         );

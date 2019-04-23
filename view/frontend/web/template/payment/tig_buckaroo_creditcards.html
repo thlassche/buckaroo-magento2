@@ -16,19 +16,20 @@
 
         <div class="payment-method-second-col billing-address-form">
             <form data-hasrequired="* Required Fields" data-bind="mageInit: { 'validation': [] }">
-                <fieldset class="fieldset payment card styled">
+                <fieldset class="fieldset payment card" data-bind="css: CardDesign ? 'styled' : 'blank'">
                     <div class="fieldset card_front width-100">
                         <div class="field required width-50-l" >
                             <label class="label" for="tig_buckaroo_creditcards_issuer"> <span data-bind="i18n: 'Card Issuer:'"> </span> </label>
                             <div class="control">
                                 <select id="tig_buckaroo_creditcards_issuer"
                                         data-bind="value: CardIssuer,
+                                        event: { change: validateIssuer },
                                         attr: { 'data-validate': JSON.stringify({ 'required-entry': true }) }"
                                         name="payment[tig_buckaroo_creditcards][issuer]">
                                     <option data-bind="i18n: 'Select a creditcard', 'value': ''"></option>
                                     <!-- ko foreach: creditcards -->
                                         <!-- ko if: active -->
-                                            <option data-bind="i18n: name, 'value': code, event: { select: $parent.myFunction }"></option>
+                                            <option data-bind="i18n: name, 'value': code"></option>
                                         <!--/ko-->
                                     <!--/ko-->
                                 </select>
@@ -71,12 +72,12 @@
                             <label class="label" for="tig_buckaroo_creditcards_expirationmonth"><span data-bind="i18n: 'Month:'"></span></label>
                             <div class="control">
                                 <select id="tig_buckaroo_creditcards_expirationmonth"
-                                        data-bind="value: ExpirationMonth"
+                                        data-bind="value: ExpirationMonth,
+                                        attr: { 'data-validate': JSON.stringify({ 'required-entry': true }) },
+                                        event: { change: validateMonth }"
                                         name="payment[tig_buckaroo_creditcards][expirationmonth]">
-                                    <!-- ko foreach: creditcards -->
-                                    <!-- ko if: active -->
-                                    <option data-bind="i18n: name, 'value': code, event: { select: $parent.myFunction }"></option>
-                                    <!--/ko-->
+                                    <!-- ko foreach: months -->
+                                    <option data-bind="i18n: label, 'value': value"></option>
                                     <!--/ko-->
                                 </select>
                             </div>
@@ -86,13 +87,12 @@
                             <label class="label" for="tig_buckaroo_creditcards_expirationyear"><span data-bind="i18n: 'Year:'"></span></label>
                             <div class="control">
                                 <select id="tig_buckaroo_creditcards_expirationyear"
-                                        data-bind="value: ExpirationYear"
+                                        data-bind="value: ExpirationYear,
+                                                   attr: { 'data-validate': JSON.stringify({ 'required-entry': true }) },
+                                                   event: { change: validateYear },
+                                                   foreach: new Array(12)"
                                         name="payment[tig_buckaroo_creditcards][expirationyear]">
-                                    <!-- ko foreach: creditcards -->
-                                    <!-- ko if: active -->
-                                    <option data-bind="i18n: name, 'value': code, event: { select: $parent.myFunction }"></option>
-                                    <!--/ko-->
-                                    <!--/ko-->
+                                    <option data-bind="text: $index() == 0 ? 'select a year' : new Date().getFullYear()+$index() - 1, 'value': $index() == 0 ? '' : new Date().getFullYear()+$index() - 1"></option>
                                 </select>
                             </div>
                         </div>

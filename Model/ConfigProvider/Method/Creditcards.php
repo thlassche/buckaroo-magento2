@@ -41,9 +41,9 @@ namespace TIG\Buckaroo\Model\ConfigProvider\Method;
 
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\View\Asset\Repository;
+use Magento\Store\Model\ScopeInterface;
 use TIG\Buckaroo\Helper\PaymentFee;
 use TIG\Buckaroo\Model\ConfigProvider\AllowedCurrencies;
-use TIG\Buckaroo\Model\ConfigProvider\Method\Creditcard;
 
 /**
  * @method getPaymentFeeLabel()
@@ -67,12 +67,12 @@ class Creditcards extends AbstractConfigProvider
     const XPATH_CREDITCARDS_SELLERS_PROTECTION_INELIGIBLE    = 'payment/tig_buckaroo_creditcards/sellers_protection_ineligible';
     const XPATH_CREDITCARDS_SELLERS_PROTECTION_ITEMNOTRECEIVED_ELIGIBLE = 'payment/tig_buckaroo_creditcards/sellers_protection_itemnotreceived_eligible';
     const XPATH_CREDITCARDS_SELLERS_PROTECTION_UNAUTHORIZEDPAYMENT_ELIGIBLE = 'payment/tig_buckaroo_creditcards/sellers_protection_unauthorizedpayment_eligible';
-    const XPATH_CREDITCARDS_ALLOWED_ISSUERS              = 'payment/tig_buckaroo_creditcards/allowed_creditcards';
+    const XPATH_CREDITCARDS_ALLOWED_ISSUERS                  = 'payment/tig_buckaroo_creditcards/allowed_creditcards';
+    const XPATH_USE_CARD_DESIGN                              = 'payment/tig_buckaroo_creditcards/card_design';
+    const XPATH_ALLOWED_CURRENCIES                           = 'payment/tig_buckaroo_creditcards/allowed_currencies';
 
-    const XPATH_ALLOWED_CURRENCIES = 'payment/tig_buckaroo_creditcards/allowed_currencies';
-
-    const XPATH_ALLOW_SPECIFIC                  = 'payment/tig_buckaroo_creditcards/allowspecific';
-    const XPATH_SPECIFIC_COUNTRY                = 'payment/tig_buckaroo_creditcards/specificcountry';
+    const XPATH_ALLOW_SPECIFIC                               = 'payment/tig_buckaroo_creditcards/allowspecific';
+    const XPATH_SPECIFIC_COUNTRY                             = 'payment/tig_buckaroo_creditcards/specificcountry';
 
     /**
      * Creditcards constructor.
@@ -109,6 +109,7 @@ class Creditcards extends AbstractConfigProvider
                     'creditcards' => [
                         'paymentFeeLabel' => $paymentFeeLabel,
                         'creditcards' => $issuers,
+                        'useCardDesign' => $this->useCardDesign(),
                         'allowedCurrencies' => $this->getAllowedCurrencies(),
                     ],
                 ],
@@ -125,7 +126,7 @@ class Creditcards extends AbstractConfigProvider
     {
         $paymentFee = $this->scopeConfig->getValue(
             self::XPATH_CREDITCARDS_PAYMENT_FEE,
-            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
+            ScopeInterface::SCOPE_STORE,
             $storeId
         );
 
@@ -142,7 +143,7 @@ class Creditcards extends AbstractConfigProvider
         $issuers = parent::formatIssuers();
         $allowed = explode(',', $this->scopeConfig->getValue(
             self::XPATH_CREDITCARDS_ALLOWED_ISSUERS,
-            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+            ScopeInterface::SCOPE_STORE
         ));
 
         foreach ($issuers as $key => $issuer) {
@@ -150,5 +151,13 @@ class Creditcards extends AbstractConfigProvider
         }
 
         return $issuers;
+    }
+
+    /**
+     * @return bool
+     */
+    private function useCardDesign()
+    {
+        return $this->scopeConfig->getValue(self::XPATH_USE_CARD_DESIGN, ScopeInterface::SCOPE_STORE);
     }
 }

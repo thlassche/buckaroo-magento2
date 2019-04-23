@@ -161,6 +161,7 @@
                 <sort_order>35</sort_order>
                 <order_email>1</order_email>
                 <payment_fee_label>Fee</payment_fee_label>
+                <card_design>1</card_design>
                 <group>tig_buckaroo</group>
                 <payment_action>order</payment_action>
                 <available_in_backend>0</available_in_backend>
