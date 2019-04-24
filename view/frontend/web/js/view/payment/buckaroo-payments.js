@@ -101,6 +101,10 @@ define(
                 component: 'TIG_Buckaroo/js/view/payment/method-renderer/creditcard'
             },
             {
+                type: 'tig_buckaroo_creditcards',
+                component: 'TIG_Buckaroo/js/view/payment/method-renderer/creditcards'
+            },
+            {
                 type: 'tig_buckaroo_transfer',
                 component: 'TIG_Buckaroo/js/view/payment/method-renderer/transfer'
             },

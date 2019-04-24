@@ -52,6 +52,7 @@ class Toolbar
         'tig_buckaroo_afterpay20',
         'tig_buckaroo_payperemail',
         'tig_buckaroo_creditcard',
+        'tig_buckaroo_creditcards',
         'tig_buckaroo_ideal',
         'tig_buckaroo_idealprocessing',
         'tig_buckaroo_mrcash',
