@@ -100,12 +100,13 @@ define(
                     EncryptedData   : null,
                     issuerImage     : null,
                     CardIssuer      : null,
-                    CardDesign      : Boolean(window.checkoutConfig.payment.buckaroo.creditcards.useCardDesign)
+                    CardDesign      : window.checkoutConfig.payment.buckaroo.creditcards.useCardDesign == true
                 },
                 paymentFeeLabel : window.checkoutConfig.payment.buckaroo.creditcards.paymentFeeLabel,
                 currencyCode : window.checkoutConfig.quoteData.quote_currency_code,
                 baseCurrencyCode : window.checkoutConfig.quoteData.base_currency_code,
                 creditcards : window.checkoutConfig.payment.buckaroo.creditcards.creditcards,
+                defaultCardImage : window.checkoutConfig.payment.buckaroo.creditcards.defaultCardImage,
                 months : [
                     {'value' : '', 'label' : 'Select a month'},
                     {'value' : 1, 'label' : '01'},
@@ -192,15 +193,18 @@ define(
                 },
 
                 validateIssuer: function() {
-                    $('#tig_buckaroo_creditcards_issuer').valid()
+                    $('#tig_buckaroo_creditcards_issuer').valid();
+                    this.encryptCardDetails();
                 },
 
                 validateMonth: function() {
-                    $('#tig_buckaroo_creditcards_expirationmonth').valid()
+                    $('#tig_buckaroo_creditcards_expirationmonth').valid();
+                    this.encryptCardDetails();
                 },
 
                 validateYear: function() {
-                    $('#tig_buckaroo_creditcards_expirationyear').valid()
+                    $('#tig_buckaroo_creditcards_expirationyear').valid();
+                    this.encryptCardDetails();
                 },
 
                 /**
@@ -213,12 +217,14 @@ define(
                 },
 
                 changeIssuerLogo: function () {
+                    var cardLogo = this.defaultCardImage;
+
                     var issuer = this.creditcards.find(o => o.code === this.CardIssuer());
                     if (issuer) {
-                        this.issuerImage(issuer.img);
-                    } else {
-                        this.issuerImage(this.creditcards[0].img);
+                        cardLogo = issuer.img;
                     }
+
+                    this.issuerImage(cardLogo);
                 },
 
                 payWithBaseCurrency: function () {
@@ -283,11 +289,11 @@ define(
                     }
 
                     if (this.validate()) {
-                        var cardNumber = this.CardNumber().replace(/\s+/g, '');
-                        var year =    this.ExpirationYear();
-                        var month =    this.ExpirationMonth();
-                        var cvc =    this.Cvc();
-                        var cardholder =    this.CardHolderName();
+                        var cardNumber  = this.CardNumber().replace(/\s+/g, '');
+                        var year        = this.ExpirationYear();
+                        var month       = this.ExpirationMonth();
+                        var cvc         = this.Cvc();
+                        var cardholder  = this.CardHolderName();
 
                         var getEncryptedData = function(cardNumber, year, month, cvc, cardholder) {
                             BuckarooClientSideEncryption.V001.encryptCardData(cardNumber,

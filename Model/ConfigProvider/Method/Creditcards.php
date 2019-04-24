@@ -109,6 +109,7 @@ class Creditcards extends AbstractConfigProvider
                     'creditcards' => [
                         'paymentFeeLabel' => $paymentFeeLabel,
                         'creditcards' => $issuers,
+                        'defaultCardImage' => $this->getImageUrl('tig_buckaroo_creditcard_title'),
                         'useCardDesign' => $this->useCardDesign(),
                         'allowedCurrencies' => $this->getAllowedCurrencies(),
                     ],
