@@ -58,4 +58,7 @@
     <event name="sales_order_payment_cancel">
         <observer name="tig_buckaroo_void_cm3_payment" instance="TIG\Buckaroo\Observer\VoidCm3Payment" />
     </event>
+    <event name="sales_order_shipment_save_after">
+        <observer name="tig_buckaroo_shipment_save_after" instance="TIG\Buckaroo\Observer\SalesOrderShipmentAfter" />
+    </event>
 </config>

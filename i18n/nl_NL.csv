@@ -369,6 +369,7 @@
 "One-Off means that the authorization can be used for an one-off direct debit. Recurring means that the authorization will be used for multiple direct debits.","One-Off betekent dat de machtiging gebruikt kan worden voor een eenmalige incasso. Recurring kiest u wanneer de machtiging gebruikt gaat worden voor meerdere incasso's."
 "E-mandate description","E-mandate beschrijving"
 "Enter a desciption that the customer will recognize as the authorization here, e.g. your webshop or company name.","Vul hier een omschrijving in waarmee de klant de machtiging herkent, bijvoorbeeld uw webshop of bedrijfsnaam."
+<<<<<<< HEAD
 "You have canceled the order. We kindly ask you to not complete the payment in the Payconiq app - Your order will not be processed. Place the order again if you still want to make the payment.","U heeft de bestelling geannuleerd. Indien u de QR code al heeft gescand, verzoeken wij u vriendelijk de betaling in de Payconiq app niet te voltooien - uw order zal niet verwerkt worden. Mocht u de betaling toch willen doen, plaats dan de bestelling opnieuw"
 "Identification number:","Identificatie nummer:"
 "(Or click here for the French translation: <a target=\"_blank\" href=\"%s\">terms and condition</a>.)","(Of klik hier voor de Franse vertaling: <a target=\"_blank\" href=\"%s\">aanvullende voorwaarden</a>.)"
@@ -382,3 +383,4 @@
 "Cardholder Name:","Naam kaarthouder"
 "Cvc / Cvv Code:","Cvc / Cvv Code:"
 "Please make sure all fields are filled in correctly before proceeding.","Zorg ervoor dat alle velden correct zijn ingevuld voordat u doorgaat."
+"Orders with discount and paid with Klarna can not be partially invoiced. %1 More Information %2","Orders met korting en betaald met Klarna kunnen niet gedeeltelijk worden gefactureerd. %1 Meer Informatie %2"
