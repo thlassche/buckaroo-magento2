@@ -44,8 +44,15 @@ use Magento\Backend\Block\Widget\Button\Toolbar as ToolbarContext;
 use Magento\Framework\View\Element\AbstractBlock;
 use Magento\Backend\Block\Widget\Button\ButtonList;
 
+/**
+ * Class Toolbar
+ * @package TIG\Buckaroo\Block\Widget\Button
+ */
 class Toolbar
 {
+    /**
+     * @var array
+     */
     private $allowedMethods = [
         'tig_buckaroo_afterpay',
         'tig_buckaroo_afterpay2',
@@ -78,10 +85,42 @@ class Toolbar
         \Magento\Framework\View\Element\AbstractBlock $context,
         \Magento\Backend\Block\Widget\Button\ButtonList $buttonList
     ) {
-        if (!$context instanceof \Magento\Sales\Block\Adminhtml\Order\Invoice\View) {
-            return [$context, $buttonList];
+        if ($this->_isOrderInvoiceView($context)) {
+            return $this->_creditMemoNotAllowed($context, $buttonList);
         }
 
+        return [$context, $buttonList];
+    }
+
+    /**
+     * @param $context
+     * @return bool
+     */
+    private function _isOrderView($context)
+    {
+        if ($context instanceof \Magento\Sales\Block\Adminhtml\Order\View) {
+            return true;
+        }
+    }
+
+    /**
+     * @param $context
+     * @return bool
+     */
+    private function _isOrderInvoiceView($context)
+    {
+        if ($context instanceof \Magento\Sales\Block\Adminhtml\Order\Invoice\View) {
+            return true;
+        }
+    }
+
+    /**
+     * @param $context
+     * @param $buttonList
+     * @return array
+     */
+    private function _creditMemoNotAllowed($context, $buttonList)
+    {
         $orderPayment = $context->getInvoice()->getOrder();
         $paymentMethod = $orderPayment->getPayment()->getMethod();
 
@@ -113,8 +152,6 @@ class Toolbar
 
             $buttonList->update('capture', 'onclick', $onClick);
         }
-
-
 
         return [$context, $buttonList];
     }

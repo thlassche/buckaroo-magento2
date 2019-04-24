@@ -158,6 +158,11 @@ class Klarna extends AbstractMethod
     /** @var AddressFormatter */
     private $addressFormatter;
 
+    /** @var int */
+    private $groupId = 1;
+
+    private $context;
+
     /**
      * @param \Magento\Framework\ObjectManagerInterface $objectManager
      * @param \Magento\Framework\Model\Context $context
@@ -238,6 +243,7 @@ class Klarna extends AbstractMethod
             $data
         );
 
+        $this->context = $context;
         $this->softwareData = $softwareData;
         $this->taxConfig = $taxConfig;
         $this->taxCalculation = $taxCalculation;
@@ -254,6 +260,14 @@ class Klarna extends AbstractMethod
             return false;
         }
         return $this->_canCapture;
+    }
+
+    public function canCapturePartial()
+    {
+        if ($this->getInfoInstance()->getOrder()->getDiscountAmount() < 0) {
+            return false;
+        }
+        return $this->_canCapturePartial;
     }
 
     /**
@@ -296,7 +310,7 @@ class Klarna extends AbstractMethod
      */
     public function getCaptureTransactionBuilder($payment)
     {
-        $group = 1;
+        //$group = 1;
         $transactionBuilder = $this->transactionBuilderFactory->get('order');
 
         $capturePartial = true;
@@ -345,24 +359,24 @@ class Klarna extends AbstractMethod
         if (isset($currentInvoice)) {
             $articledata = $this->getPayRequestData($currentInvoice, $payment);
             $articles = array_merge($articles, $articledata);
-            $group++;
+            //$group++;
         }
 
         // For the first invoice possible add payment fee
         if (is_array($articles) && $numberOfInvoices == 1) {
             $includesTax = $this->_scopeConfig->getValue(static::TAX_CALCULATION_INCLUDES_TAX);
-            $serviceLine = $this->getServiceCostLine($currentInvoice, $includesTax, $group);
+            $serviceLine = $this->getServiceCostLine($currentInvoice, $includesTax, $this->groupId++);
             if (!empty($serviceLine)) {
                 unset($serviceLine[1]);
                 unset($serviceLine[3]);
                 unset($serviceLine[4]);
                 $articles = array_merge($articles, $serviceLine);
-                $group++;
+                //$group++;
             }
         }
 
-        // Add aditional shippin costs.
-        $shippingCosts = $this->getShippingCostsLine($currentInvoice, $group);
+        // Add additional shipping costs.
+        $shippingCosts = $this->getShippingCostsLine($currentInvoice, $this->groupId++);
 
         if (!empty($shippingCosts)) {
             unset($shippingCosts[1]);
@@ -508,7 +522,7 @@ class Klarna extends AbstractMethod
             ],
             [
                 '_' => $phoneNumber['clean'],
-                'Name' => 'ShippingCellPhoneNumber',
+                'Name' => ($phoneNumber['mobile'] ? 'ShippingCellPhoneNumber' : 'ShippingPhoneNumber'),
             ],
             [
                 '_' => $shippingAddress->getCity(),
@@ -529,10 +543,6 @@ class Klarna extends AbstractMethod
             [
                 '_' => $shippingAddress->getLastName(),
                 'Name' => 'ShippingLastName',
-            ],
-            [
-                '_' => $shippingAddress->getTelephone(),
-                'Name' => 'ShippingPhoneNumber',
             ],
             [
                 '_' => $shippingAddress->getPostcode(),
@@ -575,7 +585,7 @@ class Klarna extends AbstractMethod
         $includesTax = $this->_scopeConfig->getValue(static::TAX_CALCULATION_INCLUDES_TAX);
 
         $articles = array();
-        $group = 1;
+        //$group = 1;
 
         $invoiceItems = $invoice->getAllItems();
 
@@ -587,27 +597,32 @@ class Klarna extends AbstractMethod
             $articles[] = [
                 '_' => $item->getSku(),
                 'Group' => 'Article',
-                'GroupID' => $group,
+                'GroupID' => $this->groupId,
                 'Name' => 'ArticleNumber',
             ];
 
             $articles[] = [
                 '_' => (int) $item->getQty(),
                 'Group' => 'Article',
-                'GroupID' => $group,
+                'GroupID' => $this->groupId,
                 'Name' => 'ArticleQuantity',
             ];
 
-            $group++;
+            $this->groupId++;
         }
 
-        $discountline = $this->getDiscountLine($payment, $group);
+        $discountline = $this->getDiscountLine($payment, $this->groupId);
 
-        if (false !== $discountline && is_array($discountline) && count($invoiceCollection) == 1) {
+        if (false !== $discountline &&
+            is_array($discountline) &&
+            count($discountline) > 0 &&
+            count($invoiceCollection) == 1
+        ) {
             unset($discountline[1]);
             unset($discountline[3]);
             unset($discountline[4]);
             $articles = array_merge($articles, $discountline);
+            $this->groupId++;
         }
 
         return $articles;
@@ -802,8 +817,8 @@ class Klarna extends AbstractMethod
         $birthDayStamp = str_replace('-', '', $payment->getAdditionalInformation('customer_DoB'));
         $billingData = [
             [
-                '_' => $telephone,
-                'Name' => 'BillingCellPhoneNumber',
+                '_' => $telephone['clean'],
+                'Name' => ($telephone['mobile'] ? 'BillingCellPhoneNumber' : 'BillingPhoneNumber'),
             ],
             [
                 '_' => $billingAddress->getCity(),
@@ -824,10 +839,6 @@ class Klarna extends AbstractMethod
             [
                 '_' => $billingAddress->getLastName(),
                 'Name' => 'BillingLastName',
-            ],
-            [
-                '_' => $telephone,
-                'Name' => 'BillingPhoneNumber',
             ],
             [
                 '_' => $billingAddress->getPostcode(),

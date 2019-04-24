@@ -47,5 +47,8 @@
         <referenceBlock name="invoice_totals">
             <block class="TIG\Buckaroo\Block\Adminhtml\Sales\Totals" name="buckaroo_fee_totals"/>
         </referenceBlock>
+        <referenceBlock name="content">
+            <block class="TIG\Buckaroo\Block\Adminhtml\Sales\Order\Invoice\KlarnaDiscountPartialInformation" before="-" name="buckaroo_invoice_new_info" template="TIG_Buckaroo::sales/order/invoice/klarna_discount_info.phtml"/>
+        </referenceBlock>
     </body>
 </page>

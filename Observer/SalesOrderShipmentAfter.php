@@ -116,14 +116,16 @@ class SalesOrderShipmentAfter implements ObserverInterface
             return;
         }
 
+        /** @var \Magento\Sales\Model\Order\Shipment $shipment */
         $shipment = $observer->getEvent()->getShipment();
+
         /** @var \Magento\Sales\Model\Order $order */
         $order = $shipment->getOrder();
 
         $payment = $order->getPayment();
-        //if ($payment->getMethodInstance()->getCode() == 'tig_buckaroo_klarna') {
+        if ($payment->getMethodInstance()->getCode() == 'tig_buckaroo_klarna') {
             $this->createInvoice($order, $shipment);
-       // }
+        }
     }
 
     public function createInvoice($order, $shipment)
@@ -133,14 +135,22 @@ class SalesOrderShipmentAfter implements ObserverInterface
                 return null;
             }
 
-            $qtys = $this->getQtys($shipment);
+            if ($order->getDiscountAmount() < 0) {
+                $invoice = $this->invoiceService->prepareInvoice($order);
+                $message = 'Automatically invoiced full order with discount. (Klarna can not invoice partials with discount)';
+            }
+            else {
+                $qtys = $this->getQtys($shipment);
+                $invoice = $this->invoiceService->prepareInvoice($order, $qtys);
+                $message = 'Automatically invoiced shipped items.';
+            }
 
-            $invoice = $this->invoiceService->prepareInvoice($order);
+
             $invoice->setRequestedCaptureCase(\Magento\Sales\Model\Order\Invoice::CAPTURE_ONLINE);
             $invoice->register();
             $invoice->getOrder()->setCustomerNoteNotify(false);
             $invoice->getOrder()->setIsInProcess(true);
-            $order->addStatusHistoryComment('Automatically INVOICED', false);
+            $order->addStatusHistoryComment($message, false);
             $transactionSave = $this->transactionFactory->create()->addObject($invoice)->addObject($invoice->getOrder());
             $transactionSave->save();
         } catch (\Exception $e) {
@@ -153,7 +163,7 @@ class SalesOrderShipmentAfter implements ObserverInterface
     }
 
     /**
-     * @param $shipment
+     * @param \Magento\Sales\Model\Order\Shipment $shipment
      * @return array
      */
     public function getQtys($shipment)
