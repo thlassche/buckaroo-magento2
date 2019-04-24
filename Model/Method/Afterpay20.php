@@ -620,11 +620,12 @@ class Afterpay20 extends AbstractMethod
             $requestData = $articles;
         }
 
-        // Add aditional shippin costs.
+        // Add additional shipping costs.
         $shippingCosts = $this->getShippingCostsLine($payment->getOrder(), $count);
 
         if (!empty($shippingCosts)) {
             $requestData = array_merge($requestData, $shippingCosts);
+            $count++;
         }
 
         $discountline = $this->getDiscountLine($count, $payment);
