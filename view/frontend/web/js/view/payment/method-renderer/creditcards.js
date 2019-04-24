@@ -108,7 +108,7 @@ define(
                 creditcards : window.checkoutConfig.payment.buckaroo.creditcards.creditcards,
                 defaultCardImage : window.checkoutConfig.payment.buckaroo.creditcards.defaultCardImage,
                 months : [
-                    {'value' : '', 'label' : 'Select a month'},
+                    {'value' : '', 'label' : $.mage.__('Select a month') },
                     {'value' : 1, 'label' : '01'},
                     { 'value': 2, 'label' : '02'},
                     { 'value': 3, 'label' : '03'},
