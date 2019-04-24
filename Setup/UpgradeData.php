@@ -491,9 +491,14 @@ class UpgradeData implements \Magento\Framework\Setup\UpgradeDataInterface
             $this->installPaymentFeeInclTaxColumns($setup);
         }
 
+
         if (version_compare($context->getVersion(), '1.9.2', '<')) {
             $this->installReservationNrColumn($setup);
             $this->installPushDataColumn($setup);
+        }
+
+        if (version_compare($context->getVersion(), '1.9.3', '<')) {
+            $this->installIdentificationNumber($setup);
         }
     }
 
@@ -502,6 +507,7 @@ class UpgradeData implements \Magento\Framework\Setup\UpgradeDataInterface
      *
      * @return $this
      */
+
     public function installReservationNrColumn(ModuleDataSetupInterface $setup)
     {
         /**
@@ -515,6 +521,24 @@ class UpgradeData implements \Magento\Framework\Setup\UpgradeDataInterface
         $salesInstaller->addAttribute(
             'order',
             'buckaroo_reservation_number',
+            ['type' => \Magento\Framework\DB\Ddl\Table::TYPE_TEXT]
+        );
+
+        return $this;
+    }
+    public function installIdentificationNumber(ModuleDataSetupInterface $setup)
+    {
+        /**
+         * @noinspection PhpUndefinedMethodInspection
+         */
+        $salesInstaller = $this->salesSetupFactory->create(['resourceName' => 'sales_setup', 'setup' => $setup]);
+
+        /**
+         * @noinspection PhpUndefinedMethodInspection
+         */
+        $salesInstaller->addAttribute(
+            'order',
+            'buckaroo_identification_number',
             ['type' => \Magento\Framework\DB\Ddl\Table::TYPE_TEXT]
         );
 

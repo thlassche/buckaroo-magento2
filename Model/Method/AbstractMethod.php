@@ -1188,6 +1188,7 @@ abstract class AbstractMethod extends \Magento\Payment\Model\Method\AbstractMeth
      * @param string $paymentMethodCode
      *
      * @return array
+     * @throws \TIG\Buckaroo\Exception
      */
     public function addExtraFields($paymentMethodCode)
     {

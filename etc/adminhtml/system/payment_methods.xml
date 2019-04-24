@@ -105,5 +105,7 @@
 
         <include path="TIG_Buckaroo::system/payment_methods/emandate.xml"/>
 
+        <include path="TIG_Buckaroo::system/payment_methods/afterpay20.xml"/>
+
     </group>
 </include>

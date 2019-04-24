@@ -346,6 +346,21 @@
                 <payment_action>order</payment_action>
                 <available_in_backend>0</available_in_backend>
             </tig_buckaroo_emandate>
+
+            <tig_buckaroo_afterpay20>
+                <active>0</active>
+                <model>TIG\Buckaroo\Model\Method\Afterpay20</model>
+                <order_status>pending</order_status>
+                <title>TIG Buckaroo Afterpay</title>
+                <allowspecific>0</allowspecific>
+                <sort_order>240</sort_order>
+                <order_email>1</order_email>
+                <payment_fee_label>Fee</payment_fee_label>
+                <group>tig_buckaroo</group>
+                <payment_action>order</payment_action>
+                <can_capture_partial>1</can_capture_partial>
+                <available_in_backend>0</available_in_backend>
+            </tig_buckaroo_afterpay20>
         </payment>
 
         <tig_buckaroo>
