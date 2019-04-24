@@ -731,7 +731,6 @@
     max-width: 320px;
     width: 100%;
     min-height: 200px;
-    max-height: 230px;
     padding: 12px 20px;
     border-radius:8px;
     z-index: 20;
@@ -769,6 +768,7 @@
     width: 100%;
     background-image: linear-gradient(transparent 50%, rgba(179, 206, 239, 0.2) 50%);
     background-size: 7px 4px;
+    max-height: 48px;
 }
 
 .card.styled .card_back .card_security input {
@@ -927,4 +927,10 @@
     .magento-blank .tig_buckaroo_creditcards .card:not(.styled) .card_info {
         margin-top: 15px;
     }
+}
+
+
+.card.styled .field-error, .card.styled div.mage-error[generated] {
+    margin-top: -3px;
+    margin-bottom: 5px;
 }

@@ -19,14 +19,14 @@
                 <fieldset class="fieldset payment card" data-bind="css: CardDesign ? 'styled' : 'blank'">
                     <div class="fieldset card_front width-100">
                         <div class="field required width-50-l" >
-                            <label class="label" for="tig_buckaroo_creditcards_issuer"> <span data-bind="i18n: 'Card Issuer:'"> </span> </label>
+                            <label class="label" for="tig_buckaroo_creditcards_issuer"> <span data-bind="i18n: 'Card:'"> </span> </label>
                             <div class="control">
-                                <select id="tig_buckaroo_creditcards_issuer"
+                                <select id="tig_buckaroo_creditcards_issuer" class="field"
                                         data-bind="value: CardIssuer,
                                         event: { change: validateIssuer },
                                         attr: { 'data-validate': JSON.stringify({ 'required-entry': true }) }"
                                         name="payment[tig_buckaroo_creditcards][issuer]">
-                                    <option data-bind="i18n: 'Select a creditcard', 'value': ''"></option>
+                                    <option data-bind="i18n: 'Select a card', 'value': ''"></option>
                                     <!-- ko foreach: creditcards -->
                                         <!-- ko if: active -->
                                             <option data-bind="i18n: name, 'value': code"></option>
@@ -37,6 +37,22 @@
                         </div>
 
                         <div class="field required width-50-r" >
+                            <label class="label" for="tig_buckaroo_creditcards_cardholdername"> <span data-bind="i18n: 'Cardholder:'"> </span> </label>
+                            <div class="control">
+                                <input id="tig_buckaroo_creditcards_cardholdername"
+                                       type="text"
+                                       class="input-text field"
+                                       name="payment[tig_buckaroo_creditcards][cardholdername]"
+                                       data-bind="
+                            valueUpdate: 'blur',
+                            value: CardHolderName,
+                            textInput: CardHolderName(),
+                            attr: { 'data-validate': JSON.stringify({ 'required': true, 'validateCardHolderName': true }) },
+                            event: { blur: encryptCardDetails }">
+                            </div>
+                        </div>
+
+                        <div class="field required width-100" >
                             <label class="label" for="tig_buckaroo_creditcards_cardnumber"> <span data-bind="i18n: 'Card number:'"> </span> </label>
                             <div class="control">
                                 <input id="tig_buckaroo_creditcards_cardnumber"
@@ -52,26 +68,10 @@
                             </div>
                         </div>
 
-                        <div class="field required width-100" >
-                            <label class="label" for="tig_buckaroo_creditcards_cardholdername"> <span data-bind="i18n: 'Cardholder Name:'"> </span> </label>
-                            <div class="control">
-                                <input id="tig_buckaroo_creditcards_cardholdername"
-                                       type="text"
-                                       class="input-text field"
-                                       name="payment[tig_buckaroo_creditcards][cardholdername]"
-                                       data-bind="
-                            valueUpdate: 'blur',
-                            value: CardHolderName,
-                            textInput: CardHolderName(),
-                            attr: { 'data-validate': JSON.stringify({ 'required': true, 'validateCardHolderName': true }) },
-                            event: { blur: encryptCardDetails }">
-                            </div>
-                        </div>
-
                         <div class="field required width-50-l" >
                             <label class="label" for="tig_buckaroo_creditcards_expirationmonth"><span data-bind="i18n: 'Month:'"></span></label>
                             <div class="control">
-                                <select id="tig_buckaroo_creditcards_expirationmonth"
+                                <select id="tig_buckaroo_creditcards_expirationmonth" class="field"
                                         data-bind="value: ExpirationMonth,
                                         attr: { 'data-validate': JSON.stringify({ 'required-entry': true }) },
                                         event: { change: validateMonth }"
@@ -86,13 +86,13 @@
                         <div class="field required width-50-r" >
                             <label class="label" for="tig_buckaroo_creditcards_expirationyear"><span data-bind="i18n: 'Year:'"></span></label>
                             <div class="control">
-                                <select id="tig_buckaroo_creditcards_expirationyear"
+                                <select id="tig_buckaroo_creditcards_expirationyear" class="field"
                                         data-bind="value: ExpirationYear,
                                                    attr: { 'data-validate': JSON.stringify({ 'required-entry': true }) },
                                                    event: { change: validateYear },
                                                    foreach: new Array(12)"
                                         name="payment[tig_buckaroo_creditcards][expirationyear]">
-                                    <option data-bind="text: $index() == 0 ? 'select a year' : new Date().getFullYear()+$index() - 1, 'value': $index() == 0 ? '' : new Date().getFullYear()+$index() - 1"></option>
+                                    <option data-bind="i18n: $index() == 0 ? 'Select a year' : new Date().getFullYear()+$index() - 1, 'value': $index() == 0 ? '' : new Date().getFullYear()+$index() - 1"></option>
                                 </select>
                             </div>
                         </div>
