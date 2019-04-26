@@ -179,6 +179,16 @@ define(
                     return this;
                 },
 
+                /** Unable to translate 'Select a year' within knockout, so we create the option objects here **/
+                getYears : function () {
+                    var years = [{ 'value': '', 'label': $.mage.__('Select a year') }];
+                    for(var i=0; i<=10; i++) {
+                        years.push({'value': new Date().getFullYear() + i, 'label': new Date().getFullYear() + i});
+                    }
+
+                    return years;
+                },
+
                 /** This will run the $.validator functions that are defined at the top of this file. **/
                 validateIndividual: function () {
                     $('#' + this).valid();

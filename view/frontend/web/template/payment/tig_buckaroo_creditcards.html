@@ -90,9 +90,9 @@
                                         data-bind="value: ExpirationYear,
                                                    attr: { 'data-validate': JSON.stringify({ 'required-entry': true }) },
                                                    event: { change: validateYear },
-                                                   foreach: new Array(12)"
+                                                   foreach: getYears()"
                                         name="payment[tig_buckaroo_creditcards][expirationyear]">
-                                    <option data-bind="i18n: $index() == 0 ? 'Select a year' : new Date().getFullYear()+$index() - 1, 'value': $index() == 0 ? '' : new Date().getFullYear()+$index() - 1"></option>
+                                    <option data-bind="i18n: label, 'value': value"></option>
                                 </select>
                             </div>
                         </div>
