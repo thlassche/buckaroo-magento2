@@ -222,7 +222,6 @@ define(
                  */
                 validate: function () {
                     var elements = $('.' + this.getCode() + ' [data-validate]:not([name*="agreement"])');
-                    this.selectPaymentMethod();
                     return elements.valid();
                 },
 
@@ -305,6 +304,8 @@ define(
                         var cvc         = this.Cvc();
                         var cardholder  = this.CardHolderName();
 
+                        self.selectPaymentMethodAction = selectPaymentMethodAction;
+
                         var getEncryptedData = function(cardNumber, year, month, cvc, cardholder) {
                             BuckarooClientSideEncryption.V001.encryptCardData(cardNumber,
                                 year,
@@ -313,10 +314,11 @@ define(
                                 cardholder,
                                 function(encryptedCardData) {
                                     self.EncryptedData(encryptedCardData);
+                                    self.selectPaymentMethodAction(self.getData());
                                 });
                         };
                         getEncryptedData(cardNumber, year, month, cvc, cardholder);
-
+                        selectPaymentMethodAction(this.getData());
                     }
                 },
 
