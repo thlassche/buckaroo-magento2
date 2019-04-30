@@ -16,9 +16,20 @@
 
         <div class="payment-method-second-col billing-address-form">
             <form data-hasrequired="* Required Fields" data-bind="mageInit: { 'validation': [] }">
-                <fieldset class="fieldset payment card" data-bind="css: CardDesign ? 'styled' : 'blank'">
+                <fieldset class="fieldset payment card styled">
+                          <!--data-bind="css: CardDesign ? 'styled' : 'blank'">-->
+
                     <div class="fieldset card_front width-100">
-                        <div class="field required width-50-l" >
+                        
+                        <div class="card_kind">
+                            <img class="issuer-img" data-bind="attr: {
+                                     'src': issuerImage(),
+                                     'width': 70,
+                                     'height': 35 }"
+                            />
+                        </div>
+
+                        <div class="field required width-70" >
                             <label class="label" for="tig_buckaroo_creditcards_issuer"> <span data-bind="i18n: 'Card:'"> </span> </label>
                             <div class="control">
                                 <select id="tig_buckaroo_creditcards_issuer" class="field"
@@ -36,7 +47,7 @@
                             </div>
                         </div>
 
-                        <div class="field required width-50-r" >
+                        <div class="field required width-100" >
                             <label class="label" for="tig_buckaroo_creditcards_cardholdername"> <span data-bind="i18n: 'Cardholder:'"> </span> </label>
                             <div class="control">
                                 <input id="tig_buckaroo_creditcards_cardholdername"
@@ -103,8 +114,8 @@
                         <div class="magnet_stripe width-100"></div>
 
                         <div class="field required card_security width-100" >
-                            <label class="label width-40-l" for="tig_buckaroo_creditcards_cvc"> <span data-bind="i18n: 'Cvc / Cvv Code:'"> </span> </label>
-                            <div class="control card-info-input width-50-l">
+                            <label class="label width-65-l" for="tig_buckaroo_creditcards_cvc"> <span data-bind="i18n: 'Security Code:'"> </span> </label>
+                            <div class="control card-info-input width-25-l">
                                 <input id="tig_buckaroo_creditcards_cvc"
                                        type="text"
                                        class="input-text field"
@@ -124,13 +135,6 @@
                                     <span data-bind="i18n: 'A 3-digit code located to the right of signature strip on the back of your card, separate from the card number.' "></span>
                                 </div>
                             </div>
-                        </div>
-                        <div class="card_kind">
-                            <img class="issuer-img" data-bind="attr: {
-                                     'src': issuerImage(),
-                                     'width': 70,
-                                     'height': 35 }"
-                            />
                         </div>
                     </div>
 
