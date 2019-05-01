@@ -663,6 +663,22 @@ class Klarna extends AbstractMethod
     }
 
     /**
+     * {@inheritDoc}
+     */
+    public function canPushInvoice($responseData)
+    {
+        if (isset($responseData['brq_datarequest'])) {
+            return false;
+        }
+
+        if (!isset($responseData['brq_datarequest']) && isset($responseData['brq_transactions'])) {
+            return true;
+        }
+
+        return parent::canPushInvoice($responseData);
+    }
+
+    /**
      * @param $payment
      *
      * @return array
