@@ -179,6 +179,16 @@ define(
                     return this;
                 },
 
+                /** Unable to translate 'Select a year' within knockout, so we create the option objects here **/
+                getYears : function () {
+                    var years = [{ 'value': '', 'label': $.mage.__('Select a year') }];
+                    for(var i=0; i<=10; i++) {
+                        years.push({'value': new Date().getFullYear() + i, 'label': new Date().getFullYear() + i});
+                    }
+
+                    return years;
+                },
+
                 /** This will run the $.validator functions that are defined at the top of this file. **/
                 validateIndividual: function () {
                     $('#' + this).valid();
@@ -212,7 +222,6 @@ define(
                  */
                 validate: function () {
                     var elements = $('.' + this.getCode() + ' [data-validate]:not([name*="agreement"])');
-                    this.selectPaymentMethod();
                     return elements.valid();
                 },
 
@@ -295,6 +304,8 @@ define(
                         var cvc         = this.Cvc();
                         var cardholder  = this.CardHolderName();
 
+                        self.selectPaymentMethodAction = selectPaymentMethodAction;
+
                         var getEncryptedData = function(cardNumber, year, month, cvc, cardholder) {
                             BuckarooClientSideEncryption.V001.encryptCardData(cardNumber,
                                 year,
@@ -303,10 +314,11 @@ define(
                                 cardholder,
                                 function(encryptedCardData) {
                                     self.EncryptedData(encryptedCardData);
+                                    self.selectPaymentMethodAction(self.getData());
                                 });
                         };
                         getEncryptedData(cardNumber, year, month, cvc, cardholder);
-
+                        selectPaymentMethodAction(this.getData());
                     }
                 },
 
