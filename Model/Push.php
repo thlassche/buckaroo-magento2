@@ -202,6 +202,10 @@ class Push implements PushInterface
         //Check if the push can be processed and if the order can be updated IMPORTANT => use the original post data.
         $validSignature = $this->validator->validateSignature($this->originalPostData);
 
+        if (!$this->isPushNeeded()) {
+            return true;
+        }
+
         $this->loadOrder();
 
         $transactionType = $this->getTransactionType();
@@ -296,6 +300,51 @@ class Push implements PushInterface
         //Create post data array, change key values to lower case.
         $postDataLowerCase = array_change_key_case($postData, CASE_LOWER);
         $this->postData = $postDataLowerCase;
+    }
+
+    /**
+     * Check if it is needed to handle the push message based on postdata
+     * @return bool
+     */
+    private function isPushNeeded()
+    {
+        if ($this->hasPostData('add_initiated_by_magento', 1) &&
+            $this->hasPostData('add_service_action_from_magento',
+                ['capture','cancelauthorize','cancelreserve','refund'])
+        ) {
+            return false;
+        }
+
+        if ($this->hasPostData('add_initiated_by_magento', 1) &&
+            $this->hasPostData('brq_transaction_method', 'klarna') &&
+            $this->hasPostData('add_service_action_from_magento', 'pay')
+        ) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * @param $name
+     * @param $value
+     * @return bool
+     */
+    private function hasPostData($name, $value)
+    {
+        if (is_array($value) &&
+            isset($this->postData[$name]) &&
+            in_array($this->postData[$name], $value)
+        ) {
+            return true;
+        }
+
+        if (isset($this->postData[$name]) &&
+            $this->postData[$name] == $value) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
