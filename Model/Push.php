@@ -811,7 +811,7 @@ class Push implements PushInterface
          */
         $forceState = false;
 
-        if ($paymentMethod->getConfigData('payment_action') != 'authorize') {
+        if ($paymentMethod->canPushInvoice($this->postData)) {
             $description = 'Payment status : <strong>' . $message . "</strong><br/>";
             $description .= 'Total amount of ' . $this->order->getBaseCurrency()->formatTxt($amount) . ' has been paid';
         } else {
@@ -821,7 +821,7 @@ class Push implements PushInterface
             $forceState = true;
         }
 
-        if ($paymentMethod->getConfigData('payment_action') != 'authorize') {
+        if ($paymentMethod->canPushInvoice($this->postData)) {
             $this->saveInvoice();
         }
 

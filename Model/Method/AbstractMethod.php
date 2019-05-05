@@ -437,6 +437,20 @@ abstract class AbstractMethod extends \Magento\Payment\Model\Method\AbstractMeth
     }
 
     /**
+     * @param $responseData
+     *
+     * @return bool
+     */
+    public function canPushInvoice($responseData)
+    {
+        if ($this->getConfigData('payment_action') == 'authorize') {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
      * Retrieve information from payment configuration
      *
      * @param string                                     $field

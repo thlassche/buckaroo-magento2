@@ -738,6 +738,18 @@
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='32' viewBox='0 0 16 32'%3E%3Cg fill='%239C92AC' fill-opacity='0.12'%3E%3Cpath fill-rule='evenodd' d='M0 24h4v2H0v-2zm0 4h6v2H0v-2zm0-8h2v2H0v-2zM0 0h4v2H0V0zm0 4h2v2H0V4zm16 20h-6v2h6v-2zm0 4H8v2h8v-2zm0-8h-4v2h4v-2zm0-20h-6v2h6V0zm0 4h-4v2h4V4zm-2 12h2v2h-2v-2zm0-8h2v2h-2V8zM2 8h10v2H2V8zm0 8h10v2H2v-2zm-2-4h14v2H0v-2zm4-8h6v2H4V4zm0 16h6v2H4v-2zM6 0h2v2H6V0zm0 24h2v2H6v-2z'/%3E%3C/g%3E%3C/svg%3E");
 }
 
+.card.styled .card_front .card_kind {
+    position: absolute;
+    top: 30px;
+    right: 20px;
+    text-align: right;
+}
+
+.card.styled .card_front .card_kind img {
+    width: 56px;
+    height: 35px;
+}
+
 /* Creditcards Back ================================================================================================= */
 
 .card.styled .card_back {
@@ -773,18 +785,6 @@
 
 .card.styled .card_back .card_security input {
     margin-top: 4px;
-}
-
-.card.styled .card_back .card_kind {
-    position: absolute;
-    bottom: 5px;
-    right: 10px;
-    text-align: right;
-}
-
-.card.styled .card_back .card_kind img {
-    width: 56px;
-    height: 35px;
 }
 
 /* Information */
@@ -853,6 +853,22 @@
     float:left;
 }
 
+.card.styled .width-65-l {
+    width: 65%;
+    float:left;
+}
+
+.card.styled .width-25-l {
+    width: 25%;
+    float:left;
+}
+
+.card.styled .width-70 {
+    width: 70%;
+    float:left;
+}
+
+
 .card.styled .width-50-l {
     width: 48%;
     float:left;
@@ -887,12 +903,18 @@
     padding-top: 0 !important;
 }
 
+.magento-luma .tig_buckaroo_creditcards .card.styled  .fieldset.card_back > .field:not(.choice) > .label,
 .magento-blank .tig_buckaroo_creditcards .card.styled  .fieldset.card_back > .field:not(.choice) > .label {
-    width: 40% !important;
+    width: 65% !important;
+
+    margin-top: 9px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    float: left;
 }
 
 .magento-blank .tig_buckaroo_creditcards .card.styled .fieldset.card_back > .field:not(.choice) > .control {
-    width: 50% !important;
+    width: 25% !important;
 }
 
 .magento-blank .opc-wrapper .fieldset > .field.required > label:after {
