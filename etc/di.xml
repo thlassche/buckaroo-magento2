@@ -249,6 +249,10 @@
                     <item name="type" xsi:type="string">emandate</item>
                     <item name="model" xsi:type="string">TIG\Buckaroo\Model\ConfigProvider\Method\Emandate</item>
                 </item>
+                <item name="applepay" xsi:type="array">
+                    <item name="type" xsi:type="string">applepay</item>
+                    <item name="model" xsi:type="string">TIG\Buckaroo\Model\ConfigProvider\Method\Applepay</item>
+                </item>
             </argument>
         </arguments>
     </type>
