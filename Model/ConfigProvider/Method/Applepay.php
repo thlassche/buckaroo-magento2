@@ -31,7 +31,14 @@
  */
 namespace TIG\Buckaroo\Model\ConfigProvider\Method;
 
+use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\Locale\Resolver;
+use Magento\Framework\View\Asset\Repository;
 use Magento\Store\Model\ScopeInterface;
+use Magento\Store\Model\StoreManagerInterface;
+use TIG\Buckaroo\Helper\PaymentFee;
+use TIG\Buckaroo\Model\ConfigProvider\Account;
+use TIG\Buckaroo\Model\ConfigProvider\AllowedCurrencies;
 
 class Applepay extends AbstractConfigProvider
 {
@@ -55,6 +62,31 @@ class Applepay extends AbstractConfigProvider
         'EUR'
     ];
 
+    /** @var Account */
+    private $configProvicerAccount;
+
+    /** @var Resolver */
+    private $localeResolver;
+
+    /** @var StoreManagerInterface */
+    private $storeManager;
+
+    public function __construct(
+        Repository $assetRepo,
+        ScopeConfigInterface $scopeConfig,
+        AllowedCurrencies $allowedCurrencies,
+        PaymentFee $paymentFeeHelper,
+        StoreManagerInterface $storeManager,
+        Resolver $localeResolver,
+        Account $configProvicerAccount
+    ) {
+        parent::__construct($assetRepo, $scopeConfig, $allowedCurrencies, $paymentFeeHelper);
+
+        $this->storeManager = $storeManager;
+        $this->localeResolver = $localeResolver;
+        $this->configProvicerAccount = $configProvicerAccount;
+    }
+
     /**
      * @return array|void
      */
@@ -69,12 +101,21 @@ class Applepay extends AbstractConfigProvider
 
         $paymentFeeLabel = $this->getBuckarooPaymentFeeLabel(\TIG\Buckaroo\Model\Method\Applepay::PAYMENT_METHOD_CODE);
 
+        $store = $this->storeManager->getStore();
+        $storeName = $store->getName();
+
+        $localeCode = $this->localeResolver->getLocale();
+        $shortLocale = explode('_', $localeCode)[0];
+
         return [
             'payment' => [
                 'buckaroo' => [
                     'applepay' => [
                         'paymentFeeLabel' => $paymentFeeLabel,
                         'allowedCurrencies' => $this->getAllowedCurrencies(),
+                        'storeName' => $storeName,
+                        'cultureCode' => $shortLocale,
+                        'guid' => $this->configProvicerAccount->getMerchantGuid(),
                     ],
                 ],
             ],

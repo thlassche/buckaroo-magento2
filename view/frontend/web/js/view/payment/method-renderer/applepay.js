@@ -36,18 +36,22 @@ define(
         'Magento_Checkout/js/view/payment/default',
         'Magento_Checkout/js/model/payment/additional-validators',
         'TIG_Buckaroo/js/action/place-order',
+        'Magento_Checkout/js/model/quote',
         'ko',
         'Magento_Checkout/js/checkout-data',
-        'Magento_Checkout/js/action/select-payment-method'
+        'Magento_Checkout/js/action/select-payment-method',
+        'buckaroo/applepay/pay'
     ],
     function (
         $,
         Component,
         additionalValidators,
         placeOrderAction,
+        quote,
         ko,
         checkoutData,
-        selectPaymentMethodAction
+        selectPaymentMethodAction,
+        applepayPay
     ) {
         'use strict';
 
@@ -68,7 +72,23 @@ define(
                         window.checkoutConfig.buckarooFee.title(this.paymentFeeLabel);
                     }
 
+                    // applepayPay.showPayButton();
+
                     return this._super(options);
+                },
+
+                initObservable: function () {
+                    this._super().observe([]);
+
+                    applepayPay.transactionResult.subscribe(
+                        function () {
+                            this.placeOrder(null, null);
+                        }.bind(this)
+                    );
+
+                    // applepayPay.showPayButton();
+
+                    return this;
                 },
 
                 /**
@@ -85,18 +105,20 @@ define(
                         event.preventDefault();
                     }
 
-                    if (this.validate() && additionalValidators.validate()) {
-                        this.isPlaceOrderActionAllowed(false);
-                        placeOrder = placeOrderAction(this.getData(), this.redirectAfterPlaceOrder, this.messageContainer);
+                    var applepayResult = applepayPay.transactionResult();
 
-                        $.when(placeOrder).fail(
-                            function () {
-                                self.isPlaceOrderActionAllowed(true);
-                            }
-                        ).done(this.afterPlaceOrder.bind(this));
-                        return true;
-                    }
-                    return false;
+                    // if (this.validate() && additionalValidators.validate()) {
+                    //     this.isPlaceOrderActionAllowed(false);
+                    //     placeOrder = placeOrderAction(this.getData(), this.redirectAfterPlaceOrder, this.messageContainer);
+                    //
+                    //     $.when(placeOrder).fail(
+                    //         function () {
+                    //             self.isPlaceOrderActionAllowed(true);
+                    //         }
+                    //     ).done(this.afterPlaceOrder.bind(this));
+                    //     return true;
+                    // }
+                    // return false;
                 },
 
                 afterPlaceOrder: function () {
@@ -112,6 +134,9 @@ define(
 
                     selectPaymentMethodAction(this.getData());
                     checkoutData.setSelectedPaymentMethod(this.item.method);
+
+                    applepayPay.showPayButton();
+
                     return true;
                 },
 

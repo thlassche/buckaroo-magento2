@@ -66,6 +66,13 @@
             <config_path>tig_buckaroo/account/merchant_key</config_path>
         </field>
 
+        <field id="merchant_guid" translate="label comment tooltip" type="text" sortOrder="35" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>(Merchant) guid</label>
+            <comment><![CDATA[Enter your Buckaroo merchant guid.]]></comment>
+            <tooltip>The (Merchant) Guid can be retrieved in Payment Plaza under My Buckaroo > Details > Guid. For support contact Buckaroo.</tooltip>
+            <config_path>tig_buckaroo/account/merchant_guid</config_path>
+        </field>
+
         <field id="transaction_label" translate="label comment" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Transaction label</label>
             <comment><![CDATA[The transaction description in Payment Plaza.]]></comment>
