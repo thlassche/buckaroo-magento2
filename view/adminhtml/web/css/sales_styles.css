@@ -55,6 +55,7 @@
 .tig_buckaroo_payment_eps,
 .tig_buckaroo_payment_kbc,
 .tig_buckaroo_payment_emandate,
+.tig_buckaroo_payment_applepay,
 .tig_buckaroo_payment_card_mastercard,
 .tig_buckaroo_payment_card_maestro,
 .tig_buckaroo_payment_card_amex,
@@ -247,6 +248,19 @@
 /* Emandate */
 .tig_buckaroo_payment_emandate:before {
     background: url(../images/tig_buckaroo_emandate_title.png) no-repeat;
+    float: left;
+    margin-right: 10px;
+    margin-top: -3px;
+    background-size: auto 25px;
+    width: 30px;
+    height: 30px;
+    content: ' ';
+    display :block;
+}
+
+/* Apple Pay */
+.tig_buckaroo_payment_applepay:before {
+    /*background: url(../images/tig_buckaroo_ideal_title.png) no-repeat;*/
     float: left;
     margin-right: 10px;
     margin-top: -3px;

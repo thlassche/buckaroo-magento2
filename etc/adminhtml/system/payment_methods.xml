@@ -105,5 +105,7 @@
 
         <include path="TIG_Buckaroo::system/payment_methods/emandate.xml"/>
 
+        <include path="TIG_Buckaroo::system/payment_methods/applepay.xml"/>
+
     </group>
 </include>

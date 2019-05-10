@@ -46,6 +46,7 @@ use TIG\Buckaroo\Model\ConfigProvider\Method\Factory as MethodFactory;
  * @method mixed getActive()
  * @method mixed getSecretKey()
  * @method mixed getMerchantKey()
+ * @method mixed getMerchantGuid()
  * @method mixed getTransactionLabel()
  * @method mixed getCertificateFile()
  * @method mixed getOrderConfirmationEmail()
@@ -71,6 +72,7 @@ class Account extends AbstractConfigProvider
     const XPATH_ACCOUNT_ACTIVE                          = 'tig_buckaroo/account/active';
     const XPATH_ACCOUNT_SECRET_KEY                      = 'tig_buckaroo/account/secret_key';
     const XPATH_ACCOUNT_MERCHANT_KEY                    = 'tig_buckaroo/account/merchant_key';
+    const XPATH_ACCOUNT_MERCHANT_GUID                   = 'tig_buckaroo/account/merchant_guid';
     const XPATH_ACCOUNT_TRANSACTION_LABEL               = 'tig_buckaroo/account/transaction_label';
     const XPATH_ACCOUNT_CERTIFICATE_FILE                = 'tig_buckaroo/account/certificate_file';
     const XPATH_ACCOUNT_ORDER_CONFIRMATION_EMAIL        = 'tig_buckaroo/account/order_confirmation_email';
@@ -122,6 +124,7 @@ class Account extends AbstractConfigProvider
             'active'                            => $this->getActive($store),
             'secret_key'                        => $this->getSecretKey($store),
             'merchant_key'                      => $this->getMerchantKey($store),
+            'merchant_guid'                     => $this->getMerchantGuid($store),
             'transaction_label'                 => $this->getTransactionLabel($store),
             'certificate_file'                  => $this->getCertificateFile($store),
             'order_confirmation_email'          => $this->getOrderConfirmationEmail($store),

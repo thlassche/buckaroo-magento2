@@ -63,6 +63,7 @@
                 <item name="buckaroo_config_provider_kbc" xsi:type="object">TIG\Buckaroo\Model\ConfigProvider\Method\Kbc</item>
                 <item name="buckaroo_config_provider_klarna" xsi:type="object">TIG\Buckaroo\Model\ConfigProvider\Method\Klarna</item>
                 <item name="buckaroo_config_provider_emandate" xsi:type="object">TIG\Buckaroo\Model\ConfigProvider\Method\Emandate</item>
+                <item name="buckaroo_config_provider_applepay" xsi:type="object">TIG\Buckaroo\Model\ConfigProvider\Method\Applepay</item>
             </argument>
         </arguments>
     </type>

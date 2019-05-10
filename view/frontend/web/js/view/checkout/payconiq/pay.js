@@ -34,7 +34,7 @@ define(
         'mageUtils',
         'mage/url',
         'mage/translate',
-        'BuckarooPayconiqSDK'
+        'BuckarooSDK'
     ],
     function(
         $,

@@ -31,12 +31,13 @@
 var config = {
     map: {
         '*': {
-            "BuckarooPayconiqSDK": "//checkout.buckaroo.nl/api/buckaroosdk/script",
-            "buckaroo/payconiq/pay": "TIG_Buckaroo/js/view/checkout/payconiq/pay"
+            "BuckarooSDK": "//checkout.buckaroo.nl/api/buckaroosdk/script",
+            "buckaroo/payconiq/pay": "TIG_Buckaroo/js/view/checkout/payconiq/pay",
+            "buckaroo/applepay/pay": "TIG_Buckaroo/js/view/checkout/applepay/pay"
         }
     },
     shim: {
-        'BuckarooPayconiqSDK': {
+        'BuckarooSDK': {
             deps: ['jquery']
         }
     }

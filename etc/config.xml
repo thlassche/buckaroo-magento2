@@ -346,6 +346,20 @@
                 <payment_action>order</payment_action>
                 <available_in_backend>0</available_in_backend>
             </tig_buckaroo_emandate>
+
+            <tig_buckaroo_applepay>
+                <active>0</active>
+                <model>TIG\Buckaroo\Model\Method\Applepay</model>
+                <order_status>pending</order_status>
+                <title>TIG Buckaroo Apple Pay</title>
+                <allowspecific>0</allowspecific>
+                <sort_order>240</sort_order>
+                <order_email>1</order_email>
+                <payment_fee_label>Fee</payment_fee_label>
+                <group>tig_buckaroo</group>
+                <payment_action>order</payment_action>
+                <available_in_backend>0</available_in_backend>
+            </tig_buckaroo_applepay>
         </payment>
 
         <tig_buckaroo>

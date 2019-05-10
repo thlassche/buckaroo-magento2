@@ -135,6 +135,10 @@ define(
             {
                 type: 'tig_buckaroo_emandate',
                 component: 'TIG_Buckaroo/js/view/payment/method-renderer/emandate'
+            },
+            {
+                type: 'tig_buckaroo_applepay',
+                component: 'TIG_Buckaroo/js/view/payment/method-renderer/applepay'
             }
 
         );
