@@ -56,19 +56,7 @@
 
         <div class="actions-toolbar">
             <div class="primary">
-                <div id="apple-pay-wrapper"></div>
-
-<!--                <button class="action primary checkout"-->
-<!--                        type="submit"-->
-<!--                        data-bind="-->
-<!--                        click: placeOrder,-->
-<!--                        attr: {title: $t('Place Order')},-->
-<!--                        enable: (getCode() == isChecked()),-->
-<!--                        css: {disabled: !isPlaceOrderActionAllowed() }-->
-<!--                        "-->
-<!--                        disabled>-->
-<!--                    <span data-bind="i18n: 'Place Order'"></span>-->
-<!--                </button>-->
+                <div id="apple-pay-wrapper" data-bind="afterRender: showPayButton"></div>
             </div>
         </div>
 

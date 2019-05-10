@@ -72,8 +72,6 @@ define(
                         window.checkoutConfig.buckarooFee.title(this.paymentFeeLabel);
                     }
 
-                    // applepayPay.showPayButton();
-
                     return this._super(options);
                 },
 
@@ -85,8 +83,6 @@ define(
                             this.placeOrder(null, null);
                         }.bind(this)
                     );
-
-                    // applepayPay.showPayButton();
 
                     return this;
                 },
@@ -135,9 +131,11 @@ define(
                     selectPaymentMethodAction(this.getData());
                     checkoutData.setSelectedPaymentMethod(this.item.method);
 
-                    applepayPay.showPayButton();
-
                     return true;
+                },
+
+                showPayButton: function () {
+                    applepayPay.showPayButton();
                 },
 
                 payWithBaseCurrency: function () {
