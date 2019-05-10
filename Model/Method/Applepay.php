@@ -77,7 +77,7 @@ class Applepay extends AbstractMethod
     protected $_canUseCheckout          = true;
 
     /** @var bool */
-    protected $_canRefundInvoicePartial = false;
+    protected $_canRefundInvoicePartial = true;
     // @codingStandardsIgnoreEnd
 
     /**
@@ -161,8 +161,6 @@ class Applepay extends AbstractMethod
      */
     public function getRefundTransactionBuilder($payment)
     {
-        return false;
-
         $transactionBuilder = $this->transactionBuilderFactory->get('refund');
 
         $services = [
