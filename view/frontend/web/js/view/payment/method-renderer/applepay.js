@@ -105,20 +105,20 @@ define(
                         event.preventDefault();
                     }
 
-                    var applepayResult = applepayPay.transactionResult();
+                    if (this.validate() && additionalValidators.validate()) {
+                        this.isPlaceOrderActionAllowed(false);
+                        placeOrder = placeOrderAction(this.getData(), this.redirectAfterPlaceOrder, this.messageContainer);
 
-                    // if (this.validate() && additionalValidators.validate()) {
-                    //     this.isPlaceOrderActionAllowed(false);
-                    //     placeOrder = placeOrderAction(this.getData(), this.redirectAfterPlaceOrder, this.messageContainer);
-                    //
-                    //     $.when(placeOrder).fail(
-                    //         function () {
-                    //             self.isPlaceOrderActionAllowed(true);
-                    //         }
-                    //     ).done(this.afterPlaceOrder.bind(this));
-                    //     return true;
-                    // }
-                    // return false;
+                        $.when(placeOrder).fail(
+                            function () {
+                                self.isPlaceOrderActionAllowed(true);
+                            }
+                        ).done(this.afterPlaceOrder.bind(this));
+
+                        return true;
+                    }
+
+                    return false;
                 },
 
                 afterPlaceOrder: function () {
@@ -150,8 +150,17 @@ define(
                     var text = $.mage.__('The transaction will be processed using %s.');
 
                     return text.replace('%s', this.baseCurrencyCode);
-                }
+                },
 
+                getData: function () {
+                    return {
+                        "method": this.item.method,
+                        "po_number": null,
+                        "additional_data": {
+                            "applepayTransaction" : applepayPay.transactionResult()
+                        }
+                    };
+                }
             }
         );
     }

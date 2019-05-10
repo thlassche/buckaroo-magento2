@@ -83,10 +83,33 @@ class Applepay extends AbstractMethod
     /**
      * {@inheritdoc}
      */
+    public function assignData(\Magento\Framework\DataObject $data)
+    {
+        parent::assignData($data);
+        $data = $this->assignDataConvertToArray($data);
+
+        if (isset($data['additional_data']['buckaroo_skip_validation'])) {
+            $this->getInfoInstance()->setAdditionalInformation(
+                'buckaroo_skip_validation',
+                $data['additional_data']['buckaroo_skip_validation']
+            );
+        }
+
+        if (isset($data['additional_data']['applepayTransaction'])) {
+            $applepayEncoded = base64_encode($data['additional_data']['applepayTransaction']);
+
+            $this->getInfoInstance()->setAdditionalInformation('applepayTransaction', $applepayEncoded);
+        }
+
+        return $this;
+    }
+
+
+    /**
+     * {@inheritdoc}
+     */
     public function getOrderTransactionBuilder($payment)
     {
-        return false;
-
         $transactionBuilder = $this->transactionBuilderFactory->get('order');
 
         $services = [
@@ -95,7 +118,7 @@ class Applepay extends AbstractMethod
             'Version'          => 0,
             'RequestParameter' => [
                 [
-                    '_'    => '', //TODO: Add Payment Data obtained from the SDK payment call
+                    '_'    => $payment->getAdditionalInformation('applepayTransaction'),
                     'Name' => 'PaymentData',
                 ],
             ],
@@ -107,6 +130,12 @@ class Applepay extends AbstractMethod
         $transactionBuilder->setOrder($payment->getOrder())
             ->setServices($services)
             ->setMethod('TransactionRequest');
+
+        /**
+         * Buckaroo Push is send before Response, for correct flow we skip the first push
+         * @todo when buckaroo changes the push / response order this can be removed
+         */
+        $payment->setAdditionalInformation('skip_push', 1);
 
         return $transactionBuilder;
     }

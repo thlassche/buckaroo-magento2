@@ -118,7 +118,8 @@ define(
                     errors: []
                 };
 
-                this.transactionResult('hoi TIG Test');
+                var transactionData = this.formatPaymentResponse(payment);
+                this.transactionResult(transactionData);
 
                 $('#debug-wrapper').removeClass('d-none');
                 $('#debug').html(JSON.stringify(payment));
@@ -136,6 +137,29 @@ define(
                 }
 
                 return Promise.resolve(authorizationResult)
+            },
+
+            /**
+             * @param response
+             * @returns {string}
+             */
+            formatPaymentResponse: function (response) {
+                var paymentData = response.token.paymentData;
+
+                var formattedData = {
+                    "paymentData": {
+                        "version": paymentData.version,
+                        "data": paymentData.data,
+                        "signature": paymentData.signature,
+                        "header": {
+                            "ephemeralPublicKey": paymentData.header.ephemeralPublicKey,
+                            "publicKeyHash": paymentData.header.publicKeyHash,
+                            "transactionId": paymentData.header.transactionId,
+                        }
+                    }
+                };
+
+                return JSON.stringify(formattedData);
             }
         };
     }
