@@ -43,7 +43,7 @@ class Data
     const MODULE_CODE = 'TIG_Buckaroo';
 
     /** Version of Module */
-    const BUCKAROO_VERSION = '1.9.2';
+    const BUCKAROO_VERSION = '1.11.0-RC0';
 
     /** @var ProductMetadataInterface */
     private $productMetadata;
