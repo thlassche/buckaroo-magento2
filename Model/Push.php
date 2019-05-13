@@ -340,7 +340,8 @@ class Push implements PushInterface
         }
 
         if (isset($this->postData[$name]) &&
-            $this->postData[$name] == $value) {
+            $this->postData[$name] == $value
+        ) {
             return true;
         }
 

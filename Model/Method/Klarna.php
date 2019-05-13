@@ -455,7 +455,7 @@ class Klarna extends AbstractMethod
         $transactionBuilder->setOrder($payment->getOrder())
             ->setServices($services)
             ->setMethod('TransactionRequest')
-            ->setOriginalTransactionKey($payment->getRefundTransactionId(););
+            ->setOriginalTransactionKey($payment->getRefundTransactionId());
 
         // Partial Capture Settings
         if ($capturePartial) {
