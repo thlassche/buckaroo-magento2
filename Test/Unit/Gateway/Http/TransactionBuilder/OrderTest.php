@@ -74,7 +74,7 @@ class OrderTest extends BaseTest
             'AdditionalParameters' => [
                 'AdditionalParameter' => [
                     [
-                        '_'    => 'authorize_or_pay_or_reserve',
+                        '_'    => 'actionstring',
                         'Name' => 'service_action_from_magento',
                     ],
                     [

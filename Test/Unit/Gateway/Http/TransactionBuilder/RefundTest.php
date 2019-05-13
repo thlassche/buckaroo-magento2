@@ -67,7 +67,7 @@ class RefundTest extends BaseTest
             'AdditionalParameters' => [
                 'AdditionalParameter' => [
                     [
-                        '_'    => 'refund',
+                        '_'    => 'actionstring',
                         'Name' => 'service_action_from_magento',
                     ],
                     [
