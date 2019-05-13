@@ -156,8 +156,41 @@ class Refund extends AbstractTransactionBuilder
             'Services' => (object)[
                 'Service' => $this->getServices()
             ],
+            'AdditionalParameters' => (object)[
+                'AdditionalParameter' => $this->getAdditionalParameters()
+            ],
         ];
 
         return $body;
+    }
+
+
+    /**
+     * @return array
+     */
+    private function getAdditionalParameters()
+    {
+        $additionalParameters = [
+            $this->getParameterLine('service_action_from_magento', strtolower($this->getServices()['Action'])),
+            $this->getParameterLine('initiated_by_magento', 1)
+        ];
+
+        return $additionalParameters;
+    }
+
+    /**
+     * @param $name
+     * @param $value
+     *
+     * @return array
+     */
+    private function getParameterLine($name, $value)
+    {
+        $line = [
+            '_'    => $value,
+            'Name' => $name,
+        ];
+
+        return $line;
     }
 }
