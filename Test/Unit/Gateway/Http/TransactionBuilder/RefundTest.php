@@ -60,7 +60,21 @@ class RefundTest extends BaseTest
             ],
             'StartRecurrent' => 1,
             'Services' => [
-                'Service' => 'servicesString',
+                'Service' => [
+                    'Action' => 'actionstring'
+                ],
+            ],
+            'AdditionalParameters' => [
+                'AdditionalParameter' => [
+                    [
+                        '_'    => 'actionstring',
+                        'Name' => 'service_action_from_magento',
+                    ],
+                    [
+                        '_'    => 1,
+                        'Name' => 'initiated_by_magento',
+                    ]
+                ],
             ],
         ];
 

@@ -64,6 +64,9 @@
         <method name="tig_buckaroo_creditcard">
             <allow_multiple_address>0</allow_multiple_address>
         </method>
+        <method name="tig_buckaroo_creditcards">
+            <allow_multiple_address>0</allow_multiple_address>
+        </method>
         <method name="tig_buckaroo_transfer">
             <allow_multiple_address>0</allow_multiple_address>
         </method>
@@ -80,6 +83,9 @@
             <allow_multiple_address>0</allow_multiple_address>
         </method>
         <method name="tig_buckaroo_afterpay2">
+            <allow_multiple_address>0</allow_multiple_address>
+        </method>
+        <method name="tig_buckaroo_afterpay20">
             <allow_multiple_address>0</allow_multiple_address>
         </method>
         <method name="tig_buckaroo_payperemail">

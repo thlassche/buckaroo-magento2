@@ -153,6 +153,9 @@ class Order extends AbstractTransactionBuilder
             'Services' => (object)[
                 'Service' => $this->getServices()
             ],
+            'AdditionalParameters' => (object)[
+                'AdditionalParameter' => $this->getAdditionalParameters()
+            ],
         ];
 
         $body = $this->filterBody($body);
@@ -165,6 +168,37 @@ class Order extends AbstractTransactionBuilder
         }
 
         return $body;
+    }
+
+    /**
+     * @return array
+     */
+    private function getAdditionalParameters()
+    {
+        if (isset($this->getServices()['Action'])) {
+            return  [
+                $this->getParameterLine('service_action_from_magento', strtolower($this->getServices()['Action'])),
+                $this->getParameterLine('initiated_by_magento', 1)
+            ];
+        }
+
+        return [];
+    }
+
+    /**
+     * @param $name
+     * @param $value
+     *
+     * @return array
+     */
+    private function getParameterLine($name, $value)
+    {
+        $line = [
+            '_'    => $value,
+            'Name' => $name,
+        ];
+
+        return $line;
     }
 
     /**

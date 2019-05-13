@@ -32,7 +32,8 @@ var config = {
     map: {
         '*': {
             "BuckarooPayconiqSDK": "//checkout.buckaroo.nl/api/buckaroosdk/script",
-            "buckaroo/payconiq/pay": "TIG_Buckaroo/js/view/checkout/payconiq/pay"
+            "buckaroo/payconiq/pay": "TIG_Buckaroo/js/view/checkout/payconiq/pay",
+            "BuckarooClientSideEncryption": "//static.buckaroo.nl/script/ClientSideEncryption001.js"
         }
     },
     shim: {

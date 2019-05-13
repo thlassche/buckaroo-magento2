@@ -628,10 +628,11 @@ class PushTest extends \TIG\Buckaroo\Test\BaseTest
         $configAccountMock->method('getOrderConfirmationEmail')->willReturn($sendOrderConfirmationEmail);
 
         $paymentMock = $this->getFakeMock(Payment::class)
-            ->setMethods(['getMethodInstance', 'getConfigData', 'registerCaptureNotification', 'save'])
+            ->setMethods(['getMethodInstance', 'getConfigData', 'canPushInvoice', 'registerCaptureNotification', 'save'])
             ->getMock();
         $paymentMock->expects($this->once())->method('getMethodInstance')->willReturnSelf();
         $paymentMock->method('getConfigData')->willReturn($paymentAction);
+        $paymentMock->method('canPushInvoice')->willReturn(($paymentAction == 'authorize' ? false : true));
 
         $currencyMock = $this->getFakeMock(Currency::class)->setMethods(['formatTxt'])->getMock();
         $currencyMock->expects($this->once())->method('formatTxt')->willReturn($textAmount);
