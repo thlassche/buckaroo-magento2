@@ -67,7 +67,21 @@ class OrderTest extends BaseTest
             ],
             'StartRecurrent' => 1,
             'Services' => [
-                'Service' => 'servicesString',
+                'Service' => [
+                    'Action' => 'actionstring'
+                ],
+            ],
+            'AdditionalParameters' => [
+                'AdditionalParameter' => [
+                    [
+                        '_'    => 'authorize_or_pay_or_reserve',
+                        'Name' => 'service_action_from_magento',
+                    ],
+                    [
+                        '_'    => 1,
+                        'Name' => 'initiated_by_magento',
+                    ]
+                ],
             ],
         ];
 
