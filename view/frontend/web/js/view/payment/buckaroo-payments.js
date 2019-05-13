@@ -77,6 +77,10 @@ define(
                 component: 'TIG_Buckaroo/js/view/payment/method-renderer/afterpay2'
             },
             {
+              type:  'tig_buckaroo_afterpay20',
+              component:  'TIG_Buckaroo/js/view/payment/method-renderer/afterpay20'
+            },
+            {
                 type: 'tig_buckaroo_payperemail',
                 component: 'TIG_Buckaroo/js/view/payment/method-renderer/payperemail'
             },
@@ -95,6 +99,10 @@ define(
             {
                 type: 'tig_buckaroo_creditcard',
                 component: 'TIG_Buckaroo/js/view/payment/method-renderer/creditcard'
+            },
+            {
+                type: 'tig_buckaroo_creditcards',
+                component: 'TIG_Buckaroo/js/view/payment/method-renderer/creditcards'
             },
             {
                 type: 'tig_buckaroo_transfer',

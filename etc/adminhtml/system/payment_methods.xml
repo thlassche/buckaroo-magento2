@@ -73,6 +73,8 @@
 
         <include path="TIG_Buckaroo::system/payment_methods/creditcard.xml"/>
 
+        <include path="TIG_Buckaroo::system/payment_methods/creditcards.xml"/>
+
         <include path="TIG_Buckaroo::system/payment_methods/paypal.xml"/>
 
         <include path="TIG_Buckaroo::system/payment_methods/transfer.xml"/>
@@ -104,6 +106,8 @@
         <include path="TIG_Buckaroo::system/payment_methods/klarna.xml"/>
 
         <include path="TIG_Buckaroo::system/payment_methods/emandate.xml"/>
+
+        <include path="TIG_Buckaroo::system/payment_methods/afterpay20.xml"/>
 
     </group>
 </include>

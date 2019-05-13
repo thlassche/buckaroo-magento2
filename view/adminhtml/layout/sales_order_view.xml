@@ -47,5 +47,6 @@
         <referenceBlock name="order_totals">
             <block class="TIG\Buckaroo\Block\Adminhtml\Sales\Totals" name="buckaroo_fee_totals"/>
         </referenceBlock>
+
     </body>
 </page>
