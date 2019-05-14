@@ -723,6 +723,10 @@
     font-weight: 300;
 }
 
+.card.styled .field select {
+    font-size: 12px;
+}
+
 /* Creditcards Front ================================================================================================ */
 
 .card.styled .card_front {
