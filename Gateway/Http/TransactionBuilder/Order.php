@@ -175,14 +175,14 @@ class Order extends AbstractTransactionBuilder
      */
     private function getAdditionalParameters()
     {
+        $parameterLine = [];
         if (isset($this->getServices()['Action'])) {
-            return  [
-                $this->getParameterLine('service_action_from_magento', strtolower($this->getServices()['Action'])),
-                $this->getParameterLine('initiated_by_magento', 1)
-            ];
+            $parameterLine[] = $this->getParameterLine('service_action_from_magento', strtolower($this->getServices()['Action']));
         }
 
-        return [];
+        $parameterLine[] = $this->getParameterLine('initiated_by_magento', 1);
+
+        return $parameterLine;
     }
 
     /**
